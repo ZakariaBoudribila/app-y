@@ -4,7 +4,11 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: 'https://app-y.vercel.app', // <-- Ton URL Vercel ici
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // Importation des routes
@@ -43,8 +47,8 @@ const requestedPort = process.env.PORT ? Number(process.env.PORT) : DEFAULT_PORT
 
 // Important en dev: le front (proxy Angular) cible un port fixe (3001).
 // Si on démarre sur 3002/3003 automatiquement, l'app casse. Donc on échoue clairement.
-const server = app.listen(requestedPort, () => {
-    console.log(`Serveur démarré sur http://localhost:${requestedPort}`);
+const server = app.listen(requestedPort, '0.0.0.0', () => {
+    console.log(`Serveur démarré et écoute sur le port ${requestedPort}`);
 });
 
 server.on('error', (err) => {
