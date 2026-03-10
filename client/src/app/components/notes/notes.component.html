@@ -1,0 +1,27 @@
+<div class="card-header">
+  <h3 class="card-title">Journal</h3>
+  <div class="floral-decor">📝</div>
+</div>
+
+<form class="journal-form" (ngSubmit)="saveEntry()">
+  <label class="field-label" for="journal">Écris ton journal</label>
+
+  <textarea
+    id="journal"
+    class="journal-text"
+    name="content"
+    [(ngModel)]="content"
+    rows="8"
+    placeholder="Écris ton journal ici...">
+  </textarea>
+
+  <div class="form-actions">
+    <button class="save-btn" type="submit" [disabled]="isSaving || isLoading">
+      {{ isSaving ? 'Sauvegarde...' : 'Sauvegarder' }}
+    </button>
+  </div>
+
+  <div *ngIf="savedMessage" class="saved">{{ savedMessage }}</div>
+</form>
+
+<div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>

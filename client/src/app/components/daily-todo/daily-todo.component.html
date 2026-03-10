@@ -1,0 +1,73 @@
+<div class="card-header">
+  <h3 class="card-title">Daily To-Do</h3>
+  <div class="floral-decor">🌸</div> 
+</div>
+
+<div class="task-list">
+  <div class="task-item" *ngFor="let task of tasks">
+    <label class="custom-checkbox">
+      <input
+        type="checkbox"
+        [checked]="task.is_completed"
+        (change)="toggleTask(task)">
+
+      <span class="checkmark"></span>
+    </label>
+
+    <div class="task-content">
+      <span
+        class="task-text"
+        [class.done]="task.is_completed"
+        *ngIf="editingTaskId !== task.id">
+        {{ task.description }}
+      </span>
+
+      <input
+        *ngIf="editingTaskId === task.id"
+        class="edit-input"
+        type="text"
+        [name]="'editTaskText' + task.id"
+        [(ngModel)]="editTaskText"
+        autocomplete="off" />
+    </div>
+
+    <div class="item-actions" *ngIf="editingTaskId !== task.id">
+      <button class="action-btn" type="button" (click)="startEdit(task)">Modifier</button>
+      <button
+        class="action-btn danger"
+        type="button"
+        [disabled]="deletingTaskId === task.id"
+        (click)="deleteTask(task)">
+        {{ deletingTaskId === task.id ? 'Suppression...' : 'Supprimer' }}
+      </button>
+    </div>
+
+    <div class="item-actions" *ngIf="editingTaskId === task.id">
+      <button
+        class="action-btn"
+        type="button"
+        [disabled]="isSavingEdit || !editTaskText.trim()"
+        (click)="saveEdit(task)">
+        {{ isSavingEdit ? 'Enregistrement...' : 'Enregistrer' }}
+      </button>
+      <button class="action-btn" type="button" [disabled]="isSavingEdit" (click)="cancelEdit()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div class="card-actions">
+  <form class="add-form" (ngSubmit)="addTask()">
+    <input
+      class="task-input"
+      type="text"
+      name="newTaskText"
+      [(ngModel)]="newTaskText"
+      placeholder="Nouvelle tâche..."
+      autocomplete="off">
+    <button class="add-btn" type="submit" [disabled]="isAdding || !newTaskText.trim()">
+      {{ isAdding ? 'Ajout...' : '+ Add Task' }}
+    </button>
+  </form>
+</div>
+
+<div class="inline-error" *ngIf="addErrorMessage">{{ addErrorMessage }}</div>

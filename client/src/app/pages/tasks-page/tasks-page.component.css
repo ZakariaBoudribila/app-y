@@ -1,0 +1,27 @@
+/* Layout global dans styles.css */
+
+.date-row {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 12px;
+}
+
+.date-row label {
+	color: var(--text-title);
+	font-weight: 600;
+}
+
+.date-row input {
+	padding: 10px 12px;
+	border: 1px solid var(--accent-color);
+	border-radius: 12px;
+	font-family: 'Nunito', sans-serif;
+	outline: none;
+	background-color: rgba(255, 255, 255, 0.7);
+}
+
+.date-row input:focus {
+	border-color: var(--text-title);
+	background-color: white;
+}

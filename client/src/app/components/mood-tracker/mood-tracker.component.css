@@ -1,0 +1,49 @@
+/* On réutilise le style d'en-tête de tes tâches */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  .card-title {
+    color: var(--text-title);
+    font-family: 'Great Vibes', cursive;
+    font-size: 2rem;
+    font-weight: normal;
+  }
+}
+
+.mood-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+
+.mood-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%; /* Fait un rond parfait */
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  
+  /* Un petit filtre gris quand ce n'est pas sélectionné, pour mettre en valeur le choix final */
+  filter: grayscale(40%); 
+
+  &:hover {
+    transform: scale(1.1);
+    filter: grayscale(0%);
+  }
+
+  &.active {
+    transform: scale(1.2); /* Grossit l'émoji sélectionné */
+    filter: grayscale(0%);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    border: 3px solid white; /* Petite bordure pour le faire ressortir */
+  }
+}

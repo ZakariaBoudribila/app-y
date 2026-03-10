@@ -1,0 +1,116 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Prend toute la hauteur de l'écran */
+  width: 100vw;
+  background-color: var(--bg-color);
+  background-image: var(--jasmine-pattern), url('https://www.transparenttextures.com/patterns/cream-paper.png');
+  background-repeat: repeat, repeat;
+  background-size: 120px 120px, auto;
+}
+
+.login-card {
+  background: var(--card-bg);
+  padding: 40px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-soft);
+  width: 400px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.title-cursive {
+  font-family: 'Great Vibes', cursive;
+  color: var(--text-title);
+  font-size: 3rem;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  color: var(--text-main);
+  margin-bottom: 30px;
+  font-family: 'Nunito', sans-serif;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  color: var(--text-title);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--accent-color);
+  border-radius: 10px;
+  font-family: 'Nunito', sans-serif;
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.input-field:focus {
+  border-color: var(--text-title);
+  background-color: white;
+}
+
+.submit-btn {
+  width: 100%;
+  background-color: var(--accent-color);
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: transform 0.2s, background 0.3s;
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.submit-btn:hover {
+  background-color: var(--text-title);
+  transform: translateY(-2px);
+}
+
+.error-message {
+  color: #d32f2f;
+  background-color: #ffcdd2;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+
+.field-error {
+  margin-top: 6px;
+  color: #d32f2f;
+  font-size: 0.85rem;
+}
+
+.switch-page {
+  margin-top: 20px;
+  font-size: 0.9rem;
+}
+
+.switch-page a {
+  color: var(--text-title);
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.switch-page a:hover {
+  text-decoration: underline;
+}

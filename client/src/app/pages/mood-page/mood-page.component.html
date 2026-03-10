@@ -1,0 +1,20 @@
+<app-header></app-header>
+
+<div class="app-layout">
+  <aside class="sidebar-container">
+    <app-sidebar></app-sidebar>
+  </aside>
+
+  <main class="main-content">
+    <h1 class="title-cursive">Le Journal de {{ userName }}</h1>
+
+    <div class="widget-card">
+      <div class="date-row">
+        <label for="moodDate">Date</label>
+        <input id="moodDate" type="date" [(ngModel)]="selectedDate" (ngModelChange)="onDateChange($event)">
+      </div>
+    </div>
+
+    <app-mood-tracker class="widget-card" [date]="selectedDate"></app-mood-tracker>
+  </main>
+</div>

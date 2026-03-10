@@ -1,0 +1,62 @@
+<div class="card-header">
+  <h3 class="card-title">{{ title }}</h3>
+  <div class="floral-decor">🎯</div>
+</div>
+
+<div class="task-list">
+  <div class="task-item" *ngFor="let goal of goals">
+    <label class="custom-checkbox">
+      <input type="checkbox" [checked]="goal.is_completed" (change)="toggleGoal(goal)">
+      <span class="checkmark"></span>
+    </label>
+
+    <div class="task-content">
+      <span class="task-text" [class.done]="goal.is_completed" *ngIf="editingGoalId !== goal.id">
+        {{ goal.description }}
+      </span>
+
+      <input
+        *ngIf="editingGoalId === goal.id"
+        class="edit-input"
+        type="text"
+        [name]="'editGoalText' + goal.id"
+        [(ngModel)]="editGoalText"
+        autocomplete="off" />
+    </div>
+
+    <div class="item-actions" *ngIf="editingGoalId !== goal.id">
+      <button class="action-btn" type="button" (click)="startEdit(goal)">Modifier</button>
+      <button
+        class="action-btn danger"
+        type="button"
+        [disabled]="deletingGoalId === goal.id"
+        (click)="deleteGoal(goal)">
+        {{ deletingGoalId === goal.id ? 'Suppression...' : 'Supprimer' }}
+      </button>
+    </div>
+
+    <div class="item-actions" *ngIf="editingGoalId === goal.id">
+      <button
+        class="action-btn"
+        type="button"
+        [disabled]="isSavingEdit || !editGoalText.trim()"
+        (click)="saveEdit(goal)">
+        {{ isSavingEdit ? 'Enregistrement...' : 'Enregistrer' }}
+      </button>
+      <button class="action-btn" type="button" [disabled]="isSavingEdit" (click)="cancelEdit()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div class="card-actions">
+  <form class="add-form" (ngSubmit)="addGoal()">
+    <input
+      class="goal-input"
+      type="text"
+      name="newGoalText"
+      [(ngModel)]="newGoalText"
+      placeholder="Nouvel objectif..."
+      autocomplete="off">
+    <button class="add-btn" type="submit" [disabled]="!newGoalText.trim()">+ Add Goal</button>
+  </form>
+</div>

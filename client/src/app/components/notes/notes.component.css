@@ -1,0 +1,89 @@
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+}
+
+.card-header .card-title {
+  color: var(--text-title);
+  font-family: 'Great Vibes', cursive;
+  font-size: 2rem;
+  font-weight: normal;
+}
+
+.card-header .floral-decor {
+  font-size: 1.5rem;
+  opacity: 0.7;
+}
+
+.journal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field-label {
+  color: var(--text-title);
+  font-weight: 600;
+}
+
+.journal-text {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--accent-color);
+  border-radius: 12px;
+  font-family: 'Nunito', sans-serif;
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.7);
+  resize: vertical;
+}
+
+.journal-text:focus {
+  border-color: var(--text-title);
+  background-color: white;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.save-btn {
+  background-color: var(--accent-color);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.save-btn:hover {
+  background-color: var(--text-title);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.error {
+  margin-top: 10px;
+  color: #c0392b;
+  font-size: 0.95rem;
+}
+
+.saved {
+  margin-top: 10px;
+  color: var(--text-title);
+  font-size: 0.95rem;
+  font-weight: 600;
+}

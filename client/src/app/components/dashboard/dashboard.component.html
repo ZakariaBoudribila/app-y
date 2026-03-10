@@ -1,0 +1,33 @@
+<app-header></app-header>
+
+<div class="app-layout">
+  
+  <aside class="sidebar-container">
+    <app-sidebar></app-sidebar>
+  </aside>
+
+  <main class="main-content">
+    
+    <h1 class="title-cursive">Le Journal de {{ userName }}</h1>
+
+    <div class="home-stack">
+      <div class="widget-card">
+        <div class="date-row">
+          <label for="homeDate">Date</label>
+          <input
+            id="homeDate"
+            type="date"
+            [(ngModel)]="selectedDate"
+            (ngModelChange)="onDateChange($event)">
+        </div>
+      </div>
+
+      <app-calendar-history
+        class="widget-card"
+        [date]="selectedDate"
+        (dateChange)="onDateChange($event)">
+      </app-calendar-history>
+    </div>
+  </main>
+
+</div>

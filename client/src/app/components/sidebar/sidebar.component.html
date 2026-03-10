@@ -1,0 +1,59 @@
+<div class="sidebar-content">
+  <div class="logo-area">
+    <h2>Menu</h2>
+  </div>
+
+  <nav class="sidebar-menu">
+    <a
+      [routerLink]="['/dashboard']"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="menu-item">
+      <span class="icon">🏠</span> Home
+    </a>
+
+    <a
+      [routerLink]="['/tasks']"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="menu-item">
+      <span class="icon">☑️</span> Tasks
+    </a>
+
+    <a
+      [routerLink]="['/mood']"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="menu-item">
+      <span class="icon">🌿</span> Mood
+    </a>
+
+    <a
+      [routerLink]="['/journal']"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="menu-item">
+      <span class="icon">📖</span> Journal
+    </a>
+
+    <a
+      [routerLink]="['/goals']"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="menu-item">
+      <span class="icon">🎯</span> Goals
+    </a>
+
+    <a
+      [routerLink]="['/history']"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="menu-item">
+      <span class="icon">🗓️</span> Historique
+    </a>
+    
+    <a (click)="logout()" class="menu-item logout-style" style="cursor: pointer;">
+      <span class="icon">🚪</span> Quitter
+    </a>
+  </nav>
+</div>

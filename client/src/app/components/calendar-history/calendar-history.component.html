@@ -1,0 +1,79 @@
+<div class="card-header">
+  <h3 class="card-title">Historique</h3>
+  <div class="floral-decor">🗓️</div>
+</div>
+
+<div class="calendar-toolbar">
+  <button class="nav-btn" (click)="prevMonth()" aria-label="Mois précédent">‹</button>
+  <div class="month-title">{{ monthTitle }}</div>
+  <button class="nav-btn" (click)="nextMonth()" aria-label="Mois suivant">›</button>
+</div>
+
+<div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+
+<div class="calendar">
+  <div class="weekdays">
+    <div class="weekday">L</div>
+    <div class="weekday">M</div>
+    <div class="weekday">M</div>
+    <div class="weekday">J</div>
+    <div class="weekday">V</div>
+    <div class="weekday">S</div>
+    <div class="weekday">D</div>
+  </div>
+
+  <div class="weeks">
+    <div class="week" *ngFor="let week of calendarGrid">
+      <button
+        *ngFor="let dayIso of week"
+        class="day"
+        [class.outside]="!isInCurrentMonth(dayIso)"
+        [class.selected]="dayIso === selectedDateIso"
+        [class.active]="hasActivity(dayIso)"
+        (click)="selectDay(dayIso)">
+        <span class="day-num">{{ dayIso | date:'d' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="details" *ngIf="!compact">
+  <div class="details-title">
+    {{ selectedDateIso | date:'fullDate' }}
+    <span class="badge" *ngIf="isFutureSelected">À venir</span>
+  </div>
+
+  <div class="meta">
+    <span *ngIf="(selectedSummary.tasks_total || 0) > 0">
+      Tâches: {{ selectedSummary.tasks_completed || 0 }}/{{ selectedSummary.tasks_total || 0 }}
+    </span>
+    <span *ngIf="selectedSummary.has_journal">Journal: oui</span>
+    <span *ngIf="moodScore !== null">Humeur: {{ moodScore }}/5</span>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Tâches</div>
+    <div *ngIf="tasks.length === 0" class="empty">Aucune tâche.</div>
+    <div *ngFor="let t of tasks" class="task-row">
+      <span class="check">{{ t.is_completed ? '✓' : '○' }}</span>
+      <span class="task-text" [class.done]="t.is_completed">{{ t.description }}</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Objectifs</div>
+    <div *ngIf="goals.length === 0" class="empty">Aucun objectif.</div>
+    <div *ngFor="let g of goals" class="task-row">
+      <span class="check">{{ g.is_completed ? '✓' : '○' }}</span>
+      <span class="task-text" [class.done]="g.is_completed">{{ g.description }}</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Journal</div>
+    <div *ngIf="!journalContent" class="empty">Aucune note.</div>
+    <div *ngIf="journalContent" class="journal">
+      {{ journalContent }}
+    </div>
+  </div>
+</div>

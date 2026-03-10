@@ -1,0 +1,33 @@
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: white;
+  border-bottom: 1px solid #eee;
+
+  .date-display {
+    color: #888;
+    font-size: 0.9rem;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+}
+
+.logout-btn {
+  cursor: pointer;
+  background: none;
+  border: 1px solid #ffadad;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: #ffadad;
+  
+  &:hover {
+    background: #ffadad;
+    color: white;
+  }
+}

@@ -1,0 +1,45 @@
+.app-layout {
+  display: flex;
+  width: 95vw;
+  max-width: 1400px;
+  height: 90vh;
+  gap: 30px;
+  padding: 20px;
+}
+
+.sidebar-container {
+  width: 250px;
+  flex-shrink: 0;
+  /* On applique le style de carte blanche à la sidebar aussi */
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-soft);
+  padding: 20px;
+}
+
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Permet de scroller si tu as beaucoup de contenu */
+  padding-right: 10px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 colonnes de taille égale */
+  gap: 30px;
+}
+
+.grid-col {
+  display: flex;
+  flex-direction: column;
+  gap: 30px; /* Espace entre les cartes d'une même colonne */
+}
+
+/* Petite adaptation pour les écrans plus petits (tablettes) */
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr; /* Passe sur 1 seule colonne */
+  }
+}
