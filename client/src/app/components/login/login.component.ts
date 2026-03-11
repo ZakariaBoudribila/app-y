@@ -54,7 +54,16 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isSubmitting = false;
-        this.errorMessage = "Identifiants incorrects";
+        if (err?.status === 405) {
+          this.errorMessage = "Erreur API (405) : URL API incorrecte (vérifie que tu utilises '/api').";
+          return;
+        }
+        if (err?.status === 0) {
+          this.errorMessage = "Serveur injoignable. Démarre le backend (port 3001) et réessaie.";
+          return;
+        }
+        const backendMessage = err?.error?.error || err?.error?.message;
+        this.errorMessage = backendMessage || "Identifiants incorrects";
       }
     });
   }

@@ -6,9 +6,12 @@ const app = express();
 
 app.use(cors({
   origin: '*', // On autorise tout le temps du test
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Répond explicitement aux preflights CORS
+app.options('*', cors());
 app.use(express.json());
 
 // Importation des routes
