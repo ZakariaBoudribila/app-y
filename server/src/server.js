@@ -5,7 +5,7 @@ const path = require('path');
 const app = express();
 
 app.use(cors({
-  origin: 'https://app-y.vercel.app', // <-- Ton URL Vercel ici
+  origin: '*', // On autorise tout le temps du test
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
