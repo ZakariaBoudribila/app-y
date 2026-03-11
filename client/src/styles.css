@@ -119,6 +119,52 @@ app-root {
   padding-right: 10px;
 }
 
+/* ================================
+   Mobile (téléphone)
+   ================================ */
+@media (max-width: 768px) {
+  body {
+    height: auto;
+    min-height: 100dvh;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 12px;
+  }
+
+  .app-layout {
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .sidebar-container {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .main-content {
+    overflow: visible;
+    padding-right: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .title-cursive {
+    font-size: 2.2rem;
+    margin-bottom: 12px;
+  }
+
+  /* Empêche le zoom auto iOS et améliore le touch */
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 16px;
+  }
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

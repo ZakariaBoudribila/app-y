@@ -1,12 +1,12 @@
 .sidebar-content {
-  height: 100vh;
-  background-color: #f8f9fa;
-  padding: 20px;
-  border-right: 1px solid #e0e0e0;
+  height: 100%;
+  background: transparent;
+  padding: 0;
+  border-right: none;
 }
 
 .logo-area h2 {
-  color: #333;
+  color: var(--text-title);
   font-size: 1.5rem;
   margin-bottom: 30px;
   padding-left: 10px;
@@ -23,14 +23,14 @@
   align-items: center;
   padding: 12px 15px;
   text-decoration: none;
-  color: #555;
+  color: var(--text-main);
   border-radius: 8px;
   transition: all 0.3s ease;
+  min-height: 44px;
 }
 
 .menu-item:hover {
-  background-color: #e9ecef;
-  color: #000;
+  background-color: rgba(248, 187, 208, 0.35);
 }
 
 /* La classe 'active' est gérée par Angular automatiquement */
@@ -48,4 +48,31 @@
 .logout-style {
   margin-top: 20px;
   color: #dc3545;
+}
+
+@media (max-width: 768px) {
+  .logo-area h2 {
+    margin-bottom: 12px;
+    padding-left: 0;
+    text-align: center;
+  }
+
+  .sidebar-menu {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .menu-item {
+    padding: 10px 12px;
+  }
+
+  .menu-item .icon {
+    margin-right: 8px;
+  }
+
+  .logout-style {
+    margin-top: 0;
+  }
 }
