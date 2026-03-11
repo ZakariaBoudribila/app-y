@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { FormBuilder, Validators } from '@angular/forms';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-register',
@@ -21,7 +22,8 @@ export class RegisterComponent {
   constructor(
     private api: ApiService,
     private router: Router,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private toast: ToastService
   ) {}
 
   get usernameCtrl() {
@@ -52,7 +54,7 @@ export class RegisterComponent {
       next: () => {
         // Une fois inscrit, on le renvoie vers la page de login
         this.isSubmitting = false;
-        alert('Inscription réussie ! Connecte-toi maintenant.');
+        this.toast.success('Inscription réussie ! Connecte-toi maintenant.', { title: 'Bienvenue' });
         this.router.navigate(['/login']);
       },
       error: (err) => {

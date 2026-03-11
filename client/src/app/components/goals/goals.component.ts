@@ -1,5 +1,6 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ApiService } from '../../services/api.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-goals',
@@ -20,7 +21,7 @@ export class GoalsComponent implements OnInit, OnChanges {
   isSavingEdit: boolean = false;
   deletingGoalId: number | null = null;
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private toast: ToastService) {}
 
   ngOnInit() {
     if (this.date) this.selectedDate = this.date;
@@ -69,13 +70,14 @@ export class GoalsComponent implements OnInit, OnChanges {
         const status = err?.status;
         const backendMessage = err?.error?.error || err?.error?.message;
         if (status === 401) {
-          alert("Session expirée ou invalide. Merci de te reconnecter.");
+          this.toast.warning('Session expirée ou invalide. Merci de te reconnecter.', { title: 'Authentification' });
           return;
         }
 
-        alert(
+        this.toast.error(
           `Impossible d'ajouter l'objectif (${status ?? 'erreur'}).` +
-          (backendMessage ? `\n${backendMessage}` : "\nVérifie la console (F12).")
+            (backendMessage ? `\n${backendMessage}` : "\nVérifie la console (F12)."),
+          { title: 'Erreur' }
         );
       }
     });
