@@ -29,6 +29,10 @@
   min-height: 44px;
 }
 
+.label {
+  line-height: 1;
+}
+
 .menu-item:hover {
   background-color: rgba(248, 187, 208, 0.35);
 }
@@ -58,18 +62,21 @@
   }
 
   .sidebar-menu {
-    flex-direction: row;
-    flex-wrap: wrap;
     gap: 8px;
-    justify-content: center;
   }
 
   .menu-item {
-    padding: 10px 12px;
+    padding: 12px;
+    justify-content: center;
   }
 
   .menu-item .icon {
-    margin-right: 8px;
+    margin-right: 0;
+    font-size: 1.35rem;
+  }
+
+  .label {
+    display: none;
   }
 
   .logout-style {
