@@ -1,48 +1,5 @@
-.app-layout {
-  display: flex;
-  width: 95vw;
-  max-width: 1400px;
-  height: 90vh;
-  gap: 30px;
-  padding: 20px;
-}
-
-.sidebar-container {
-  width: 250px;
-  flex-shrink: 0;
-  /* On applique le style de carte blanche à la sidebar aussi */
-  background: var(--card-bg);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-soft);
-  padding: 20px;
-}
-
-.main-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto; /* Permet de scroller si tu as beaucoup de contenu */
-  padding-right: 10px;
-}
-
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* 2 colonnes de taille égale */
-  gap: 30px;
-}
-
-.grid-col {
-  display: flex;
-  flex-direction: column;
-  gap: 30px; /* Espace entre les cartes d'une même colonne */
-}
-
-/* Petite adaptation pour les écrans plus petits (tablettes) */
-@media (max-width: 900px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr; /* Passe sur 1 seule colonne */
-  }
-}
+/* NOTE: Le layout (.app-layout/.sidebar-container/.main-content) est géré globalement
+   dans src/styles.css pour avoir le même rendu sur toutes les pages (et responsive). */
 
 /* Home: tout en une colonne (sans gauche/droite) */
 .home-stack {
@@ -114,6 +71,7 @@
 .preview-text {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   max-width: 75%;

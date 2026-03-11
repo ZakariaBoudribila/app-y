@@ -4,10 +4,7 @@
   align-items: center;
   height: 100vh; /* Prend toute la hauteur de l'écran */
   width: 100vw;
-  background-color: var(--bg-color);
-  background-image: var(--jasmine-pattern), url('https://www.transparenttextures.com/patterns/cream-paper.png');
-  background-repeat: repeat, repeat;
-  background-size: 120px 120px, auto;
+  background: transparent;
 }
 
 .login-card {
