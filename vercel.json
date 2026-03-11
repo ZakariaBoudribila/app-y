@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "installCommand": "cd client && npm ci",
+  "installCommand": "cd server && npm ci && cd ../client && npm ci",
   "buildCommand": "cd client && npm run build",
   "outputDirectory": "client/dist/client",
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/[...path]" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
