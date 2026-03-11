@@ -13,6 +13,20 @@ const pool = new Pool({
     ssl: process.env.PGSSLMODE === 'disable' ? false : (process.env.DATABASE_SSL === 'false' ? false : undefined),
 });
 
+function safeDbLabel() {
+    const raw = process.env.DATABASE_URL;
+    if (!raw) return '(DATABASE_URL manquant)';
+    try {
+        const url = new URL(raw);
+        // Ne pas logguer user/password.
+        const dbName = url.pathname?.replace(/^\//, '') || '(db inconnue)';
+        const host = url.host || '(host inconnu)';
+        return `${host}/${dbName}`;
+    } catch {
+        return '(DATABASE_URL invalide)';
+    }
+}
+
 let initPromise;
 
 async function init() {
@@ -62,7 +76,7 @@ async function init() {
         )
     `);
 
-    console.log('Connecté à PostgreSQL et tables initialisées.');
+    console.log(`Connecté à PostgreSQL (${safeDbLabel()}) et tables initialisées.`);
 }
 
 function ensureInit() {

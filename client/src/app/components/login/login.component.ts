@@ -37,7 +37,7 @@ export class LoginComponent {
 
     if (this.form.invalid) return;
 
-    const email = this.form.value.email ?? '';
+    const email = (this.form.value.email ?? '').trim().toLowerCase();
     const password = this.form.value.password ?? '';
 
     this.isSubmitting = true;
