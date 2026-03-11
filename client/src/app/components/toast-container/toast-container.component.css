@@ -27,7 +27,7 @@
   box-shadow: var(--shadow-soft);
   padding: 12px 12px;
 
-  border: 1px solid rgba(136, 14, 79, 0.18);
+  border: 1px solid var(--accent-color);
   backdrop-filter: blur(10px);
 }
 
@@ -68,35 +68,35 @@
 }
 
 .toast.is-success {
-  border-color: rgba(46, 125, 50, 0.25);
+  border-color: var(--accent-color);
 }
 
 .toast.is-success .toast-dot {
-  background: rgba(46, 125, 50, 0.9);
+  background: var(--accent-color);
 }
 
 .toast.is-error {
-  border-color: rgba(198, 40, 40, 0.25);
+  border-color: var(--text-title);
 }
 
 .toast.is-error .toast-dot {
-  background: rgba(198, 40, 40, 0.9);
+  background: var(--text-title);
 }
 
 .toast.is-warning {
-  border-color: rgba(245, 124, 0, 0.25);
+  border-color: var(--text-main);
 }
 
 .toast.is-warning .toast-dot {
-  background: rgba(245, 124, 0, 0.9);
+  background: var(--text-main);
 }
 
 .toast.is-info {
-  border-color: rgba(21, 101, 192, 0.25);
+  border-color: var(--text-main);
 }
 
 .toast.is-info .toast-dot {
-  background: rgba(21, 101, 192, 0.9);
+  background: var(--text-main);
 }
 
 @media (max-width: 768px) {

@@ -54,16 +54,33 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isSubmitting = false;
-        if (err?.status === 405) {
+
+        const status = err?.status;
+        const rawBackendMessage =
+          (typeof err?.error === 'string' ? err.error : null) ??
+          err?.error?.error ??
+          err?.error?.message ??
+          err?.message;
+        const backendMessage =
+          typeof rawBackendMessage === 'string' && rawBackendMessage.trim().startsWith('<')
+            ? null
+            : rawBackendMessage;
+
+        if (status === 405) {
           this.errorMessage = "Erreur API (405) : URL API incorrecte (vérifie que tu utilises '/api').";
           return;
         }
-        if (err?.status === 0) {
+        if (status === 0) {
           this.errorMessage = "Serveur injoignable. Démarre le backend (port 3001) et réessaie.";
           return;
         }
-        const backendMessage = err?.error?.error || err?.error?.message;
-        this.errorMessage = backendMessage || "Identifiants incorrects";
+        if (status === 404) {
+          this.errorMessage = backendMessage || "API introuvable (404). Vérifie l'URL backend configurée.";
+          return;
+        }
+
+        const base = backendMessage || "Identifiants incorrects";
+        this.errorMessage = typeof status === 'number' ? `${base} (HTTP ${status})` : base;
       }
     });
   }

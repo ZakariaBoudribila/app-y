@@ -9,7 +9,7 @@
   <button class="nav-btn" (click)="nextMonth()" aria-label="Mois suivant">›</button>
 </div>
 
-<div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+<div *ngIf="errorMessage" class="app-alert app-alert--error">{{ errorMessage }}</div>
 
 <div class="calendar">
   <div class="weekdays">

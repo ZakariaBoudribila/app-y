@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
@@ -11,7 +12,7 @@ app.use(cors({
 }));
 
 // Répond explicitement aux preflights CORS
-app.options('*', cors());
+app.options(/.*/, cors());
 app.use(express.json());
 
 // Importation des routes

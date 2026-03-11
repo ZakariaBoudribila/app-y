@@ -1,0 +1,80 @@
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+.confirm-backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--text-main);
+  opacity: 0.12;
+  backdrop-filter: blur(2px);
+  pointer-events: auto;
+}
+
+.confirm-shell {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  pointer-events: none;
+}
+
+.confirm-card {
+  pointer-events: auto;
+  width: min(460px, calc(100vw - 24px));
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--accent-color);
+  backdrop-filter: blur(10px);
+  padding: 16px;
+}
+
+.confirm-title {
+  font-weight: 900;
+  color: var(--text-title);
+  margin-bottom: 6px;
+}
+
+.confirm-message {
+  color: var(--text-main);
+  white-space: pre-line;
+  line-height: 1.35;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.btn {
+  background: transparent;
+  border: 1px solid var(--accent-color);
+  color: var(--text-title);
+  padding: 8px 12px;
+  border-radius: 16px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  background: var(--accent-color);
+  color: var(--card-bg);
+}
+
+.btn.primary {
+  background: var(--accent-color);
+  color: var(--card-bg);
+}
+
+.btn.primary:hover {
+  background: var(--text-title);
+}

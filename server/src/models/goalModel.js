@@ -3,7 +3,7 @@ const db = require('../config/database');
 const Goal = {
     createGoal: (userId, description, goalDate, callback) => {
         // On conserve la colonne type (NOT NULL) mais on standardise sur 'DATE'
-        const sql = `INSERT INTO goals (user_id, description, type, is_completed, goal_date) VALUES (?, ?, 'DATE', 0, ?)`;
+        const sql = `INSERT INTO goals (user_id, description, type, is_completed, goal_date) VALUES (?, ?, 'DATE', 0, ?) RETURNING id`;
         db.run(sql, [userId, description, goalDate], function(err) {
             callback(err, this ? this.lastID : null);
         });

@@ -21,7 +21,7 @@
     </button>
   </div>
 
-  <div *ngIf="savedMessage" class="saved">{{ savedMessage }}</div>
+  <div *ngIf="savedMessage" class="app-alert app-alert--success">{{ savedMessage }}</div>
 </form>
 
-<div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+<div *ngIf="errorMessage" class="app-alert app-alert--error">{{ errorMessage }}</div>

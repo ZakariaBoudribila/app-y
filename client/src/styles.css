@@ -94,6 +94,59 @@ app-root {
   z-index: 1;
 }
 
+/* ================================
+   Alerts (inline) – style global
+   ================================ */
+.app-alert {
+  display: grid;
+  grid-template-columns: 10px 1fr;
+  align-items: start;
+  gap: 10px;
+
+  background: var(--card-bg);
+  border-radius: calc(var(--border-radius) - 6px);
+  box-shadow: var(--shadow-soft);
+  padding: 10px 12px;
+
+  border: 1px solid var(--accent-color);
+  color: var(--text-main);
+  backdrop-filter: blur(10px);
+  white-space: pre-line;
+}
+
+.app-alert::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  margin-top: 4px;
+  background: var(--accent-color);
+}
+
+.app-alert--error {
+  border-color: var(--text-title);
+}
+
+.app-alert--error::before {
+  background: var(--text-title);
+}
+
+.app-alert--success {
+  border-color: var(--accent-color);
+}
+
+.app-alert--info {
+  border-color: var(--text-main);
+}
+
+.app-alert--info::before {
+  background: var(--text-main);
+}
+
+.app-alert--warning {
+  border-color: var(--text-main);
+}
+
 /* Layout réutilisé par les pages (dashboard + pages menu) */
 .app-layout {
   display: flex;

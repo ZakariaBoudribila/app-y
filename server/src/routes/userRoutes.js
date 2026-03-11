@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// DB partagée (journal.db) + tables initialisées dans src/config/database.js
+// DB partagée (PostgreSQL) + tables initialisées dans src/config/database.js
 const db = require('../config/database');
 
 const { SECRET_KEY } = require('../config/auth');

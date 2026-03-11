@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { Router } from '@angular/router';
+import { ConfirmService } from '../../services/confirm.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -11,13 +12,14 @@ export class SidebarComponent {
 
   constructor(
     private api: ApiService,
-    private router: Router
+    private router: Router,
+    private confirmService: ConfirmService
   ) {}
 
-  logout() {
-    if (confirm('Se déconnecter ?')) {
-      this.api.logout();
-      this.router.navigate(['/login']);
-    }
+  async logout() {
+    const ok = await this.confirmService.confirm('Se déconnecter ?', { title: 'Déconnexion' });
+    if (!ok) return;
+    this.api.logout();
+    this.router.navigate(['/login']);
   }
 }

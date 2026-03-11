@@ -18,6 +18,7 @@ import { RegisterComponent } from './components/register/register.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { CalendarHistoryComponent } from './components/calendar-history/calendar-history.component';
 import { ToastContainerComponent } from './components/toast-container/toast-container.component';
+import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
 import { TasksPageComponent } from './pages/tasks-page/tasks-page.component';
 import { JournalPageComponent } from './pages/journal-page/journal-page.component';
 import { MoodPageComponent } from './pages/mood-page/mood-page.component';
@@ -39,6 +40,7 @@ import { HistoryPageComponent } from './pages/history-page/history-page.componen
     DashboardComponent,
     CalendarHistoryComponent,
     ToastContainerComponent,
+    ConfirmDialogComponent,
     TasksPageComponent,
     JournalPageComponent,
     MoodPageComponent,

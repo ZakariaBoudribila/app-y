@@ -9,7 +9,7 @@ const TaskModel = {
 
     // Ajouter une nouvelle tâche
     createTask: (userId, description, date, callback) => {
-        const sql = `INSERT INTO tasks (user_id, description, is_completed, task_date) VALUES (?, ?, 0, ?)`;
+        const sql = `INSERT INTO tasks (user_id, description, is_completed, task_date) VALUES (?, ?, 0, ?) RETURNING id`;
         db.run(sql, [userId, description, date], function(err) {
             callback(err, this ? this.lastID : null);
         });

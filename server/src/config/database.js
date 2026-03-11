@@ -1,75 +1,120 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const { Pool } = require('pg');
 
-// Important: utiliser un chemin stable (sinon `./journal.db` dépend du cwd au démarrage)
-const dbPath = process.env.DATABASE_PATH
-    ? path.resolve(process.env.DATABASE_PATH)
-    : path.join(__dirname, '..', '..', 'journal.db');
+const MISSING_DATABASE_URL_MESSAGE =
+    "DATABASE_URL est manquant. Configure une base PostgreSQL (Neon/Supabase/Vercel Postgres) et définis DATABASE_URL dans tes variables d'environnement.";
 
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Erreur de connexion à la base SQLite :', err.message);
-    } else {
-        console.log('Connecté avec succès à la base de données SQLite.');
-        initialiserTables();
-    }
+if (!process.env.DATABASE_URL) {
+    console.error(MISSING_DATABASE_URL_MESSAGE);
+    // On n'auto-exit pas ici: certains outils importent ce fichier sans démarrer le serveur.
+}
+
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.PGSSLMODE === 'disable' ? false : (process.env.DATABASE_SSL === 'false' ? false : undefined),
 });
 
-function initialiserTables() {
-    db.serialize(() => {
-        // Activer le support des clés étrangères (obligatoire pour SQLite)
-        db.run("PRAGMA foreign_keys = ON");
+let initPromise;
 
-        // 1. Table Utilisateurs (Authentification)
-        db.run(`CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+async function init() {
+    if (!process.env.DATABASE_URL) return;
+    await pool.query('SELECT 1');
+
+    // Schéma compatible avec l'ancien SQLite.
+    // On garde is_completed en SMALLINT (0/1) pour éviter de toucher aux requêtes existantes.
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
             username TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL
-        )`);
+        )
+    `);
 
-        // 2. Table pour les tâches (Daily To-Do)
-        db.run(`CREATE TABLE IF NOT EXISTS tasks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             description TEXT NOT NULL,
-            is_completed INTEGER DEFAULT 0,
-            task_date DATE NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-        )`);
+            is_completed SMALLINT NOT NULL DEFAULT 0,
+            task_date DATE NOT NULL
+        )
+    `);
 
-        // 3. Table pour les objectifs (Weekly & Future Goals)
-        db.run(`CREATE TABLE IF NOT EXISTS goals (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS goals (
+            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             description TEXT NOT NULL,
             type TEXT NOT NULL,
-            is_completed INTEGER DEFAULT 0,
-            goal_date DATE,
-            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-        )`);
+            is_completed SMALLINT NOT NULL DEFAULT 0,
+            goal_date DATE
+        )
+    `);
 
-        // Migration légère: si une ancienne table goals existe sans goal_date
-        db.all(`PRAGMA table_info(goals)`, (err, cols) => {
-            if (err) return;
-            const hasGoalDate = Array.isArray(cols) && cols.some(c => c && c.name === 'goal_date');
-            if (hasGoalDate) return;
-            db.run(`ALTER TABLE goals ADD COLUMN goal_date DATE`, () => {});
-        });
-
-        // 4. Table pour le journal de bord (Notes, Journal & Mood Tracker)
-        db.run(`CREATE TABLE IF NOT EXISTS daily_entries (
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS daily_entries (
             entry_date DATE NOT NULL,
-            user_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             notes TEXT,
             journal_content TEXT,
             mood_score INTEGER,
-            PRIMARY KEY (entry_date, user_id),
-            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-        )`);
+            PRIMARY KEY (entry_date, user_id)
+        )
+    `);
 
-        console.log('Tables initialisées avec succès.');
-    });
+    console.log('Connecté à PostgreSQL et tables initialisées.');
 }
+
+function ensureInit() {
+    if (!initPromise) initPromise = init().catch((err) => {
+        console.error('Erreur init PostgreSQL:', err);
+        throw err;
+    });
+    return initPromise;
+}
+
+function convertPlaceholders(sql) {
+    let index = 0;
+    return sql.replace(/\?/g, () => `$${++index}`);
+}
+
+const db = {
+    all(sql, params, callback) {
+        if (!process.env.DATABASE_URL) {
+            callback(new Error(MISSING_DATABASE_URL_MESSAGE));
+            return;
+        }
+        ensureInit()
+            .then(() => pool.query(convertPlaceholders(sql), params))
+            .then((result) => callback(null, result.rows))
+            .catch((err) => callback(err));
+    },
+
+    get(sql, params, callback) {
+        if (!process.env.DATABASE_URL) {
+            callback(new Error(MISSING_DATABASE_URL_MESSAGE));
+            return;
+        }
+        ensureInit()
+            .then(() => pool.query(convertPlaceholders(sql), params))
+            .then((result) => callback(null, result.rows[0]))
+            .catch((err) => callback(err));
+    },
+
+    run(sql, params, callback) {
+        if (!process.env.DATABASE_URL) {
+            callback.call({ lastID: null }, new Error(MISSING_DATABASE_URL_MESSAGE));
+            return;
+        }
+        ensureInit()
+            .then(() => pool.query(convertPlaceholders(sql), params))
+            .then((result) => {
+                const lastID = result?.rows?.[0]?.id ?? null;
+                // Simule sqlite3: callback appelé avec un `this.lastID`.
+                callback.call({ lastID }, null);
+            })
+            .catch((err) => callback.call({ lastID: null }, err));
+    }
+};
 
 module.exports = db;

@@ -59,16 +59,33 @@ export class RegisterComponent {
       },
       error: (err) => {
         this.isSubmitting = false;
-        const backendMessage = err?.error?.error || err?.error?.message;
-        if (err?.status === 405) {
+
+        const status = err?.status;
+        const rawBackendMessage =
+          (typeof err?.error === 'string' ? err.error : null) ??
+          err?.error?.error ??
+          err?.error?.message ??
+          err?.message;
+        const backendMessage =
+          typeof rawBackendMessage === 'string' && rawBackendMessage.trim().startsWith('<')
+            ? null
+            : rawBackendMessage;
+
+        if (status === 405) {
           this.errorMessage = "Erreur API (405) : URL API incorrecte (vérifie que tu utilises '/api').";
           return;
         }
-        if (err?.status === 0) {
+        if (status === 0) {
           this.errorMessage = "Serveur injoignable. Démarre le backend (port 3001) et réessaie.";
           return;
         }
-        this.errorMessage = backendMessage || "Erreur lors de l'inscription.";
+        if (status === 404) {
+          this.errorMessage = backendMessage || "API introuvable (404). Vérifie l'URL backend configurée.";
+          return;
+        }
+
+        const base = backendMessage || "Erreur lors de l'inscription.";
+        this.errorMessage = typeof status === 'number' ? `${base} (HTTP ${status})` : base;
       }
     });
   }
