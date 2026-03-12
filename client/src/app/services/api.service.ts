@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { TokenService } from './token.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,12 +11,15 @@ export class ApiService {
   // Base URL API (en dev: proxy Angular -> http://localhost:3000)
   private baseUrl = environment.apiBaseUrl;
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private tokenService: TokenService
+  ) { }
 
   // --- GESTION DU TOKEN ---
   // On récupère le token et on le met dans le header Authorization
   private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('journal_token');
+    const token = this.tokenService.getToken();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json'
     };
@@ -35,6 +39,11 @@ export class ApiService {
 
   login(email: string, password: string): Observable<any> {
     return this.http.post(`${this.baseUrl}/users/login`, { email, password });
+  }
+
+  // Nouveau: logout côté serveur (révoque refresh cookie)
+  logoutRequest(): Observable<any> {
+    return this.http.post(`${this.baseUrl}/auth/logout`, {}, { withCredentials: true });
   }
 
   // ==========================================
@@ -128,16 +137,17 @@ export class ApiService {
   // UTILITAIRES DE SESSION
   // ==========================================
 
+  // (Compat) utilisé par LoginComponent
   saveToken(token: string) {
-    localStorage.setItem('journal_token', token);
+    this.tokenService.setToken(token);
   }
 
   isLoggedIn(): boolean {
-    return !!localStorage.getItem('journal_token');
+    return !!this.tokenService.getToken();
   }
 
   logout() {
-    localStorage.removeItem('journal_token');
+    this.tokenService.clearToken();
     localStorage.removeItem('user_name');
   }
 }

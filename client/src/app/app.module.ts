@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
@@ -24,6 +24,8 @@ import { JournalPageComponent } from './pages/journal-page/journal-page.componen
 import { MoodPageComponent } from './pages/mood-page/mood-page.component';
 import { GoalsPageComponent } from './pages/goals-page/goals-page.component';
 import { HistoryPageComponent } from './pages/history-page/history-page.component';
+
+import { AuthInterceptor } from './services/auth.interceptor';
 
 
 @NgModule({
@@ -55,7 +57,13 @@ import { HistoryPageComponent } from './pages/history-page/history-page.componen
     CommonModule,
     AppRoutingModule
   ],
-  providers: [],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true,
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
