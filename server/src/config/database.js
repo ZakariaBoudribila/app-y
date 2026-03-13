@@ -137,17 +137,18 @@ const db = {
 
     run(sql, params, callback) {
         if (!process.env.DATABASE_URL) {
-            callback.call({ lastID: null }, new Error(MISSING_DATABASE_URL_MESSAGE));
+                callback.call({ lastID: null, changes: 0 }, new Error(MISSING_DATABASE_URL_MESSAGE));
             return;
         }
         ensureInit()
             .then(() => pool.query(convertPlaceholders(sql), params))
             .then((result) => {
                 const lastID = result?.rows?.[0]?.id ?? null;
+                    const changes = typeof result?.rowCount === 'number' ? result.rowCount : 0;
                 // Simule sqlite3: callback appelé avec un `this.lastID`.
-                callback.call({ lastID }, null);
+                    callback.call({ lastID, changes }, null);
             })
-            .catch((err) => callback.call({ lastID: null }, err));
+                .catch((err) => callback.call({ lastID: null, changes: 0 }, err));
     }
 };
 
