@@ -38,7 +38,7 @@ export class ApiService {
   }
 
   login(email: string, password: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/users/login`, { email, password });
+    return this.http.post(`${this.baseUrl}/users/login`, { email, password }, { withCredentials: true });
   }
 
   // Nouveau: logout côté serveur (révoque refresh cookie)
