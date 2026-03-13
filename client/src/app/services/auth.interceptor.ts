@@ -10,7 +10,7 @@ import {
 import { Observable, throwError } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 
-import { environment } from '../../environments/environment';
+import { environment } from '../../environments/environment.prod';
 import { TokenService } from './token.service';
 
 type RefreshResponse = { accessToken: string };
