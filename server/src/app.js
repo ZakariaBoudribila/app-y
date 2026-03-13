@@ -13,13 +13,44 @@ const historyRoutes = require('./routes/historyRoutes');
 
 const app = express();
 
+function parseCorsOrigins() {
+  const raw = process.env.CORS_ORIGINS;
+  if (!raw) return [];
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+const explicitAllowedOrigins = new Set([
+  'http://localhost:4200',
+  'http://localhost:3000',
+  'https://app-y.vercel.app',
+  ...parseCorsOrigins(),
+]);
+
+function isAllowedVercelPreview(origin) {
+  // Autorise les previews Vercel du projet (ex: https://app-y-git-xxx.vercel.app)
+  return /^https:\/\/app-y(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(origin);
+}
+
 const corsOptions = {
-  // Nécessaire si on veut que le refresh token cookie fonctionne correctement.
-  // En dev avec proxy Angular, c'est généralement same-origin côté navigateur.
-  origin: true,
+  // Obligatoire si on veut envoyer/recevoir le cookie refresh (withCredentials).
+  // IMPORTANT: avec credentials, Access-Control-Allow-Origin ne doit jamais être '*'.
+  origin(origin, callback) {
+    // Origin peut être absent pour des appels serveur-à-serveur / curl.
+    if (!origin) return callback(null, true);
+
+    if (explicitAllowedOrigins.has(origin) || isAllowedVercelPreview(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS: origin not allowed: ${origin}`));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 204,
 };
 
 app.use(cors(corsOptions));

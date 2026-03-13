@@ -14,12 +14,25 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function refreshCookieOptions() {
   const maxAge = getRefreshTtlMs();
+  const sameSite = (process.env.COOKIE_SAME_SITE || (process.env.NODE_ENV === 'production' ? 'none' : 'lax')).toLowerCase();
+  // Chrome bloque SameSite=None sans Secure.
+  const secure = process.env.COOKIE_SECURE === 'true' || sameSite === 'none';
+
   return {
     httpOnly: true,
-    secure: process.env.COOKIE_SECURE === 'true',
-    sameSite: process.env.COOKIE_SAME_SITE || 'strict',
+    secure,
+    sameSite,
+    path: '/',
+    domain: process.env.COOKIE_DOMAIN || undefined,
     maxAge,
   };
+}
+
+function refreshCookieClearOptions() {
+  const opts = refreshCookieOptions();
+  // clearCookie ne doit pas avoir maxAge (elle met l'expiration à une date passée)
+  delete opts.maxAge;
+  return opts;
 }
 
 function normalizeEmail(email) {
@@ -159,13 +172,13 @@ async function refresh(req, res) {
 
     const rotated = await rotateRefreshToken(rawRefresh);
     if (!rotated.ok) {
-      res.clearCookie('refreshToken');
+      res.clearCookie('refreshToken', refreshCookieClearOptions());
       return res.status(rotated.status).json({ message: rotated.message });
     }
 
     const user = await UserModel.findById(rotated.userId);
     if (!user) {
-      res.clearCookie('refreshToken');
+      res.clearCookie('refreshToken', refreshCookieClearOptions());
       return res.status(401).json({ message: 'User not found.' });
     }
 
@@ -186,7 +199,7 @@ async function logout(req, res) {
 
     if (rawRefresh) {
       await RefreshTokenModel.deleteByTokenHash(hashToken(rawRefresh));
-      res.clearCookie('refreshToken');
+      res.clearCookie('refreshToken', refreshCookieClearOptions());
     }
 
     return res.status(200).json({ message: 'Logged out.' });
