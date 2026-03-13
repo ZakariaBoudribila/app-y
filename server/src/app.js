@@ -14,7 +14,7 @@ const historyRoutes = require('./routes/historyRoutes');
 const app = express();
 
 function parseCorsOrigins() {
-  const raw = process.env.CORS_ORIGINS;
+  const raw = process.env.CORS_ORIGINS || process.env.CORS_ORIGIN;
   if (!raw) return [];
   return raw
     .split(',')
