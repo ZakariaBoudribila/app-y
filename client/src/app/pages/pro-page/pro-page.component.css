@@ -185,6 +185,120 @@
   transition: transform 0.2s, background 0.3s;
 }
 
+/* =============================
+   PDF (hors écran)
+   ============================= */
+.pdf-root {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: 794px; /* ~A4 @ 96dpi */
+  background: #fff;
+}
+
+.pdf-surface {
+  width: 794px;
+  padding: 28px;
+  background: #fff;
+  color: var(--text-main);
+  font-family: 'Nunito', sans-serif;
+}
+
+.pdf-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--accent-color);
+}
+
+.pdf-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--text-title);
+}
+
+.pdf-subtitle {
+  font-size: 12px;
+  color: var(--text-main);
+  opacity: 0.85;
+}
+
+.pdf-section {
+  margin-top: 14px;
+}
+
+.pdf-h2 {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--text-title);
+  margin-bottom: 8px;
+}
+
+.pdf-text {
+  white-space: pre-wrap;
+  line-height: 1.45;
+  font-size: 12px;
+}
+
+.pdf-muted {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.pdf-item {
+  padding: 10px 12px;
+  border: 1px solid var(--accent-color);
+  border-radius: 14px;
+  margin-bottom: 10px;
+}
+
+.pdf-item-title {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--text-main);
+}
+
+.pdf-item-sub {
+  font-weight: 800;
+}
+
+.pdf-sep {
+  margin: 0 8px;
+  opacity: 0.7;
+}
+
+.pdf-meta {
+  font-size: 11px;
+  opacity: 0.8;
+  margin-top: 2px;
+  margin-bottom: 6px;
+}
+
+.pdf-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.pdf-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pdf-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-color);
+  font-size: 11px;
+}
+
 .pro-btn:hover {
   background: var(--text-title);
   transform: translateY(-1px);

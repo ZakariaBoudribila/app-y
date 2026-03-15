@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { ConfirmService } from '../../services/confirm.service';
@@ -19,6 +19,28 @@ type EducationFormValue = {
   description: string;
 };
 
+type PdfExperience = {
+  title: string;
+  company: string;
+  period: string;
+  description: string;
+};
+
+type PdfEducation = {
+  school: string;
+  degree: string;
+  period: string;
+  description: string;
+};
+
+type CvPdfViewModel = {
+  aboutMe: string;
+  experiences: PdfExperience[];
+  education: PdfEducation[];
+  languages: string[];
+  software: string[];
+};
+
 @Component({
   selector: 'app-pro-page',
   templateUrl: './pro-page.component.html',
@@ -28,9 +50,15 @@ export class ProPageComponent {
   isLoading = true;
   isSaving = false;
   isEditing = false;
+  isExportingPdf = false;
   errorMessage = '';
 
   private lastLoadedProfile: ProfessionalProfile | null = null;
+
+  pdfVm: CvPdfViewModel | null = null;
+  pdfGeneratedAt: Date | null = null;
+
+  @ViewChild('pdfContent') private pdfContentRef?: ElementRef<HTMLElement>;
 
   languageInput = '';
   softwareInput = '';
@@ -325,5 +353,102 @@ export class ProPageComponent {
         this.errorMessage = typeof msg === 'string' ? msg : `Erreur sauvegarde profil (HTTP ${status || '?'})`;
       },
     });
+  }
+
+  private cleanCvForPdf(profile: ProfessionalProfile): CvPdfViewModel {
+    const trim = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+
+    const experiences = (profile.experiences || [])
+      .map((x) => ({
+        title: trim((x as any)?.title),
+        company: trim((x as any)?.company),
+        period: trim((x as any)?.period),
+        description: trim((x as any)?.description),
+      }))
+      .filter((x) => x.title || x.company || x.period || x.description);
+
+    const education = (profile.education || [])
+      .map((x) => ({
+        school: trim((x as any)?.school),
+        degree: trim((x as any)?.degree),
+        period: trim((x as any)?.period),
+        description: trim((x as any)?.description),
+      }))
+      .filter((x) => x.school || x.degree || x.period || x.description);
+
+    return {
+      aboutMe: trim(profile.aboutMe),
+      experiences,
+      education,
+      languages: this.normalizeStringArray(profile.languages),
+      software: this.normalizeStringArray(profile.software),
+    };
+  }
+
+  private async waitForPdfDomRender() {
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  }
+
+  async downloadPdf() {
+    if (this.isLoading || this.isSaving || this.isExportingPdf) return;
+
+    this.errorMessage = '';
+    this.isExportingPdf = true;
+
+    try {
+      const [{ default: html2canvas }, { default: JsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ]);
+
+      const source = this.cleanCvForPdf(this.getPayloadFromForm());
+      this.pdfVm = source;
+      this.pdfGeneratedAt = new Date();
+
+      await this.waitForPdfDomRender();
+
+      const el = this.pdfContentRef?.nativeElement;
+      if (!el) throw new Error('Contenu PDF introuvable.');
+
+      const canvas = await html2canvas(el, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new JsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let y = 0;
+      let remaining = imgHeight;
+
+      // On dessine la même image avec un offset Y pour simuler la pagination.
+      while (remaining > 0) {
+        pdf.addImage(imgData, 'PNG', 0, y, imgWidth, imgHeight);
+        remaining -= pageHeight;
+
+        if (remaining > 0) {
+          pdf.addPage();
+          y -= pageHeight;
+        }
+      }
+
+      pdf.save('cv-pro.pdf');
+      this.toast.success('CV téléchargé (PDF).', { title: 'Espace Pro' });
+    } catch (e: any) {
+      const msg = typeof e?.message === 'string' ? e.message : 'Erreur génération PDF.';
+      this.toast.error(msg, { title: 'Espace Pro' });
+    } finally {
+      this.isExportingPdf = false;
+      this.pdfVm = null;
+      this.pdfGeneratedAt = null;
+    }
   }
 }

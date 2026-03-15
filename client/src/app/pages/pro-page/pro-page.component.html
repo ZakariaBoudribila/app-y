@@ -12,6 +12,10 @@
         <div class="actions">
           <button class="pro-btn" type="button" (click)="refresh()" [disabled]="isLoading || isSaving">Rafraîchir</button>
 
+          <button class="pro-btn" type="button" (click)="downloadPdf()" [disabled]="isLoading || isSaving || isExportingPdf">
+            {{ isExportingPdf ? 'Génération PDF…' : 'Télécharger CV (PDF)' }}
+          </button>
+
           <ng-container *ngIf="!isEditing; else editingActions">
             <button class="pro-btn" type="button" (click)="startEdit()" [disabled]="isLoading || isSaving">Modifier</button>
           </ng-container>
@@ -153,6 +157,72 @@
       </section>
     </div>
       </form>
+
+      <!-- Rendu dédié PDF (hors écran) -->
+      <div class="pdf-root" *ngIf="pdfVm" aria-hidden="true">
+        <div class="pdf-surface" #pdfContent>
+          <div class="pdf-header">
+            <div class="pdf-title">CV — Espace Pro</div>
+            <div class="pdf-subtitle" *ngIf="pdfGeneratedAt as d">Généré le {{ d | date: 'dd/MM/yyyy' }}</div>
+          </div>
+
+          <div class="pdf-section">
+            <div class="pdf-h2">À propos</div>
+            <div class="pdf-text" *ngIf="pdfVm.aboutMe; else noAbout">{{ pdfVm.aboutMe }}</div>
+            <ng-template #noAbout>
+              <div class="pdf-muted">—</div>
+            </ng-template>
+          </div>
+
+          <div class="pdf-section" *ngIf="(pdfVm.experiences?.length || 0) > 0">
+            <div class="pdf-h2">Expériences</div>
+            <div class="pdf-item" *ngFor="let exp of pdfVm.experiences">
+              <div class="pdf-item-title">
+                {{ exp.title || '—' }}
+                <span class="pdf-sep" *ngIf="exp.company">•</span>
+                <span class="pdf-item-sub" *ngIf="exp.company">{{ exp.company }}</span>
+              </div>
+              <div class="pdf-meta" *ngIf="exp.period">{{ exp.period }}</div>
+              <div class="pdf-text" *ngIf="exp.description">{{ exp.description }}</div>
+            </div>
+          </div>
+
+          <div class="pdf-section" *ngIf="(pdfVm.education?.length || 0) > 0">
+            <div class="pdf-h2">Éducation</div>
+            <div class="pdf-item" *ngFor="let edu of pdfVm.education">
+              <div class="pdf-item-title">
+                {{ edu.school || '—' }}
+                <span class="pdf-sep" *ngIf="edu.degree">•</span>
+                <span class="pdf-item-sub" *ngIf="edu.degree">{{ edu.degree }}</span>
+              </div>
+              <div class="pdf-meta" *ngIf="edu.period">{{ edu.period }}</div>
+              <div class="pdf-text" *ngIf="edu.description">{{ edu.description }}</div>
+            </div>
+          </div>
+
+          <div class="pdf-grid">
+            <div class="pdf-section">
+              <div class="pdf-h2">Langues</div>
+              <div class="pdf-tags" *ngIf="(pdfVm.languages?.length || 0) > 0; else noLang">
+                <span class="pdf-tag" *ngFor="let l of pdfVm.languages">{{ l }}</span>
+              </div>
+              <ng-template #noLang>
+                <div class="pdf-muted">—</div>
+              </ng-template>
+            </div>
+
+            <div class="pdf-section">
+              <div class="pdf-h2">Logiciels</div>
+              <div class="pdf-tags" *ngIf="(pdfVm.software?.length || 0) > 0; else noSoft">
+                <span class="pdf-tag" *ngFor="let s of pdfVm.software">{{ s }}</span>
+              </div>
+              <ng-template #noSoft>
+                <div class="pdf-muted">—</div>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 </div>
