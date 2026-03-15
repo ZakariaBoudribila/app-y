@@ -28,41 +28,28 @@ function normalizeJsonArray(value) {
   return [];
 }
 
-const ProfileModel = {
-  async getProfile(userId) {
+const UserProfileModel = {
+  async getByUserId(userId) {
     const sql = `
       SELECT user_id, about_me, experiences, education, languages, software, phone, address, linkedin
       FROM user_profiles
       WHERE user_id = ?
     `;
-
-    const row = await dbGet(sql, [userId]);
-    if (row) return row;
-
-    // Fallback: ancienne table `profiles` (si des données existent déjà en base)
-    const legacySql = `
-      SELECT user_id, about_me, experiences, education, languages, software, phone, address, linkedin
-      FROM profiles
-      WHERE user_id = ?
-    `;
-    const legacy = await dbGet(legacySql, [userId]);
-    if (!legacy) return null;
-
-    // Copie best-effort vers user_profiles
-    try {
-      await this.upsertProfile(userId, legacy);
-      return dbGet(sql, [userId]);
-    } catch {
-      return legacy;
-    }
+    return dbGet(sql, [userId]);
   },
 
-  async upsertProfile(userId, data) {
-    const aboutMe = typeof data?.about_me === 'string' ? data.about_me : (typeof data?.aboutMe === 'string' ? data.aboutMe : null);
+  async upsert(userId, data) {
+    const aboutMe =
+      typeof data?.about_me === 'string'
+        ? data.about_me
+        : (typeof data?.aboutMe === 'string' ? data.aboutMe : null);
+
     const experiences = normalizeJsonArray(data?.experiences);
     const education = normalizeJsonArray(data?.education);
     const languages = normalizeTextArray(data?.languages);
     const software = normalizeTextArray(data?.software);
+
+    // Champs optionnels (compat)
     const phone = typeof data?.phone === 'string' ? data.phone.trim() : null;
     const address = typeof data?.address === 'string' ? data.address.trim() : null;
     const linkedin = typeof data?.linkedin === 'string' ? data.linkedin.trim() : null;
@@ -94,8 +81,14 @@ const ProfileModel = {
       linkedin,
     ]);
 
-    return this.getProfile(userId);
+    return this.getByUserId(userId);
+  },
+
+  async deleteByUserId(userId) {
+    const sql = `DELETE FROM user_profiles WHERE user_id = ?`;
+    await dbRun(sql, [userId]);
+    return true;
   },
 };
 
-module.exports = ProfileModel;
+module.exports = UserProfileModel;

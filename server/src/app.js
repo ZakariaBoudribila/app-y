@@ -11,6 +11,8 @@ const authRoutes = require('./routes/authRoutes');
 const goalRoutes = require('./routes/goalRoutes');
 const historyRoutes = require('./routes/historyRoutes');
 const profileRoutes = require('./routes/profileRoutes');
+const userProfileRoutes = require('./routes/userProfileRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 const app = express();
 
@@ -67,6 +69,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/user-profile', userProfileRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ ok: true });

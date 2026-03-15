@@ -322,7 +322,7 @@ export class ProPageComponent {
 
     // Infos utilisateur (nom/prénom/photo/email) pour l'en-tête du CV.
     this.api.getMe().subscribe({
-      next: (resp) => {
+        next: (resp) => {
         const u = resp?.user as any;
         const first = typeof u?.first_name === 'string' ? u.first_name.trim() : '';
         const last = typeof u?.last_name === 'string' ? u.last_name.trim() : '';
@@ -371,7 +371,7 @@ export class ProPageComponent {
 
     const payload = this.getPayloadFromForm();
 
-    this.api.saveProfile(payload).subscribe({
+      this.api.updateProfile(payload).subscribe({
       next: (resp) => {
         this.isSaving = false;
 

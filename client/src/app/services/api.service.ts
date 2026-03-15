@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { TokenService } from './token.service';
 import { ProfessionalProfile } from '../models/professional-profile';
+import { UserProfile } from '../models/cv.model';
 
 @Injectable({
   providedIn: 'root'
@@ -54,7 +55,7 @@ export class ApiService {
     );
   }
 
-  updateProfile(firstName: string, lastName: string, avatarDataUrl?: string | null): Observable<{ user: any }> {
+  updateAccountProfile(firstName: string, lastName: string, avatarDataUrl?: string | null): Observable<{ user: any }> {
     return this.http.put<{ user: any }>(
       `${this.baseUrl}/auth/profile`,
       { firstName, lastName, avatarDataUrl: avatarDataUrl ?? null },
@@ -78,8 +79,26 @@ export class ApiService {
     return this.http.get<{ profile: ProfessionalProfile }>(`${this.baseUrl}/profile`, { headers: this.getHeaders() });
   }
 
-  saveProfile(data: ProfessionalProfile): Observable<{ profile: ProfessionalProfile }> {
+  // POST /api/profile (upsert)
+  updateProfile(data: UserProfile | ProfessionalProfile): Observable<{ profile: ProfessionalProfile }> {
     return this.http.post<{ profile: ProfessionalProfile }>(`${this.baseUrl}/profile`, data, { headers: this.getHeaders() });
+  }
+
+  // Alias compat si du code existant l'utilise encore
+  saveProfile(data: ProfessionalProfile): Observable<{ profile: ProfessionalProfile }> {
+    return this.updateProfile(data);
+  }
+
+  // ==========================================
+  // NOUVEAU: user_profiles
+  // ==========================================
+
+  getUserProfile(): Observable<{ profile: UserProfile }> {
+    return this.http.get<{ profile: UserProfile }>(`${this.baseUrl}/user-profile`, { headers: this.getHeaders() });
+  }
+
+  updateUserProfile(data: UserProfile): Observable<{ profile: UserProfile }> {
+    return this.http.post<{ profile: UserProfile }>(`${this.baseUrl}/user-profile`, data, { headers: this.getHeaders() });
   }
 
   // ==========================================

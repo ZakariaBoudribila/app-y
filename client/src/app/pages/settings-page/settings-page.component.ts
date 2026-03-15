@@ -206,7 +206,7 @@ export class SettingsPageComponent implements OnInit {
 
     this.isSavingProfile = true;
     try {
-      const resp = await firstValueFrom(this.api.updateProfile(firstName, lastName, avatarDataUrl));
+      const resp = await firstValueFrom(this.api.updateAccountProfile(firstName, lastName, avatarDataUrl));
       this.me = resp?.user ?? this.me;
       this.avatarPreviewUrl = (this.me?.avatar_data_url ?? null) || null;
       this.pendingAvatarDataUrl = undefined;

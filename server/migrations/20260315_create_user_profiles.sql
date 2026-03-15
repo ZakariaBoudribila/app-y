@@ -1,4 +1,5 @@
--- Migration: create profiles table (Profil Pro)
+-- Crée la table user_profiles (profil CV de l'utilisateur)
+-- Colonnes demandées: user_id (unique), about_me (text), experiences (jsonb), education (jsonb), languages (text[]), software (text[])
 
 BEGIN;
 
@@ -19,7 +20,7 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_data_url TEXT;
 
-CREATE TABLE IF NOT EXISTS profiles (
+CREATE TABLE IF NOT EXISTS user_profiles (
   user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   about_me TEXT,
   experiences JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -32,8 +33,8 @@ CREATE TABLE IF NOT EXISTS profiles (
 );
 
 -- Si la table existait déjà (anciens schémas), on s'assure des colonnes contact.
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT;
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS address TEXT;
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS linkedin TEXT;
+ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS linkedin TEXT;
 
 COMMIT;

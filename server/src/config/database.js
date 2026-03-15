@@ -123,6 +123,23 @@ async function init() {
         )
     `);
 
+    // Nouveau: user_profiles (profil CV pour IA / espace pro)
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS user_profiles (
+            user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+            about_me TEXT,
+            experiences JSONB NOT NULL DEFAULT '[]'::jsonb,
+            education JSONB NOT NULL DEFAULT '[]'::jsonb,
+            languages TEXT[] NOT NULL DEFAULT ARRAY[]::text[],
+            software TEXT[] NOT NULL DEFAULT ARRAY[]::text[]
+        )
+    `);
+
+    // (Compat) champs contact si on décide de les stocker dans user_profiles aussi
+    await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS phone TEXT`);
+    await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS address TEXT`);
+    await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS linkedin TEXT`);
+
     // Champs contact du CV (ajouts non destructifs)
     await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT`);
     await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS address TEXT`);

@@ -1,0 +1,67 @@
+.pro-space {
+  width: 100%;
+}
+
+.state {
+  margin: 8px 0;
+}
+
+.error {
+  margin: 8px 0;
+}
+
+.field {
+  display: block;
+  margin: 12px 0;
+}
+
+.field span {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.section {
+  margin-top: 16px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.items {
+  display: grid;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.item {
+  padding: 10px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.actions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.footer {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}

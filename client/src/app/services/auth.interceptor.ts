@@ -31,9 +31,14 @@ export class AuthInterceptor implements HttpInterceptor {
     const token = this.tokenService.getToken();
     const isApiCall = req.url.startsWith(environment.apiBaseUrl) || req.url.includes('/api/');
 
+    // Contrainte: toujours envoyer/recevoir les cookies (refresh, etc.) sur les appels API.
+    if (isApiCall && requestToSend.withCredentials !== true) {
+      requestToSend = requestToSend.clone({ withCredentials: true });
+    }
+
     // Ajoute Authorization si c'est une requête API et que le header n'existe pas déjà.
-    if (token && isApiCall && !isAuthCall && !req.headers.has('Authorization')) {
-      requestToSend = req.clone({
+    if (token && isApiCall && !isAuthCall && !requestToSend.headers.has('Authorization')) {
+      requestToSend = requestToSend.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`
         }

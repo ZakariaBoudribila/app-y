@@ -27,6 +27,7 @@ import { GoalsPageComponent } from './pages/goals-page/goals-page.component';
 import { HistoryPageComponent } from './pages/history-page/history-page.component';
 import { ProPageComponent } from './pages/pro-page/pro-page.component';
 import { SettingsPageComponent } from './pages/settings-page/settings-page.component';
+import { ProfessionalSpaceComponent } from './components/professional-space/professional-space.component';
 
 import { AuthInterceptor } from './services/auth.interceptor';
 
@@ -52,7 +53,8 @@ import { AuthInterceptor } from './services/auth.interceptor';
     GoalsPageComponent,
     HistoryPageComponent,
     ProPageComponent,
-    SettingsPageComponent
+    SettingsPageComponent,
+    ProfessionalSpaceComponent
   ],
   imports: [
     BrowserModule,

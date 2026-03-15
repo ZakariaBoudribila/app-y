@@ -1,0 +1,5 @@
+{
+  // Les migrations sont en PostgreSQL (jsonb, text[], IF NOT EXISTS, casts).
+  // Le language service MSSQL/T-SQL peut remonter de faux "errors" sur ces fichiers.
+  "mssql.enableSqlLanguageService": false
+}

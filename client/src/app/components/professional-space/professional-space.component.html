@@ -1,0 +1,75 @@
+<div class="pro-space">
+  <h2>Espace Professionnel</h2>
+
+  <div *ngIf="isLoading" class="state">Chargement…</div>
+  <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <label class="field">
+      <span>À propos</span>
+      <textarea formControlName="aboutMe" rows="5" placeholder="Résumé, objectifs, points forts…"></textarea>
+    </label>
+
+    <label class="field">
+      <span>Langues (séparées par des virgules)</span>
+      <input formControlName="languagesText" placeholder="Français, Anglais" />
+    </label>
+
+    <label class="field">
+      <span>Logiciels (séparés par des virgules)</span>
+      <input formControlName="softwareText" placeholder="Excel, Figma, Photoshop" />
+    </label>
+
+    <div class="section">
+      <div class="section-header">
+        <h3>Expériences</h3>
+        <button type="button" (click)="addExperience()">+ Ajouter</button>
+      </div>
+
+      <div formArrayName="experiences" class="items">
+        <div class="item" *ngFor="let group of experiencesArray.controls; let i = index" [formGroupName]="i">
+          <div class="row">
+            <input formControlName="title" placeholder="Poste" />
+            <input formControlName="company" placeholder="Entreprise" />
+          </div>
+          <div class="row">
+            <input formControlName="startDate" placeholder="Début (YYYY-MM)" />
+            <input formControlName="endDate" placeholder="Fin (YYYY-MM)" />
+          </div>
+          <textarea formControlName="description" rows="3" placeholder="Missions, résultats…"></textarea>
+          <div class="actions">
+            <button type="button" (click)="removeExperience(i)">Supprimer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3>Études</h3>
+        <button type="button" (click)="addEducation()">+ Ajouter</button>
+      </div>
+
+      <div formArrayName="education" class="items">
+        <div class="item" *ngFor="let group of educationArray.controls; let i = index" [formGroupName]="i">
+          <div class="row">
+            <input formControlName="school" placeholder="Établissement" />
+            <input formControlName="degree" placeholder="Diplôme" />
+          </div>
+          <div class="row">
+            <input formControlName="startDate" placeholder="Début (YYYY-MM)" />
+            <input formControlName="endDate" placeholder="Fin (YYYY-MM)" />
+          </div>
+          <textarea formControlName="description" rows="3" placeholder="Détails…"></textarea>
+          <div class="actions">
+            <button type="button" (click)="removeEducation(i)">Supprimer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <button type="submit" [disabled]="isSaving">{{ isSaving ? 'Enregistrement…' : 'Enregistrer' }}</button>
+    </div>
+  </form>
+</div>
