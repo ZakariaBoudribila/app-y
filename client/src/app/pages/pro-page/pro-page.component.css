@@ -43,6 +43,8 @@
   margin-top: 12px;
 }
 
+.cv-identity { margin-bottom: 12px; }
+
 /* Champs du formulaire (la classe .input-field n'est pas globale) */
 .input-field {
   width: 100%;

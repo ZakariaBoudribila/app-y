@@ -60,6 +60,8 @@ export class ProPageComponent {
   isExportingPdf = false;
   errorMessage = '';
 
+  userVm: { fullName: string; email: string; avatarDataUrl: string | null } | null = null;
+
   private lastLoadedProfile: ProfessionalProfile | null = null;
 
   pdfVm: CvPdfViewModel | null = null;
@@ -317,6 +319,23 @@ export class ProPageComponent {
   private load() {
     this.isLoading = true;
     this.errorMessage = '';
+
+    // Infos utilisateur (nom/prénom/photo/email) pour l'en-tête du CV.
+    this.api.getMe().subscribe({
+      next: (resp) => {
+        const u = resp?.user as any;
+        const first = typeof u?.first_name === 'string' ? u.first_name.trim() : '';
+        const last = typeof u?.last_name === 'string' ? u.last_name.trim() : '';
+        const fullName = `${first} ${last}`.trim() || '—';
+        const email = typeof u?.email === 'string' ? u.email : '';
+        const avatarDataUrl = typeof u?.avatar_data_url === 'string' ? u.avatar_data_url : null;
+        this.userVm = { fullName, email, avatarDataUrl };
+      },
+      error: () => {
+        // Non bloquant (on garde juste un header minimal).
+        this.userVm = { fullName: '—', email: '', avatarDataUrl: null };
+      },
+    });
 
     this.api.getProfile().subscribe({
       next: (resp) => {

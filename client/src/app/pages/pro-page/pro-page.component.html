@@ -42,6 +42,27 @@
       <div class="loading" *ngIf="isLoading">Chargement…</div>
 
       <form *ngIf="!isLoading" class="cv" [formGroup]="form" (ngSubmit)="$event.preventDefault()">
+        <section class="widget-card cv-identity">
+          <div class="pdf-header-left">
+            <div class="pdf-avatar" *ngIf="userVm?.avatarDataUrl; else noAvatar">
+              <img [src]="userVm?.avatarDataUrl" alt="Photo" />
+            </div>
+            <ng-template #noAvatar>
+              <div class="pdf-avatar"></div>
+            </ng-template>
+
+            <div>
+              <div class="pdf-title">{{ userVm?.fullName || '—' }}</div>
+              <div class="pdf-subtitle">
+                <span *ngIf="userVm?.email">{{ userVm?.email }}</span>
+                <span *ngIf="form.controls.phone.value">• {{ form.controls.phone.value }}</span>
+                <span *ngIf="form.controls.address.value">• {{ form.controls.address.value }}</span>
+                <span *ngIf="form.controls.linkedin.value">• {{ form.controls.linkedin.value }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <div class="cv-grid">
       <!-- Colonne gauche -->
       <section class="widget-card">
