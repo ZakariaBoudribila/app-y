@@ -84,6 +84,7 @@
           <input
             class="input-field"
             [(ngModel)]="languageInput"
+            [ngModelOptions]="{ standalone: true }"
             name="languageInput"
             placeholder="Ajouter une langue (ex: Français)"
             (keydown.enter)="$event.preventDefault(); addLanguage()" />
@@ -104,6 +105,7 @@
           <input
             class="input-field"
             [(ngModel)]="softwareInput"
+            [ngModelOptions]="{ standalone: true }"
             name="softwareInput"
             placeholder="Ajouter un logiciel (ex: Excel)"
             (keydown.enter)="$event.preventDefault(); addSoftware()" />
