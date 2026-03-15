@@ -24,6 +24,7 @@ import { JournalPageComponent } from './pages/journal-page/journal-page.componen
 import { MoodPageComponent } from './pages/mood-page/mood-page.component';
 import { GoalsPageComponent } from './pages/goals-page/goals-page.component';
 import { HistoryPageComponent } from './pages/history-page/history-page.component';
+import { ProPageComponent } from './pages/pro-page/pro-page.component';
 
 import { AuthInterceptor } from './services/auth.interceptor';
 
@@ -47,7 +48,8 @@ import { AuthInterceptor } from './services/auth.interceptor';
     JournalPageComponent,
     MoodPageComponent,
     GoalsPageComponent,
-    HistoryPageComponent
+    HistoryPageComponent,
+    ProPageComponent
   ],
   imports: [
     BrowserModule,

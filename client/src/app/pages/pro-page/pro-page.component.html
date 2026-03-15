@@ -1,0 +1,122 @@
+<div class="pro-page">
+  <div class="pro-header">
+    <h1 class="title-cursive">Espace Pro</h1>
+    <div class="actions">
+      <button class="pro-btn" type="button" (click)="load()" [disabled]="isLoading || isSaving">Rafraîchir</button>
+      <button class="pro-btn" type="button" (click)="save()" [disabled]="isLoading || isSaving">
+        {{ isSaving ? 'Enregistrement…' : 'Enregistrer' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="app-alert app-alert--error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="loading" *ngIf="isLoading">Chargement…</div>
+
+  <form *ngIf="!isLoading" class="cv" [formGroup]="form" (ngSubmit)="$event.preventDefault()">
+    <div class="cv-grid">
+      <!-- Colonne gauche -->
+      <section class="widget-card">
+        <h2>À propos</h2>
+        <textarea
+          class="input-field textarea"
+          formControlName="aboutMe"
+          rows="6"
+          placeholder="Présente-toi en quelques lignes…"></textarea>
+      </section>
+
+      <section class="widget-card">
+        <div class="section-header">
+          <h2>Expériences</h2>
+          <button class="pro-btn" type="button" (click)="addExperience()">+ Ajouter</button>
+        </div>
+
+        <div class="items" formArrayName="experiences">
+          <div class="item" *ngFor="let grp of experiencesArray.controls; let i = index" [formGroupName]="i">
+            <div class="row">
+              <input class="input-field" formControlName="title" placeholder="Poste" />
+              <input class="input-field" formControlName="company" placeholder="Entreprise" />
+            </div>
+            <div class="row">
+              <input class="input-field" formControlName="period" placeholder="Période (ex: 2022 - 2024)" />
+            </div>
+            <textarea class="input-field textarea" rows="3" formControlName="description" placeholder="Missions / réalisations…"></textarea>
+
+            <div class="item-actions">
+              <button class="pro-btn pro-btn--danger" type="button" (click)="removeExperience(i)" [disabled]="experiencesArray.length <= 1">
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="widget-card">
+        <div class="section-header">
+          <h2>Éducation</h2>
+          <button class="pro-btn" type="button" (click)="addEducation()">+ Ajouter</button>
+        </div>
+
+        <div class="items" formArrayName="education">
+          <div class="item" *ngFor="let grp of educationArray.controls; let i = index" [formGroupName]="i">
+            <div class="row">
+              <input class="input-field" formControlName="school" placeholder="École" />
+              <input class="input-field" formControlName="degree" placeholder="Diplôme" />
+            </div>
+            <div class="row">
+              <input class="input-field" formControlName="period" placeholder="Période (ex: 2019 - 2022)" />
+            </div>
+            <textarea class="input-field textarea" rows="3" formControlName="description" placeholder="Détails…"></textarea>
+
+            <div class="item-actions">
+              <button class="pro-btn pro-btn--danger" type="button" (click)="removeEducation(i)" [disabled]="educationArray.length <= 1">
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Colonne droite -->
+      <section class="widget-card">
+        <h2>Langues</h2>
+        <div class="tag-input">
+          <input
+            class="input-field"
+            [(ngModel)]="languageInput"
+            name="languageInput"
+            placeholder="Ajouter une langue (ex: Français)"
+            (keydown.enter)="$event.preventDefault(); addLanguage()" />
+          <button class="pro-btn" type="button" (click)="addLanguage()">Ajouter</button>
+        </div>
+
+        <div class="tags">
+          <span class="tag" *ngFor="let lang of form.controls.languages.value">
+            {{ lang }}
+            <button class="tag-remove" type="button" (click)="removeLanguage(lang)">×</button>
+          </span>
+        </div>
+      </section>
+
+      <section class="widget-card">
+        <h2>Logiciels</h2>
+        <div class="tag-input">
+          <input
+            class="input-field"
+            [(ngModel)]="softwareInput"
+            name="softwareInput"
+            placeholder="Ajouter un logiciel (ex: Excel)"
+            (keydown.enter)="$event.preventDefault(); addSoftware()" />
+          <button class="pro-btn" type="button" (click)="addSoftware()">Ajouter</button>
+        </div>
+
+        <div class="tags">
+          <span class="tag" *ngFor="let sw of form.controls.software.value">
+            {{ sw }}
+            <button class="tag-remove" type="button" (click)="removeSoftware(sw)">×</button>
+          </span>
+        </div>
+      </section>
+    </div>
+  </form>
+</div>

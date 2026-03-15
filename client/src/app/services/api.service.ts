@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { TokenService } from './token.service';
+import { ProfessionalProfile } from '../models/professional-profile';
 
 @Injectable({
   providedIn: 'root'
@@ -44,6 +45,18 @@ export class ApiService {
   // Nouveau: logout côté serveur (révoque refresh cookie)
   logoutRequest(): Observable<any> {
     return this.http.post(`${this.baseUrl}/auth/logout`, {}, { withCredentials: true });
+  }
+
+  // ==========================================
+  // PROFIL PRO (CV)
+  // ==========================================
+
+  getProfile(): Observable<{ profile: ProfessionalProfile }> {
+    return this.http.get<{ profile: ProfessionalProfile }>(`${this.baseUrl}/profile`, { headers: this.getHeaders() });
+  }
+
+  saveProfile(data: ProfessionalProfile): Observable<{ profile: ProfessionalProfile }> {
+    return this.http.post<{ profile: ProfessionalProfile }>(`${this.baseUrl}/profile`, data, { headers: this.getHeaders() });
   }
 
   // ==========================================

@@ -57,6 +57,15 @@
       <span class="icon">🗓️</span>
       <span class="label">Historique</span>
     </a>
+
+    <a
+      [routerLink]="['/pro']"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="menu-item">
+      <span class="icon">💼</span>
+      <span class="label">Espace Pro</span>
+    </a>
     
     <a (click)="logout()" class="menu-item logout-style" style="cursor: pointer;">
       <span class="icon">🚪</span>
