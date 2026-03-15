@@ -188,7 +188,7 @@ app-root {
   }
 
   .app-layout {
-    flex-direction: row;
+    flex-direction: column;
     width: 100%;
     max-width: 100%;
     height: auto;
@@ -197,11 +197,11 @@ app-root {
   }
 
   .sidebar-container {
-    width: 76px;
+    width: 100%;
     padding: 10px;
     position: sticky;
     top: 12px;
-    align-self: flex-start;
+    align-self: stretch;
   }
 
   .main-content {

@@ -85,6 +85,7 @@
     flex-direction: column;
     overflow: visible;
     padding-bottom: 0;
+    width: 100%;
   }
 
   .mobile-topbar {
@@ -101,6 +102,7 @@
     padding: 12px 15px;
     justify-content: flex-start;
     flex: 1 1 auto;
+    width: 100%;
   }
 
   .menu-item .icon {
