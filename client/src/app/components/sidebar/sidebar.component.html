@@ -1,14 +1,26 @@
-<div class="sidebar-content">
+<div class="sidebar-content" [class.mobile-open]="mobileMenuOpen">
+  <div class="mobile-topbar">
+    <button
+      type="button"
+      class="mobile-menu-btn"
+      (click)="toggleMobileMenu()"
+      [attr.aria-expanded]="mobileMenuOpen"
+      aria-controls="sidebar-menu">
+      Menu
+    </button>
+  </div>
+
   <div class="logo-area">
     <h2>Menu</h2>
   </div>
 
-  <nav class="sidebar-menu">
+  <nav id="sidebar-menu" class="sidebar-menu" [class.is-collapsed]="!mobileMenuOpen">
     <a
       [routerLink]="['/dashboard']"
       routerLinkActive="active"
       [routerLinkActiveOptions]="{ exact: true }"
-      class="menu-item">
+      class="menu-item"
+      (click)="closeMobileMenu()">
       <span class="icon">🏠</span>
       <span class="label">Home</span>
     </a>
@@ -17,7 +29,8 @@
       [routerLink]="['/tasks']"
       routerLinkActive="active"
       [routerLinkActiveOptions]="{ exact: true }"
-      class="menu-item">
+      class="menu-item"
+      (click)="closeMobileMenu()">
       <span class="icon">☑️</span>
       <span class="label">Tasks</span>
     </a>
@@ -26,7 +39,8 @@
       [routerLink]="['/mood']"
       routerLinkActive="active"
       [routerLinkActiveOptions]="{ exact: true }"
-      class="menu-item">
+      class="menu-item"
+      (click)="closeMobileMenu()">
       <span class="icon">🌿</span>
       <span class="label">Mood</span>
     </a>
@@ -35,7 +49,8 @@
       [routerLink]="['/journal']"
       routerLinkActive="active"
       [routerLinkActiveOptions]="{ exact: true }"
-      class="menu-item">
+      class="menu-item"
+      (click)="closeMobileMenu()">
       <span class="icon">📖</span>
       <span class="label">Journal</span>
     </a>
@@ -44,7 +59,8 @@
       [routerLink]="['/goals']"
       routerLinkActive="active"
       [routerLinkActiveOptions]="{ exact: true }"
-      class="menu-item">
+      class="menu-item"
+      (click)="closeMobileMenu()">
       <span class="icon">🎯</span>
       <span class="label">Goals</span>
     </a>
@@ -53,7 +69,8 @@
       [routerLink]="['/history']"
       routerLinkActive="active"
       [routerLinkActiveOptions]="{ exact: true }"
-      class="menu-item">
+      class="menu-item"
+      (click)="closeMobileMenu()">
       <span class="icon">🗓️</span>
       <span class="label">Historique</span>
     </a>
@@ -62,7 +79,8 @@
       [routerLink]="['/pro']"
       routerLinkActive="active"
       [routerLinkActiveOptions]="{ exact: true }"
-      class="menu-item">
+      class="menu-item"
+      (click)="closeMobileMenu()">
       <span class="icon">💼</span>
       <span class="label">Espace Pro</span>
     </a>
