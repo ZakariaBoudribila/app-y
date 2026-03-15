@@ -27,7 +27,7 @@
 </div>
 
 <div class="task-list">
-  <div class="task-item" *ngFor="let task of tasks">
+  <div class="task-item" *ngFor="let task of tasks" [@taskItem]="task.is_completed ? 'done' : 'active'">
     <label class="custom-checkbox">
       <input
         type="checkbox"

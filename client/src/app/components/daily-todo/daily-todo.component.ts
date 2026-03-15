@@ -1,11 +1,27 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service'; // On importe le service
 
 @Component({
   selector: 'app-daily-todo',
   templateUrl: './daily-todo.component.html',
-  styleUrls: ['./daily-todo.component.css']
+  styleUrls: ['./daily-todo.component.css'],
+  animations: [
+    trigger('taskItem', [
+      state('active', style({ opacity: 1, transform: 'translateX(0)' })),
+      state('done', style({ opacity: 0.85, transform: 'translateX(6px)' })),
+      transition('active <=> done', animate('160ms ease-in-out')),
+
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(-6px)' }),
+        animate('180ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ]),
+      transition(':leave', [
+        animate('150ms ease-in', style({ opacity: 0, transform: 'translateY(-6px)' }))
+      ])
+    ])
+  ]
 })
 export class DailyTodoComponent implements OnInit, OnChanges {
   tasks: any[] = [];

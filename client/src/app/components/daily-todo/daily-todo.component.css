@@ -32,7 +32,7 @@
 .stats-value{color:var(--text-main)}
 .progress{height:10px;border-radius:999px;border:1px solid var(--accent-color);background:rgba(255,255,255,.5);overflow:hidden}
 .progress--thin{height:8px}
-.progress-bar{height:100%;background:var(--accent-color);width:0}
+.progress-bar{height:100%;background:var(--accent-color);width:0;transition:width .2s ease}
 .breakdown{display:flex;flex-direction:column;gap:10px;margin-top:10px}
 .breakdown-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
 .breakdown-text{font-size:.9rem;opacity:.9}
