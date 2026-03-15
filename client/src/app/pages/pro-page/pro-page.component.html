@@ -54,6 +54,17 @@
       </section>
 
       <section class="widget-card">
+        <h2>Coordonnées</h2>
+
+        <div class="row">
+          <input class="input-field" formControlName="phone" placeholder="Téléphone (ex: +33 6...)" />
+          <input class="input-field" formControlName="linkedin" placeholder="LinkedIn (lien ou @)" />
+        </div>
+
+        <input class="input-field" formControlName="address" placeholder="Adresse (ville, pays)" />
+      </section>
+
+      <section class="widget-card">
         <div class="section-header">
           <h2>Expériences</h2>
           <button class="pro-btn" *ngIf="isEditing" type="button" (click)="addExperience()">+ Ajouter</button>
@@ -162,9 +173,23 @@
       <div class="pdf-root" *ngIf="pdfVm" aria-hidden="true">
         <div class="pdf-surface" #pdfContent>
           <div class="pdf-header">
-            <div>
-              <div class="pdf-title">CV</div>
-              <div class="pdf-subtitle">Espace Pro</div>
+            <div class="pdf-header-left">
+              <div class="pdf-avatar" *ngIf="pdfVm.avatarDataUrl; else pdfNoAvatar">
+                <img [src]="pdfVm.avatarDataUrl" alt="Photo" />
+              </div>
+              <ng-template #pdfNoAvatar>
+                <div class="pdf-avatar"></div>
+              </ng-template>
+
+              <div class="pdf-id">
+                <div class="pdf-title">{{ pdfVm.fullName || '—' }}</div>
+                <div class="pdf-subtitle">
+                  <span *ngIf="pdfVm.email">{{ pdfVm.email }}</span>
+                  <span *ngIf="pdfVm.phone">• {{ pdfVm.phone }}</span>
+                  <span *ngIf="pdfVm.address">• {{ pdfVm.address }}</span>
+                  <span *ngIf="pdfVm.linkedin">• {{ pdfVm.linkedin }}</span>
+                </div>
+              </div>
             </div>
             <div class="pdf-meta" *ngIf="pdfGeneratedAt as d">{{ d | date: 'dd/MM/yyyy' }}</div>
           </div>

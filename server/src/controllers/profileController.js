@@ -8,6 +8,9 @@ function toProfessionalProfileDto(row) {
       education: [],
       languages: [],
       software: [],
+      phone: '',
+      address: '',
+      linkedin: '',
     };
   }
 
@@ -17,6 +20,9 @@ function toProfessionalProfileDto(row) {
     education: row.education ?? [],
     languages: row.languages ?? [],
     software: row.software ?? [],
+    phone: row.phone ?? '',
+    address: row.address ?? '',
+    linkedin: row.linkedin ?? '',
   };
 }
 
@@ -50,6 +56,9 @@ exports.saveProfile = async (req, res) => {
       education: Array.isArray(body.education) ? body.education : [],
       languages: Array.isArray(body.languages) ? body.languages : [],
       software: Array.isArray(body.software) ? body.software : [],
+      phone: typeof body.phone === 'string' ? body.phone : '',
+      address: typeof body.address === 'string' ? body.address : '',
+      linkedin: typeof body.linkedin === 'string' ? body.linkedin : '',
     };
 
     const saved = await ProfileModel.upsertProfile(userId, data);

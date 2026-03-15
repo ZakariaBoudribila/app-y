@@ -14,6 +14,7 @@ type MeUser = {
   role?: string;
   first_name?: string | null;
   last_name?: string | null;
+  avatar_data_url?: string | null;
 };
 
 @Component({
@@ -33,6 +34,9 @@ export class SettingsPageComponent implements OnInit {
     firstName: ['', [Validators.required, Validators.minLength(2)]],
     lastName: ['', [Validators.required, Validators.minLength(2)]],
   });
+
+  avatarPreviewUrl: string | null = null;
+  private pendingAvatarDataUrl: string | null | undefined = undefined;
 
   isSubmittingPassword = false;
   passwordErrorMessage = '';
@@ -83,6 +87,9 @@ export class SettingsPageComponent implements OnInit {
       const resp = await firstValueFrom(this.api.getMe());
       this.me = resp?.user ?? null;
 
+      this.avatarPreviewUrl = (this.me?.avatar_data_url ?? null) || null;
+      this.pendingAvatarDataUrl = undefined;
+
       this.profileForm.patchValue({
         firstName: (this.me?.first_name ?? '') || '',
         lastName: (this.me?.last_name ?? '') || '',
@@ -102,6 +109,9 @@ export class SettingsPageComponent implements OnInit {
       firstName: (this.me.first_name ?? '') || '',
       lastName: (this.me.last_name ?? '') || '',
     });
+
+    this.pendingAvatarDataUrl = (this.me.avatar_data_url ?? null) || null;
+    this.avatarPreviewUrl = this.pendingAvatarDataUrl;
     this.profileForm.markAsPristine();
   }
 
@@ -113,7 +123,76 @@ export class SettingsPageComponent implements OnInit {
       firstName: (this.me.first_name ?? '') || '',
       lastName: (this.me.last_name ?? '') || '',
     });
+
+    this.pendingAvatarDataUrl = undefined;
+    this.avatarPreviewUrl = (this.me.avatar_data_url ?? null) || null;
     this.profileForm.markAsPristine();
+  }
+
+  async onAvatarFileSelected(evt: Event) {
+    const input = evt.target as HTMLInputElement | null;
+    const file = input?.files?.[0];
+    if (!file) return;
+
+    try {
+      const dataUrl = await this.resizeImageToDataUrl(file, 256, 0.86);
+      this.pendingAvatarDataUrl = dataUrl;
+      this.avatarPreviewUrl = dataUrl;
+      this.profileForm.markAsDirty();
+    } catch (e: any) {
+      const msg = typeof e?.message === 'string' ? e.message : 'Impossible de charger la photo.';
+      this.toast.error(msg, { title: 'Photo de profil' });
+    } finally {
+      // Permet de re-sélectionner le même fichier.
+      if (input) input.value = '';
+    }
+  }
+
+  removeAvatar() {
+    if (!this.isEditingProfile) return;
+    this.pendingAvatarDataUrl = null;
+    this.avatarPreviewUrl = null;
+    this.profileForm.markAsDirty();
+  }
+
+  private async resizeImageToDataUrl(file: File, maxSize: number, quality: number): Promise<string> {
+    if (!file.type.startsWith('image/')) {
+      throw new Error('Format invalide: sélectionne une image.');
+    }
+
+    // Fichiers très lourds (photos téléphone): on laisse passer mais on resize.
+    const originalDataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Lecture du fichier impossible.'));
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.readAsDataURL(file);
+    });
+
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = () => reject(new Error('Image invalide.'));
+      i.src = originalDataUrl;
+    });
+
+    const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
+    const w = Math.max(1, Math.round(img.width * scale));
+    const h = Math.max(1, Math.round(img.height * scale));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas non supporté.');
+
+    ctx.drawImage(img, 0, 0, w, h);
+
+    const out = canvas.toDataURL('image/jpeg', quality);
+    // Garde-fou (doit rester raisonnable pour DB / Vercel payload)
+    if (out.length > 350_000) {
+      throw new Error('Photo trop lourde. Essaye une image plus petite.');
+    }
+    return out;
   }
 
   async saveProfile() {
@@ -123,11 +202,14 @@ export class SettingsPageComponent implements OnInit {
 
     const firstName = this.profileForm.value.firstName ?? '';
     const lastName = this.profileForm.value.lastName ?? '';
+    const avatarDataUrl = this.pendingAvatarDataUrl;
 
     this.isSavingProfile = true;
     try {
-      const resp = await firstValueFrom(this.api.updateProfile(firstName, lastName));
+      const resp = await firstValueFrom(this.api.updateProfile(firstName, lastName, avatarDataUrl));
       this.me = resp?.user ?? this.me;
+      this.avatarPreviewUrl = (this.me?.avatar_data_url ?? null) || null;
+      this.pendingAvatarDataUrl = undefined;
       this.toast.success('Profil mis à jour.', { title: 'Profil' });
       this.isEditingProfile = false;
     } catch (err: any) {

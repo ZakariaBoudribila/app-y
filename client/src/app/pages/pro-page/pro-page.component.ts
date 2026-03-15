@@ -4,6 +4,7 @@ import { ApiService } from '../../services/api.service';
 import { ConfirmService } from '../../services/confirm.service';
 import { ToastService } from '../../services/toast.service';
 import { ProfessionalProfile } from '../../models/professional-profile';
+import { firstValueFrom } from 'rxjs';
 
 type ExperienceFormValue = {
   title: string;
@@ -34,6 +35,12 @@ type PdfEducation = {
 };
 
 type CvPdfViewModel = {
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  linkedin: string;
+  avatarDataUrl: string | null;
   aboutMe: string;
   experiences: PdfExperience[];
   education: PdfEducation[];
@@ -64,6 +71,9 @@ export class ProPageComponent {
   softwareInput = '';
 
   readonly form = this.fb.group({
+    phone: this.fb.control('', { nonNullable: true }),
+    address: this.fb.control('', { nonNullable: true }),
+    linkedin: this.fb.control('', { nonNullable: true }),
     aboutMe: this.fb.control('', { nonNullable: true }),
     experiences: this.fb.array([] as any[]),
     education: this.fb.array([] as any[]),
@@ -176,6 +186,9 @@ export class ProPageComponent {
 
   private normalizeIncomingProfile(p: ProfessionalProfile): ProfessionalProfile {
     return {
+      phone: typeof (p as any)?.phone === 'string' ? (p as any).phone : '',
+      address: typeof (p as any)?.address === 'string' ? (p as any).address : '',
+      linkedin: typeof (p as any)?.linkedin === 'string' ? (p as any).linkedin : '',
       aboutMe: typeof p?.aboutMe === 'string' ? p.aboutMe : '',
       experiences: Array.isArray(p?.experiences) ? p.experiences : [],
       education: Array.isArray(p?.education) ? p.education : [],
@@ -204,6 +217,9 @@ export class ProPageComponent {
   }
 
   private setFormFromProfile(profile: ProfessionalProfile) {
+    this.form.controls.phone.setValue(profile.phone || '');
+    this.form.controls.address.setValue(profile.address || '');
+    this.form.controls.linkedin.setValue(profile.linkedin || '');
     this.form.controls.aboutMe.setValue(profile.aboutMe || '');
 
     this.experiencesArray.clear();
@@ -228,6 +244,9 @@ export class ProPageComponent {
     const raw = this.form.getRawValue();
 
     return {
+      phone: raw.phone || '',
+      address: raw.address || '',
+      linkedin: raw.linkedin || '',
       aboutMe: raw.aboutMe || '',
       experiences: (raw.experiences as any[]) || [],
       education: (raw.education as any[]) || [],
@@ -355,7 +374,7 @@ export class ProPageComponent {
     });
   }
 
-  private cleanCvForPdf(profile: ProfessionalProfile): CvPdfViewModel {
+  private cleanCvForPdf(profile: ProfessionalProfile, user: { fullName: string; email: string; avatarDataUrl: string | null }): CvPdfViewModel {
     const trim = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
 
     const experiences = (profile.experiences || [])
@@ -377,12 +396,33 @@ export class ProPageComponent {
       .filter((x) => x.school || x.degree || x.period || x.description);
 
     return {
+      fullName: user.fullName,
+      email: user.email,
+      phone: trim((profile as any)?.phone),
+      address: trim((profile as any)?.address),
+      linkedin: trim((profile as any)?.linkedin),
+      avatarDataUrl: user.avatarDataUrl,
       aboutMe: trim(profile.aboutMe),
       experiences,
       education,
       languages: this.normalizeStringArray(profile.languages),
       software: this.normalizeStringArray(profile.software),
     };
+  }
+
+  private async loadUserForPdf(): Promise<{ fullName: string; email: string; avatarDataUrl: string | null }> {
+    try {
+      const resp = await firstValueFrom(this.api.getMe());
+      const u = resp?.user as any;
+      const first = typeof u?.first_name === 'string' ? u.first_name.trim() : '';
+      const last = typeof u?.last_name === 'string' ? u.last_name.trim() : '';
+      const fullName = `${first} ${last}`.trim() || '—';
+      const email = typeof u?.email === 'string' ? u.email : '';
+      const avatarDataUrl = typeof u?.avatar_data_url === 'string' ? u.avatar_data_url : null;
+      return { fullName, email, avatarDataUrl };
+    } catch {
+      return { fullName: '—', email: '', avatarDataUrl: null };
+    }
   }
 
   private async waitForPdfDomRender() {
@@ -402,7 +442,8 @@ export class ProPageComponent {
         import('jspdf'),
       ]);
 
-      const source = this.cleanCvForPdf(this.getPayloadFromForm());
+      const user = await this.loadUserForPdf();
+      const source = this.cleanCvForPdf(this.getPayloadFromForm(), user);
       this.pdfVm = source;
       this.pdfGeneratedAt = new Date();
 

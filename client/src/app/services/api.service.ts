@@ -47,17 +47,17 @@ export class ApiService {
     return this.http.post(`${this.baseUrl}/auth/logout`, {}, { withCredentials: true });
   }
 
-  getMe(): Observable<{ user: { id: number; username: string; email: string; role?: string; first_name?: string | null; last_name?: string | null } }> {
-    return this.http.get<{ user: { id: number; username: string; email: string; role?: string; first_name?: string | null; last_name?: string | null } }>(
+  getMe(): Observable<{ user: { id: number; username: string; email: string; role?: string; first_name?: string | null; last_name?: string | null; avatar_data_url?: string | null } }> {
+    return this.http.get<{ user: { id: number; username: string; email: string; role?: string; first_name?: string | null; last_name?: string | null; avatar_data_url?: string | null } }>(
       `${this.baseUrl}/auth/me`,
       { headers: this.getHeaders() }
     );
   }
 
-  updateProfile(firstName: string, lastName: string): Observable<{ user: any }> {
+  updateProfile(firstName: string, lastName: string, avatarDataUrl?: string | null): Observable<{ user: any }> {
     return this.http.put<{ user: any }>(
       `${this.baseUrl}/auth/profile`,
-      { firstName, lastName },
+      { firstName, lastName, avatarDataUrl: avatarDataUrl ?? null },
       { headers: this.getHeaders() }
     );
   }

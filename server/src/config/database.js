@@ -42,7 +42,8 @@ async function init() {
             email TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
             first_name TEXT,
-            last_name TEXT
+            last_name TEXT,
+            avatar_data_url TEXT
         )
     `);
 
@@ -52,6 +53,7 @@ async function init() {
     // Profil utilisateur (prénom/nom) (ajouts non destructifs)
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name TEXT`);
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name TEXT`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_data_url TEXT`);
 
     // Refresh tokens rotatifs (whitelist)
     await pool.query(`
@@ -110,9 +112,17 @@ async function init() {
             experiences JSONB NOT NULL DEFAULT '[]'::jsonb,
             education JSONB NOT NULL DEFAULT '[]'::jsonb,
             languages TEXT[] NOT NULL DEFAULT ARRAY[]::text[],
-            software TEXT[] NOT NULL DEFAULT ARRAY[]::text[]
+            software TEXT[] NOT NULL DEFAULT ARRAY[]::text[],
+            phone TEXT,
+            address TEXT,
+            linkedin TEXT
         )
     `);
+
+    // Champs contact du CV (ajouts non destructifs)
+    await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT`);
+    await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS address TEXT`);
+    await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS linkedin TEXT`);
 
     console.log(`Connecté à PostgreSQL (${safeDbLabel()}) et tables initialisées.`);
 }

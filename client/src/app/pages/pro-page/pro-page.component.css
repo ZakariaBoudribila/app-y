@@ -214,6 +214,10 @@
   border-bottom: 1px solid var(--accent-color);
 }
 
+.pdf-header-left { display: flex; align-items: center; gap: 12px; }
+.pdf-avatar { width: 56px; height: 56px; border-radius: 999px; border: 1px solid var(--accent-color); overflow: hidden; background: var(--card-bg); }
+.pdf-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
 .pdf-title {
   font-size: 22px;
   font-weight: 900;

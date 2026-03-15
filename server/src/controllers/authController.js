@@ -262,12 +262,30 @@ async function updateProfile(req, res) {
 
     const firstName = normalizeNamePart(req.body?.firstName);
     const lastName = normalizeNamePart(req.body?.lastName);
+    const avatarDataUrlRaw = req.body?.avatarDataUrl;
 
     if (!firstName || !lastName) {
       return res.status(400).json({ message: 'First name and last name are required.' });
     }
 
-    await UserModel.updateName(userId, { firstName, lastName });
+    let avatarDataUrl = null;
+    if (avatarDataUrlRaw === null || avatarDataUrlRaw === undefined || avatarDataUrlRaw === '') {
+      avatarDataUrl = null;
+    } else if (typeof avatarDataUrlRaw === 'string') {
+      // Format attendu: data:image/<type>;base64,...
+      if (!avatarDataUrlRaw.startsWith('data:image/')) {
+        return res.status(400).json({ message: 'Invalid avatar format.' });
+      }
+      // Limite simple pour éviter des payloads trop gros en DB.
+      if (avatarDataUrlRaw.length > 350_000) {
+        return res.status(413).json({ message: 'Avatar too large.' });
+      }
+      avatarDataUrl = avatarDataUrlRaw;
+    } else {
+      return res.status(400).json({ message: 'Invalid avatar format.' });
+    }
+
+    await UserModel.updateProfile(userId, { firstName, lastName, avatarDataUrl });
     const user = await UserModel.findById(userId);
 
     return res.status(200).json({ user });

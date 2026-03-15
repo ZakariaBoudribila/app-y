@@ -36,6 +36,34 @@
         </div>
 
         <div class="kv-row">
+          <div class="kv-key">Photo</div>
+          <div class="kv-value">
+            <div class="avatar-row">
+              <div class="avatar" [class.avatar--empty]="!avatarPreviewUrl">
+                <img *ngIf="avatarPreviewUrl" [src]="avatarPreviewUrl" alt="Photo de profil" />
+                <span *ngIf="!avatarPreviewUrl">—</span>
+              </div>
+
+              <div class="avatar-actions" *ngIf="isEditingProfile">
+                <label class="primary-btn" for="avatarInput" style="display: inline-flex; align-items: center; justify-content: center;">
+                  Choisir une photo
+                </label>
+                <input
+                  id="avatarInput"
+                  type="file"
+                  accept="image/*"
+                  class="file-input"
+                  (change)="onAvatarFileSelected($event)" />
+
+                <button type="button" class="danger-btn" (click)="removeAvatar()" [disabled]="isSavingProfile">
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="kv-row">
           <div class="kv-key">Prénom</div>
           <div class="kv-value" *ngIf="!isEditingProfile">{{ me.first_name || '-' }}</div>
           <div class="kv-value" *ngIf="isEditingProfile">

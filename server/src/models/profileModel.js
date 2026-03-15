@@ -31,7 +31,7 @@ function normalizeJsonArray(value) {
 const ProfileModel = {
   async getProfile(userId) {
     const sql = `
-      SELECT user_id, about_me, experiences, education, languages, software
+      SELECT user_id, about_me, experiences, education, languages, software, phone, address, linkedin
       FROM profiles
       WHERE user_id = ?
     `;
@@ -44,17 +44,23 @@ const ProfileModel = {
     const education = normalizeJsonArray(data?.education);
     const languages = normalizeTextArray(data?.languages);
     const software = normalizeTextArray(data?.software);
+    const phone = typeof data?.phone === 'string' ? data.phone.trim() : null;
+    const address = typeof data?.address === 'string' ? data.address.trim() : null;
+    const linkedin = typeof data?.linkedin === 'string' ? data.linkedin.trim() : null;
 
     const sql = `
-      INSERT INTO profiles (user_id, about_me, experiences, education, languages, software)
-      VALUES (?, ?, ?::jsonb, ?::jsonb, ?, ?)
+      INSERT INTO profiles (user_id, about_me, experiences, education, languages, software, phone, address, linkedin)
+      VALUES (?, ?, ?::jsonb, ?::jsonb, ?, ?, ?, ?, ?)
       ON CONFLICT (user_id)
       DO UPDATE SET
         about_me = EXCLUDED.about_me,
         experiences = EXCLUDED.experiences,
         education = EXCLUDED.education,
         languages = EXCLUDED.languages,
-        software = EXCLUDED.software
+        software = EXCLUDED.software,
+        phone = EXCLUDED.phone,
+        address = EXCLUDED.address,
+        linkedin = EXCLUDED.linkedin
     `;
 
     await dbRun(sql, [
@@ -64,6 +70,9 @@ const ProfileModel = {
       JSON.stringify(education),
       languages,
       software,
+      phone,
+      address,
+      linkedin,
     ]);
 
     return this.getProfile(userId);
