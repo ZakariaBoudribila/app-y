@@ -35,6 +35,18 @@ export class RegisterComponent {
       const safe = typeof maybeTargetValue === 'string' ? maybeTargetValue : '';
       this.form.controls.username.setValue(safe, { emitEvent: false });
     });
+
+    // Si le backend signale "email déjà utilisé", on place une erreur custom sur le champ.
+    // Dès que l'utilisateur modifie l'email, on enlève cette erreur.
+    this.form.controls.email.valueChanges.subscribe(() => {
+      const ctrl = this.form.controls.email;
+      const errors = ctrl.errors;
+      if (!errors || !errors['emailTaken']) return;
+
+      // On ne supprime que notre erreur custom.
+      const { emailTaken, ...rest } = errors as any;
+      ctrl.setErrors(Object.keys(rest).length ? rest : null);
+    });
   }
 
   get usernameCtrl() {
@@ -81,6 +93,19 @@ export class RegisterComponent {
           typeof rawBackendMessage === 'string' && rawBackendMessage.trim().startsWith('<')
             ? null
             : rawBackendMessage;
+
+        const msg = typeof backendMessage === 'string' ? backendMessage : '';
+        const looksLikeEmailTaken =
+          /email\s*(déjà\s*utilisé|already\s*in\s*use)/i.test(msg) ||
+          /email\s*ou\s*nom\s*utilisateur\s*déjà\s*utilisé/i.test(msg);
+
+        // Legacy: 400 + "Email déjà utilisé ..." ; New: 409 + "Email already in use."
+        if ((status === 400 || status === 409) && looksLikeEmailTaken) {
+          this.emailCtrl.setErrors({ ...(this.emailCtrl.errors || {}), emailTaken: true });
+          this.emailCtrl.markAsTouched();
+          this.errorMessage = '';
+          return;
+        }
 
         if (status === 405) {
           this.errorMessage = "Erreur API (405) : URL API incorrecte (vérifie que tu utilises '/api').";

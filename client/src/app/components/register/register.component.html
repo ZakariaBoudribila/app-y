@@ -35,6 +35,7 @@
         <div class="field-error" *ngIf="emailCtrl.touched && emailCtrl.invalid">
           <span *ngIf="emailCtrl.errors?.['required']">L'email est obligatoire.</span>
           <span *ngIf="emailCtrl.errors?.['email']">Email invalide.</span>
+          <span *ngIf="emailCtrl.errors?.['emailTaken']">Email déjà utilisé.</span>
         </div>
       </div>
 
