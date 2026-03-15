@@ -131,11 +131,12 @@ async function register(req, res) {
 
     return res.status(201).json({ message: 'Account created.', userId });
   } catch (err) {
-    console.error('[register]', err);
+    const errorId = randomUUID();
+    console.error(`[register:${errorId}]`, err);
     if (err && (err.code === '23505' || err.code === 23505)) {
       return res.status(409).json({ message: 'Email or username already in use.' });
     }
-    return res.status(500).json({ message: 'Internal server error.' });
+    return res.status(500).json({ message: 'Internal server error.', errorId });
   }
 }
 
@@ -165,8 +166,9 @@ async function login(req, res) {
     res.cookie('refreshToken', rawRefresh, refreshCookieOptions());
     return res.status(200).json({ accessToken });
   } catch (err) {
-    console.error('[login]', err);
-    return res.status(500).json({ message: 'Internal server error.' });
+    const errorId = randomUUID();
+    console.error(`[login:${errorId}]`, err);
+    return res.status(500).json({ message: 'Internal server error.', errorId });
   }
 }
 
@@ -195,8 +197,9 @@ async function refresh(req, res) {
     res.cookie('refreshToken', rotated.newRawRefresh, refreshCookieOptions());
     return res.status(200).json({ accessToken });
   } catch (err) {
-    console.error('[refresh]', err);
-    return res.status(500).json({ message: 'Internal server error.' });
+    const errorId = randomUUID();
+    console.error(`[refresh:${errorId}]`, err);
+    return res.status(500).json({ message: 'Internal server error.', errorId });
   }
 }
 
@@ -212,8 +215,9 @@ async function logout(req, res) {
 
     return res.status(200).json({ message: 'Logged out.' });
   } catch (err) {
-    console.error('[logout]', err);
-    return res.status(500).json({ message: 'Internal server error.' });
+    const errorId = randomUUID();
+    console.error(`[logout:${errorId}]`, err);
+    return res.status(500).json({ message: 'Internal server error.', errorId });
   }
 }
 
@@ -232,8 +236,9 @@ async function me(req, res) {
 
     return res.status(200).json({ user });
   } catch (err) {
-    console.error('[me]', err);
-    return res.status(500).json({ message: 'Internal server error.' });
+    const errorId = randomUUID();
+    console.error(`[me:${errorId}]`, err);
+    return res.status(500).json({ message: 'Internal server error.', errorId });
   }
 }
 
@@ -272,11 +277,12 @@ async function registerLegacy(req, res) {
 
     return res.status(201).json({ message: 'Utilisateur créé avec succès' });
   } catch (err) {
-    console.error('[registerLegacy]', err);
+    const errorId = randomUUID();
+    console.error(`[registerLegacy:${errorId}]`, err);
     if (err && (err.code === '23505' || err.code === 23505)) {
       return res.status(400).json({ error: 'Email ou nom utilisateur déjà utilisé' });
     }
-    return res.status(500).json({ error: 'Erreur serveur' });
+    return res.status(500).json({ error: 'Erreur serveur', errorId });
   }
 }
 
@@ -309,8 +315,9 @@ async function loginLegacy(req, res) {
       user: { username: user.username },
     });
   } catch (err) {
-    console.error('[loginLegacy]', err);
-    return res.status(500).json({ error: 'Erreur serveur' });
+    const errorId = randomUUID();
+    console.error(`[loginLegacy:${errorId}]`, err);
+    return res.status(500).json({ error: 'Erreur serveur', errorId });
   }
 }
 
