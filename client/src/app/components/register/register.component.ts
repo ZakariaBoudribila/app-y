@@ -24,7 +24,18 @@ export class RegisterComponent {
     private router: Router,
     private fb: FormBuilder,
     private toast: ToastService
-  ) {}
+  ) {
+    // Defensive: si un Event ou un objet se retrouve dans le FormControl, Angular/DOM l'affiche comme "[object Object]".
+    // On le corrige automatiquement vers une string.
+    this.form.controls.username.valueChanges.subscribe((value) => {
+      if (value === null || value === undefined) return;
+      if (typeof value === 'string') return;
+
+      const maybeTargetValue = (value as any)?.target?.value;
+      const safe = typeof maybeTargetValue === 'string' ? maybeTargetValue : '';
+      this.form.controls.username.setValue(safe, { emitEvent: false });
+    });
+  }
 
   get usernameCtrl() {
     return this.form.controls.username;
