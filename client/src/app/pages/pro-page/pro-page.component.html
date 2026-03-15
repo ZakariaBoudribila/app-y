@@ -1,36 +1,44 @@
-<div class="pro-page">
-  <div class="pro-header">
-    <h1 class="title-cursive">Espace Pro</h1>
-    <div class="actions">
-      <button class="pro-btn" type="button" (click)="refresh()" [disabled]="isLoading || isSaving">Rafraîchir</button>
+<app-header></app-header>
 
-      <ng-container *ngIf="!isEditing; else editingActions">
-        <button class="pro-btn" type="button" (click)="startEdit()" [disabled]="isLoading || isSaving">Modifier</button>
-      </ng-container>
+<div class="app-layout">
+  <aside class="sidebar-container">
+    <app-sidebar></app-sidebar>
+  </aside>
 
-      <ng-template #editingActions>
-        <button class="pro-btn" type="button" (click)="cancelEdit()" [disabled]="isLoading || isSaving">Annuler</button>
-        <button class="pro-btn" type="button" (click)="save()" [disabled]="isLoading || isSaving || !form.dirty">
-          {{ isSaving ? 'Enregistrement…' : 'Enregistrer' }}
-        </button>
-      </ng-template>
-    </div>
-  </div>
+  <main class="main-content">
+    <div class="pro-page">
+      <div class="pro-header">
+        <h1 class="title-cursive">Espace Pro</h1>
+        <div class="actions">
+          <button class="pro-btn" type="button" (click)="refresh()" [disabled]="isLoading || isSaving">Rafraîchir</button>
 
-  <div class="app-alert app-alert--info" *ngIf="!isLoading && !isEditing">
-    Mode lecture. Cliquez sur « Modifier » pour éditer.
-  </div>
+          <ng-container *ngIf="!isEditing; else editingActions">
+            <button class="pro-btn" type="button" (click)="startEdit()" [disabled]="isLoading || isSaving">Modifier</button>
+          </ng-container>
 
-  <div class="app-alert app-alert--warning" *ngIf="isEditing && form.dirty && !isSaving">
-    Modifications non enregistrées.
-  </div>
+          <ng-template #editingActions>
+            <button class="pro-btn" type="button" (click)="cancelEdit()" [disabled]="isLoading || isSaving">Annuler</button>
+            <button class="pro-btn" type="button" (click)="save()" [disabled]="isLoading || isSaving || !form.dirty">
+              {{ isSaving ? 'Enregistrement…' : 'Enregistrer' }}
+            </button>
+          </ng-template>
+        </div>
+      </div>
 
-  <div class="app-alert app-alert--error" *ngIf="errorMessage">{{ errorMessage }}</div>
+      <div class="app-alert app-alert--info" *ngIf="!isLoading && !isEditing">
+        Mode lecture. Cliquez sur « Modifier » pour éditer.
+      </div>
 
-  <div class="loading" *ngIf="isLoading">Chargement…</div>
+      <div class="app-alert app-alert--warning" *ngIf="isEditing && form.dirty && !isSaving">
+        Modifications non enregistrées.
+      </div>
 
-  <form *ngIf="!isLoading" class="cv" [formGroup]="form" (ngSubmit)="$event.preventDefault()">
-    <div class="cv-grid">
+      <div class="app-alert app-alert--error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+      <div class="loading" *ngIf="isLoading">Chargement…</div>
+
+      <form *ngIf="!isLoading" class="cv" [formGroup]="form" (ngSubmit)="$event.preventDefault()">
+        <div class="cv-grid">
       <!-- Colonne gauche -->
       <section class="widget-card">
         <h2>À propos</h2>
@@ -144,5 +152,7 @@
         </div>
       </section>
     </div>
-  </form>
+      </form>
+    </div>
+  </main>
 </div>
