@@ -58,7 +58,8 @@ module.exports = async (req, res) => {
       return;
     }
 
-    const pathParts = Array.isArray(req.query?.path) ? req.query.path : [];
+    const rawPath = req.query?.path;
+    const pathParts = Array.isArray(rawPath) ? rawPath : (typeof rawPath === 'string' ? [rawPath] : []);
     const upstreamUrl = new URL(`${upstreamBase}/${pathParts.map(encodeURIComponent).join('/')}`);
     appendQueryParams(upstreamUrl, req.query);
 
