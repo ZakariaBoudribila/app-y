@@ -24,6 +24,11 @@ const UserModel = {
     return dbGet(sql, [email]);
   },
 
+  async findByUsername(username) {
+    const sql = `SELECT id, username, email, password_hash, role FROM users WHERE username = ?`;
+    return dbGet(sql, [username]);
+  },
+
   async findById(id) {
     const sql = `SELECT id, username, email, role FROM users WHERE id = ?`;
     return dbGet(sql, [id]);

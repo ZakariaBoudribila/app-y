@@ -122,11 +122,19 @@ async function register(req, res) {
     const passwordHash = await bcrypt.hash(password, 12);
     const username = usernameInput || safeUsernameFallbackFromEmail(email);
 
+    const existingUsername = await UserModel.findByUsername(username);
+    if (existingUsername) {
+      return res.status(409).json({ message: 'Username already in use.' });
+    }
+
     const userId = await UserModel.create({ username, email, passwordHash, role: 'user' });
 
     return res.status(201).json({ message: 'Account created.', userId });
   } catch (err) {
     console.error('[register]', err);
+    if (err && (err.code === '23505' || err.code === 23505)) {
+      return res.status(409).json({ message: 'Email or username already in use.' });
+    }
     return res.status(500).json({ message: 'Internal server error.' });
   }
 }
@@ -249,6 +257,11 @@ async function registerLegacy(req, res) {
       return res.status(400).json({ error: 'Mot de passe trop court (min 8)' });
     }
 
+    const existingUsername = await UserModel.findByUsername(username);
+    if (existingUsername) {
+      return res.status(400).json({ error: "Nom d'utilisateur déjà utilisé" });
+    }
+
     const existing = await UserModel.findByEmail(email);
     if (existing) {
       return res.status(400).json({ error: 'Email déjà utilisé ou erreur base de données' });
@@ -260,6 +273,9 @@ async function registerLegacy(req, res) {
     return res.status(201).json({ message: 'Utilisateur créé avec succès' });
   } catch (err) {
     console.error('[registerLegacy]', err);
+    if (err && (err.code === '23505' || err.code === 23505)) {
+      return res.status(400).json({ error: 'Email ou nom utilisateur déjà utilisé' });
+    }
     return res.status(500).json({ error: 'Erreur serveur' });
   }
 }
