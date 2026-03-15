@@ -81,7 +81,19 @@
 }
 
 /* Le composant activé par le router-outlet (app-login, app-dashboard, etc.) */
-.route-container > * {
+.route-container > :not(router-outlet) {
   display: block;
   width: 100%;
+  animation: pageEnter 200ms ease-out;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
