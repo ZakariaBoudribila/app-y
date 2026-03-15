@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormArray, FormBuilder } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
+import { ConfirmService } from '../../services/confirm.service';
 import { ToastService } from '../../services/toast.service';
 import { ProfessionalProfile } from '../../models/professional-profile';
 
@@ -26,7 +27,10 @@ type EducationFormValue = {
 export class ProPageComponent {
   isLoading = true;
   isSaving = false;
+  isEditing = false;
   errorMessage = '';
+
+  private lastLoadedProfile: ProfessionalProfile | null = null;
 
   languageInput = '';
   softwareInput = '';
@@ -42,6 +46,7 @@ export class ProPageComponent {
   constructor(
     private readonly fb: FormBuilder,
     private readonly api: ApiService,
+    private readonly confirm: ConfirmService,
     private readonly toast: ToastService
   ) {
     this.load();
@@ -77,7 +82,13 @@ export class ProPageComponent {
     this.experiencesArray.push(this.createExperienceGroup(prefill));
   }
 
-  removeExperience(index: number) {
+  async removeExperience(index: number) {
+    if (!this.isEditing) return;
+    if (this.experiencesArray.length <= 1) return;
+
+    const ok = await this.confirm.confirm('Supprimer cette expérience ?', { title: 'Expériences' });
+    if (!ok) return;
+
     this.experiencesArray.removeAt(index);
   }
 
@@ -85,7 +96,13 @@ export class ProPageComponent {
     this.educationArray.push(this.createEducationGroup(prefill));
   }
 
-  removeEducation(index: number) {
+  async removeEducation(index: number) {
+    if (!this.isEditing) return;
+    if (this.educationArray.length <= 1) return;
+
+    const ok = await this.confirm.confirm('Supprimer cette formation ?', { title: 'Éducation' });
+    if (!ok) return;
+
     this.educationArray.removeAt(index);
   }
 
@@ -139,6 +156,99 @@ export class ProPageComponent {
     };
   }
 
+  private normalizeStringArray(values: unknown): string[] {
+    if (!Array.isArray(values)) return [];
+
+    const out: string[] = [];
+    const seen = new Set<string>();
+
+    for (const v of values) {
+      if (typeof v !== 'string') continue;
+      const trimmed = v.trim();
+      if (!trimmed) continue;
+      const key = trimmed.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(trimmed);
+    }
+
+    return out;
+  }
+
+  private setFormFromProfile(profile: ProfessionalProfile) {
+    this.form.controls.aboutMe.setValue(profile.aboutMe || '');
+
+    this.experiencesArray.clear();
+    this.educationArray.clear();
+
+    for (const exp of profile.experiences || []) {
+      this.addExperience(this.toExperienceFormValue(exp));
+    }
+
+    for (const edu of profile.education || []) {
+      this.addEducation(this.toEducationFormValue(edu));
+    }
+
+    this.form.controls.languages.setValue(this.normalizeStringArray(profile.languages));
+    this.form.controls.software.setValue(this.normalizeStringArray(profile.software));
+
+    this.form.markAsPristine();
+    this.form.markAsUntouched();
+  }
+
+  private getPayloadFromForm(): ProfessionalProfile {
+    const raw = this.form.getRawValue();
+
+    return {
+      aboutMe: raw.aboutMe || '',
+      experiences: (raw.experiences as any[]) || [],
+      education: (raw.education as any[]) || [],
+      languages: this.normalizeStringArray(raw.languages),
+      software: this.normalizeStringArray(raw.software),
+    };
+  }
+
+  startEdit() {
+    if (this.isLoading || this.isSaving) return;
+
+    this.isEditing = true;
+    this.form.enable({ emitEvent: false });
+
+    // UX: quand on passe en édition, on met au moins une ligne.
+    if (this.experiencesArray.length === 0) this.addExperience();
+    if (this.educationArray.length === 0) this.addEducation();
+  }
+
+  async cancelEdit() {
+    if (!this.isEditing) return;
+    if (this.isSaving) return;
+
+    if (this.form.dirty) {
+      const ok = await this.confirm.confirm('Annuler les modifications non enregistrées ?', { title: 'Espace Pro' });
+      if (!ok) return;
+    }
+
+    if (this.lastLoadedProfile) {
+      this.setFormFromProfile(this.lastLoadedProfile);
+    }
+
+    this.languageInput = '';
+    this.softwareInput = '';
+    this.isEditing = false;
+    this.form.disable({ emitEvent: false });
+  }
+
+  async refresh() {
+    if (this.isLoading || this.isSaving) return;
+
+    if (this.isEditing && this.form.dirty) {
+      const ok = await this.confirm.confirm('Rafraîchir et perdre les modifications non enregistrées ?', { title: 'Espace Pro' });
+      if (!ok) return;
+    }
+
+    this.load();
+  }
+
   private toExperienceFormValue(item: any): ExperienceFormValue {
     return {
       title: typeof item?.title === 'string' ? item.title : '',
@@ -157,7 +267,7 @@ export class ProPageComponent {
     };
   }
 
-  load() {
+  private load() {
     this.isLoading = true;
     this.errorMessage = '';
 
@@ -165,25 +275,15 @@ export class ProPageComponent {
       next: (resp) => {
         const profile = this.normalizeIncomingProfile(resp?.profile as any);
 
-        this.form.controls.aboutMe.setValue(profile.aboutMe || '');
+        this.lastLoadedProfile = profile;
+        this.setFormFromProfile(profile);
 
-        this.experiencesArray.clear();
-        this.educationArray.clear();
+        // Mode lecture par défaut (évite d'afficher des lignes vides).
+        this.isEditing = false;
+        this.form.disable({ emitEvent: false });
 
-        for (const exp of profile.experiences || []) {
-          this.addExperience(this.toExperienceFormValue(exp));
-        }
-
-        for (const edu of profile.education || []) {
-          this.addEducation(this.toEducationFormValue(edu));
-        }
-
-        this.form.controls.languages.setValue(profile.languages || []);
-        this.form.controls.software.setValue(profile.software || []);
-
-        // UX: si vide, on met une ligne de base.
-        if (this.experiencesArray.length === 0) this.addExperience();
-        if (this.educationArray.length === 0) this.addEducation();
+        this.languageInput = '';
+        this.softwareInput = '';
 
         this.isLoading = false;
       },
@@ -199,20 +299,23 @@ export class ProPageComponent {
   save() {
     this.errorMessage = '';
     if (this.isSaving) return;
+    if (!this.isEditing) return;
 
     this.isSaving = true;
 
-    const payload: ProfessionalProfile = {
-      aboutMe: this.form.controls.aboutMe.value || '',
-      experiences: (this.experiencesArray.value as any[]) || [],
-      education: (this.educationArray.value as any[]) || [],
-      languages: this.form.controls.languages.value || [],
-      software: this.form.controls.software.value || [],
-    };
+    const payload = this.getPayloadFromForm();
 
     this.api.saveProfile(payload).subscribe({
-      next: () => {
+      next: (resp) => {
         this.isSaving = false;
+
+        const saved = this.normalizeIncomingProfile((resp?.profile as any) ?? payload);
+        this.lastLoadedProfile = saved;
+        this.setFormFromProfile(saved);
+
+        this.isEditing = false;
+        this.form.disable({ emitEvent: false });
+
         this.toast.success('Profil Pro enregistré.', { title: 'Espace Pro' });
       },
       error: (err) => {

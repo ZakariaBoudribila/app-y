@@ -19,6 +19,15 @@
   padding: 12px;
 }
 
+.empty {
+  padding: 10px 12px;
+  border: 1px dashed var(--accent-color);
+  border-radius: 14px;
+  background: var(--card-bg);
+  color: var(--text-main);
+  opacity: 0.9;
+}
+
 .cv {
   margin-top: 12px;
 }

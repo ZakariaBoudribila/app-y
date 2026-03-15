@@ -2,11 +2,23 @@
   <div class="pro-header">
     <h1 class="title-cursive">Espace Pro</h1>
     <div class="actions">
-      <button class="pro-btn" type="button" (click)="load()" [disabled]="isLoading || isSaving">Rafraîchir</button>
-      <button class="pro-btn" type="button" (click)="save()" [disabled]="isLoading || isSaving">
-        {{ isSaving ? 'Enregistrement…' : 'Enregistrer' }}
-      </button>
+      <button class="pro-btn" type="button" (click)="refresh()" [disabled]="isLoading || isSaving">Rafraîchir</button>
+
+      <ng-container *ngIf="!isEditing; else editingActions">
+        <button class="pro-btn" type="button" (click)="startEdit()" [disabled]="isLoading || isSaving">Modifier</button>
+      </ng-container>
+
+      <ng-template #editingActions>
+        <button class="pro-btn" type="button" (click)="cancelEdit()" [disabled]="isLoading || isSaving">Annuler</button>
+        <button class="pro-btn" type="button" (click)="save()" [disabled]="isLoading || isSaving || !form.dirty">
+          {{ isSaving ? 'Enregistrement…' : 'Enregistrer' }}
+        </button>
+      </ng-template>
     </div>
+  </div>
+
+  <div class="app-alert app-alert--warning" *ngIf="isEditing && form.dirty && !isSaving">
+    Modifications non enregistrées.
   </div>
 
   <div class="app-alert app-alert--error" *ngIf="errorMessage">{{ errorMessage }}</div>
@@ -28,10 +40,12 @@
       <section class="widget-card">
         <div class="section-header">
           <h2>Expériences</h2>
-          <button class="pro-btn" type="button" (click)="addExperience()">+ Ajouter</button>
+          <button class="pro-btn" *ngIf="isEditing" type="button" (click)="addExperience()">+ Ajouter</button>
         </div>
 
-        <div class="items" formArrayName="experiences">
+        <div class="empty" *ngIf="experiencesArray.length === 0">Aucune expérience pour le moment.</div>
+
+        <div class="items" formArrayName="experiences" *ngIf="experiencesArray.length > 0">
           <div class="item" *ngFor="let grp of experiencesArray.controls; let i = index" [formGroupName]="i">
             <div class="row">
               <input class="input-field" formControlName="title" placeholder="Poste" />
@@ -42,8 +56,8 @@
             </div>
             <textarea class="input-field textarea" rows="3" formControlName="description" placeholder="Missions / réalisations…"></textarea>
 
-            <div class="item-actions">
-              <button class="pro-btn pro-btn--danger" type="button" (click)="removeExperience(i)" [disabled]="experiencesArray.length <= 1">
+            <div class="item-actions" *ngIf="isEditing">
+              <button class="pro-btn pro-btn--danger" type="button" (click)="removeExperience(i)" [disabled]="experiencesArray.length <= 1 || isSaving">
                 Supprimer
               </button>
             </div>
@@ -54,10 +68,12 @@
       <section class="widget-card">
         <div class="section-header">
           <h2>Éducation</h2>
-          <button class="pro-btn" type="button" (click)="addEducation()">+ Ajouter</button>
+          <button class="pro-btn" *ngIf="isEditing" type="button" (click)="addEducation()">+ Ajouter</button>
         </div>
 
-        <div class="items" formArrayName="education">
+        <div class="empty" *ngIf="educationArray.length === 0">Aucune formation pour le moment.</div>
+
+        <div class="items" formArrayName="education" *ngIf="educationArray.length > 0">
           <div class="item" *ngFor="let grp of educationArray.controls; let i = index" [formGroupName]="i">
             <div class="row">
               <input class="input-field" formControlName="school" placeholder="École" />
@@ -68,8 +84,8 @@
             </div>
             <textarea class="input-field textarea" rows="3" formControlName="description" placeholder="Détails…"></textarea>
 
-            <div class="item-actions">
-              <button class="pro-btn pro-btn--danger" type="button" (click)="removeEducation(i)" [disabled]="educationArray.length <= 1">
+            <div class="item-actions" *ngIf="isEditing">
+              <button class="pro-btn pro-btn--danger" type="button" (click)="removeEducation(i)" [disabled]="educationArray.length <= 1 || isSaving">
                 Supprimer
               </button>
             </div>
@@ -80,7 +96,7 @@
       <!-- Colonne droite -->
       <section class="widget-card">
         <h2>Langues</h2>
-        <div class="tag-input">
+        <div class="tag-input" *ngIf="isEditing">
           <input
             class="input-field"
             [(ngModel)]="languageInput"
@@ -88,20 +104,22 @@
             name="languageInput"
             placeholder="Ajouter une langue (ex: Français)"
             (keydown.enter)="$event.preventDefault(); addLanguage()" />
-          <button class="pro-btn" type="button" (click)="addLanguage()">Ajouter</button>
+          <button class="pro-btn" type="button" (click)="addLanguage()" [disabled]="isSaving">Ajouter</button>
         </div>
 
-        <div class="tags">
+        <div class="empty" *ngIf="(form.controls.languages.value?.length || 0) === 0">Aucune langue renseignée.</div>
+
+        <div class="tags" *ngIf="(form.controls.languages.value?.length || 0) > 0">
           <span class="tag" *ngFor="let lang of form.controls.languages.value">
             {{ lang }}
-            <button class="tag-remove" type="button" (click)="removeLanguage(lang)">×</button>
+            <button class="tag-remove" *ngIf="isEditing" type="button" (click)="removeLanguage(lang)">×</button>
           </span>
         </div>
       </section>
 
       <section class="widget-card">
         <h2>Logiciels</h2>
-        <div class="tag-input">
+        <div class="tag-input" *ngIf="isEditing">
           <input
             class="input-field"
             [(ngModel)]="softwareInput"
@@ -109,13 +127,15 @@
             name="softwareInput"
             placeholder="Ajouter un logiciel (ex: Excel)"
             (keydown.enter)="$event.preventDefault(); addSoftware()" />
-          <button class="pro-btn" type="button" (click)="addSoftware()">Ajouter</button>
+          <button class="pro-btn" type="button" (click)="addSoftware()" [disabled]="isSaving">Ajouter</button>
         </div>
 
-        <div class="tags">
+        <div class="empty" *ngIf="(form.controls.software.value?.length || 0) === 0">Aucun logiciel renseigné.</div>
+
+        <div class="tags" *ngIf="(form.controls.software.value?.length || 0) > 0">
           <span class="tag" *ngFor="let sw of form.controls.software.value">
             {{ sw }}
-            <button class="tag-remove" type="button" (click)="removeSoftware(sw)">×</button>
+            <button class="tag-remove" *ngIf="isEditing" type="button" (click)="removeSoftware(sw)">×</button>
           </span>
         </div>
       </section>
