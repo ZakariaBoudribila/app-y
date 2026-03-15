@@ -39,6 +39,29 @@ function shouldForwardHeader(name) {
   ].includes(n);
 }
 
+function getPathParts(req) {
+  const rawPath = req.query?.path;
+  if (Array.isArray(rawPath)) return rawPath;
+  if (typeof rawPath === 'string') return [rawPath];
+
+  const urlStr = typeof req.url === 'string' ? req.url : '';
+  if (!urlStr) return [];
+
+  let pathname = '';
+  try {
+    pathname = new URL(urlStr, 'http://localhost').pathname || '';
+  } catch {
+    pathname = urlStr.split('?')[0] || '';
+  }
+
+  // Expect paths like /api/<...>; remove the /api prefix.
+  pathname = pathname.replace(/^\/api\/?/i, '');
+  pathname = pathname.replace(/^\/+|\/+$/g, '');
+  if (!pathname) return [];
+
+  return pathname.split('/').filter(Boolean);
+}
+
 async function readRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -58,8 +81,7 @@ module.exports = async (req, res) => {
       return;
     }
 
-    const rawPath = req.query?.path;
-    const pathParts = Array.isArray(rawPath) ? rawPath : (typeof rawPath === 'string' ? [rawPath] : []);
+    const pathParts = getPathParts(req);
     const upstreamUrl = new URL(`${upstreamBase}/${pathParts.map(encodeURIComponent).join('/')}`);
     appendQueryParams(upstreamUrl, req.query);
 
