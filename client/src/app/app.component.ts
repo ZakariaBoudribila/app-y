@@ -10,10 +10,11 @@ import { RouterOutlet } from '@angular/router';
     trigger('routeAnimations', [
       transition('* <=> *', [
         query(':leave', [
-          animate('120ms ease-in', style({ opacity: 0 }))
+          style({ display: 'block' }),
+          animate('120ms ease-in', style({ opacity: 0, transform: 'translateY(-4px)' }))
         ], { optional: true }),
         query(':enter', [
-          style({ opacity: 0, transform: 'translateY(8px)' }),
+          style({ display: 'block', opacity: 0, transform: 'translateY(8px)' }),
           animate('200ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
         ], { optional: true }),
       ]),

@@ -73,4 +73,15 @@
 
 .route-container {
   display: block;
+  width: 100%;
+}
+
+.route-container > router-outlet {
+  display: none;
+}
+
+/* Le composant activé par le router-outlet (app-login, app-dashboard, etc.) */
+.route-container > * {
+  display: block;
+  width: 100%;
 }
