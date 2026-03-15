@@ -206,7 +206,7 @@
 
 .pdf-header {
   display: flex;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
   padding-bottom: 12px;
@@ -217,12 +217,12 @@
 .pdf-title {
   font-size: 22px;
   font-weight: 900;
+  letter-spacing: 0.5px;
   color: var(--text-title);
 }
 
 .pdf-subtitle {
   font-size: 12px;
-  color: var(--text-main);
   opacity: 0.85;
 }
 
@@ -231,8 +231,10 @@
 }
 
 .pdf-h2 {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
   color: var(--text-title);
   margin-bottom: 8px;
 }
@@ -249,20 +251,24 @@
 }
 
 .pdf-item {
-  padding: 10px 12px;
-  border: 1px solid var(--accent-color);
-  border-radius: 14px;
-  margin-bottom: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--accent-color);
+  margin-bottom: 8px;
+}
+
+.pdf-item:last-child {
+  border-bottom: none;
 }
 
 .pdf-item-title {
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 800;
   color: var(--text-main);
 }
 
-.pdf-item-sub {
-  font-weight: 800;
+
+.pdf-strong {
+  font-weight: 900;
 }
 
 .pdf-sep {
@@ -293,7 +299,7 @@
 .pdf-tag {
   display: inline-flex;
   align-items: center;
-  padding: 6px 10px;
+  padding: 4px 8px;
   border-radius: 999px;
   border: 1px solid var(--accent-color);
   font-size: 11px;

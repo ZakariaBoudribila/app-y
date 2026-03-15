@@ -162,12 +162,15 @@
       <div class="pdf-root" *ngIf="pdfVm" aria-hidden="true">
         <div class="pdf-surface" #pdfContent>
           <div class="pdf-header">
-            <div class="pdf-title">CV — Espace Pro</div>
-            <div class="pdf-subtitle" *ngIf="pdfGeneratedAt as d">Généré le {{ d | date: 'dd/MM/yyyy' }}</div>
+            <div>
+              <div class="pdf-title">CV</div>
+              <div class="pdf-subtitle">Espace Pro</div>
+            </div>
+            <div class="pdf-meta" *ngIf="pdfGeneratedAt as d">{{ d | date: 'dd/MM/yyyy' }}</div>
           </div>
 
           <div class="pdf-section">
-            <div class="pdf-h2">À propos</div>
+            <div class="pdf-h2">Profil</div>
             <div class="pdf-text" *ngIf="pdfVm.aboutMe; else noAbout">{{ pdfVm.aboutMe }}</div>
             <ng-template #noAbout>
               <div class="pdf-muted">—</div>
@@ -178,9 +181,9 @@
             <div class="pdf-h2">Expériences</div>
             <div class="pdf-item" *ngFor="let exp of pdfVm.experiences">
               <div class="pdf-item-title">
-                {{ exp.title || '—' }}
-                <span class="pdf-sep" *ngIf="exp.company">•</span>
-                <span class="pdf-item-sub" *ngIf="exp.company">{{ exp.company }}</span>
+                <span class="pdf-strong">{{ exp.title || '—' }}</span>
+                <span class="pdf-sep" *ngIf="exp.company">—</span>
+                <span *ngIf="exp.company">{{ exp.company }}</span>
               </div>
               <div class="pdf-meta" *ngIf="exp.period">{{ exp.period }}</div>
               <div class="pdf-text" *ngIf="exp.description">{{ exp.description }}</div>
@@ -191,9 +194,9 @@
             <div class="pdf-h2">Éducation</div>
             <div class="pdf-item" *ngFor="let edu of pdfVm.education">
               <div class="pdf-item-title">
-                {{ edu.school || '—' }}
-                <span class="pdf-sep" *ngIf="edu.degree">•</span>
-                <span class="pdf-item-sub" *ngIf="edu.degree">{{ edu.degree }}</span>
+                <span class="pdf-strong">{{ edu.school || '—' }}</span>
+                <span class="pdf-sep" *ngIf="edu.degree">—</span>
+                <span *ngIf="edu.degree">{{ edu.degree }}</span>
               </div>
               <div class="pdf-meta" *ngIf="edu.period">{{ edu.period }}</div>
               <div class="pdf-text" *ngIf="edu.description">{{ edu.description }}</div>
