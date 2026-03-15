@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('crypto');
 
 const UserModel = require('../models/userModel');
 const RefreshTokenModel = require('../models/refreshTokenModel');
@@ -51,7 +51,7 @@ function safeUsernameFallbackFromEmail(email) {
 
 async function issueRefreshTokenForUser(userId) {
   const rawRefresh = generateRefreshToken();
-  const family = uuidv4();
+  const family = randomUUID();
   const expiresAt = new Date(Date.now() + getRefreshTtlMs());
 
   await RefreshTokenModel.create({
