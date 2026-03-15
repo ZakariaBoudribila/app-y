@@ -242,6 +242,54 @@ async function me(req, res) {
   }
 }
 
+// ─── /api/auth/change-password ──────────────────────────────────────────────
+async function changePassword(req, res) {
+  try {
+    const userId = req.user?.sub ?? req.userData?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized.' });
+    }
+
+    const currentPassword = req.body?.currentPassword;
+    const newPassword = req.body?.newPassword;
+
+    if (typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
+      return res.status(400).json({ message: 'currentPassword and newPassword are required.' });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters.' });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.status(400).json({ message: 'New password must be different.' });
+    }
+
+    const user = await UserModel.findByIdWithPasswordHash(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    const ok = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!ok) {
+      return res.status(401).json({ message: 'Invalid current password.' });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    await UserModel.updatePasswordHash(userId, passwordHash);
+
+    // Invalide toutes les sessions (refresh tokens) pour cet utilisateur.
+    await RefreshTokenModel.deleteByUserId(userId);
+    res.clearCookie('refreshToken', refreshCookieClearOptions());
+
+    return res.status(200).json({ message: 'Password updated.' });
+  } catch (err) {
+    const errorId = randomUUID();
+    console.error(`[changePassword:${errorId}]`, err);
+    return res.status(500).json({ message: 'Internal server error.', errorId });
+  }
+}
+
 // ─── Compat legacy (/api/users/*) ─────────────────────────────────────────────
 async function registerLegacy(req, res) {
   // Conserve le format de réponse existant (erreur/message) autant que possible.
@@ -327,6 +375,7 @@ module.exports = {
   refresh,
   logout,
   me,
+  changePassword,
   registerLegacy,
   loginLegacy,
 };

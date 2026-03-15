@@ -47,6 +47,21 @@ export class ApiService {
     return this.http.post(`${this.baseUrl}/auth/logout`, {}, { withCredentials: true });
   }
 
+  getMe(): Observable<{ user: { id: number; username: string; email: string; role?: string } }> {
+    return this.http.get<{ user: { id: number; username: string; email: string; role?: string } }>(
+      `${this.baseUrl}/auth/me`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.baseUrl}/auth/change-password`,
+      { currentPassword, newPassword },
+      { headers: this.getHeaders(), withCredentials: true }
+    );
+  }
+
   // ==========================================
   // PROFIL PRO (CV)
   // ==========================================

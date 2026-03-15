@@ -84,6 +84,16 @@
       <span class="icon">💼</span>
       <span class="label">Espace Pro</span>
     </a>
+
+    <a
+      [routerLink]="['/settings']"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="menu-item"
+      (click)="closeMobileMenu()">
+      <span class="icon">⚙️</span>
+      <span class="label">Paramètres</span>
+    </a>
     
     <a (click)="logout()" class="menu-item logout-style" style="cursor: pointer;">
       <span class="icon">🚪</span>

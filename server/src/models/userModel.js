@@ -34,6 +34,11 @@ const UserModel = {
     return dbGet(sql, [id]);
   },
 
+  async findByIdWithPasswordHash(id) {
+    const sql = `SELECT id, username, email, password_hash, role FROM users WHERE id = ?`;
+    return dbGet(sql, [id]);
+  },
+
   async create({ username, email, passwordHash, role }) {
     const sql = `
       INSERT INTO users (username, email, password_hash, role)
@@ -41,6 +46,11 @@ const UserModel = {
       RETURNING id
     `;
     return dbRun(sql, [username, email, passwordHash, role || 'user']);
+  },
+
+  async updatePasswordHash(userId, passwordHash) {
+    const sql = `UPDATE users SET password_hash = ? WHERE id = ?`;
+    await dbRun(sql, [passwordHash, userId]);
   },
 };
 

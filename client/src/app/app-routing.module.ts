@@ -11,6 +11,7 @@ import { MoodPageComponent } from './pages/mood-page/mood-page.component';
 import { GoalsPageComponent } from './pages/goals-page/goals-page.component';
 import { HistoryPageComponent } from './pages/history-page/history-page.component';
 import { ProPageComponent } from './pages/pro-page/pro-page.component';
+import { SettingsPageComponent } from './pages/settings-page/settings-page.component';
 
 const routes: Routes = [
   // Si l'utilisateur tape juste 'localhost:4200', on le redirige vers le login
@@ -28,6 +29,7 @@ const routes: Routes = [
   { path: 'goals', component: GoalsPageComponent },
   { path: 'history', component: HistoryPageComponent },
   { path: 'pro', component: ProPageComponent },
+  { path: 'settings', component: SettingsPageComponent },
 
   // Si l'utilisateur tape une adresse qui n'existe pas, on le renvoie au login
   { path: '**', redirectTo: '/login' }

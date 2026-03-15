@@ -61,6 +61,11 @@ const RefreshTokenModel = {
     await dbRun(sql, [family]);
   },
 
+  async deleteByUserId(userId) {
+    const sql = `DELETE FROM refresh_tokens WHERE user_id = ?`;
+    await dbRun(sql, [userId]);
+  },
+
   async listByFamily(family) {
     const sql = `SELECT id, revoked FROM refresh_tokens WHERE family = ?`;
     return dbAll(sql, [family]);

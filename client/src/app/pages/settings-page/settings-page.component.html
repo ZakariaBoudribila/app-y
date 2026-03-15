@@ -1,0 +1,109 @@
+<app-header></app-header>
+
+<div class="app-layout">
+  <aside class="sidebar-container">
+    <app-sidebar></app-sidebar>
+  </aside>
+
+  <main class="main-content">
+    <h1 class="title-cursive">Paramètres</h1>
+
+    <section class="widget-card settings-section">
+      <h2 class="section-title">Profil</h2>
+
+      <div class="app-alert app-alert--info" *ngIf="isLoadingMe">Chargement du profil...</div>
+
+      <div *ngIf="!isLoadingMe && me" class="kv">
+        <div class="kv-row">
+          <div class="kv-key">Nom d'utilisateur</div>
+          <div class="kv-value">{{ me.username }}</div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Email</div>
+          <div class="kv-value">{{ me.email }}</div>
+        </div>
+        <div class="kv-row" *ngIf="me.role">
+          <div class="kv-key">Rôle</div>
+          <div class="kv-value">{{ me.role }}</div>
+        </div>
+
+        <div class="app-alert app-alert--info profile-hint">
+          Pour modifier ces informations, il faudra ajouter un endpoint dédié côté serveur.
+        </div>
+      </div>
+
+      <div class="app-alert app-alert--warning" *ngIf="!isLoadingMe && !me">
+        Impossible de charger le profil. Vérifie ta connexion ou reconnecte-toi.
+      </div>
+    </section>
+
+    <section class="widget-card settings-section">
+      <h2 class="section-title">Sécurité</h2>
+
+      <div class="app-alert app-alert--error" *ngIf="passwordErrorMessage">{{ passwordErrorMessage }}</div>
+
+      <form [formGroup]="passwordForm" (ngSubmit)="submitPasswordChange()" novalidate>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="currentPassword">Mot de passe actuel</label>
+            <input
+              id="currentPassword"
+              type="password"
+              class="input-field"
+              formControlName="currentPassword"
+              autocomplete="current-password"
+              placeholder="••••••••" />
+            <div class="field-error" *ngIf="currentPasswordCtrl?.touched && currentPasswordCtrl?.invalid">
+              Le mot de passe actuel est obligatoire.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="newPassword">Nouveau mot de passe</label>
+            <input
+              id="newPassword"
+              type="password"
+              class="input-field"
+              formControlName="newPassword"
+              autocomplete="new-password"
+              placeholder="Minimum 8 caractères" />
+            <div class="field-error" *ngIf="newPasswordCtrl?.touched && newPasswordCtrl?.invalid">
+              <span *ngIf="newPasswordCtrl?.errors?.['required']">Le nouveau mot de passe est obligatoire.</span>
+              <span *ngIf="newPasswordCtrl?.errors?.['minlength']">Minimum 8 caractères.</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="confirmNewPassword">Confirmer le nouveau mot de passe</label>
+            <input
+              id="confirmNewPassword"
+              type="password"
+              class="input-field"
+              formControlName="confirmNewPassword"
+              autocomplete="new-password"
+              placeholder="Retape le nouveau mot de passe" />
+            <div
+              class="field-error"
+              *ngIf="
+                (confirmNewPasswordCtrl?.touched && confirmNewPasswordCtrl?.invalid) ||
+                (passwordForm.touched && passwordForm.errors?.['passwordMismatch'])
+              ">
+              <span *ngIf="confirmNewPasswordCtrl?.errors?.['required']">La confirmation est obligatoire.</span>
+              <span *ngIf="confirmNewPasswordCtrl?.errors?.['minlength']">Minimum 8 caractères.</span>
+              <span *ngIf="passwordForm.errors?.['passwordMismatch']">Les mots de passe ne correspondent pas.</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="primary-btn" type="submit" [disabled]="isSubmittingPassword || passwordForm.invalid">
+          {{ isSubmittingPassword ? 'Mise à jour...' : 'Mettre à jour le mot de passe' }}
+        </button>
+      </form>
+    </section>
+
+    <section class="widget-card settings-section">
+      <h2 class="section-title">Session</h2>
+      <button type="button" class="danger-btn" (click)="logout()">Se déconnecter</button>
+    </section>
+  </main>
+</div>
