@@ -5,7 +5,7 @@
   "outputDirectory": "client/dist/client",
   "routes": [
     { "src": "/api$", "dest": "/api/[...path].js" },
-    { "src": "/api/(.*)", "dest": "/api/[...path].js" },
+    { "src": "/api/(.*)", "dest": "/api/[...path].js?path=$1" },
     { "handle": "filesystem" },
     { "src": "/(?!api/)(.*)", "dest": "/index.html" }
   ]

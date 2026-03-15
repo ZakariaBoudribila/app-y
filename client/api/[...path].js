@@ -42,7 +42,7 @@ function shouldForwardHeader(name) {
 function getPathParts(req) {
   const rawPath = req.query?.path;
   if (Array.isArray(rawPath)) return rawPath;
-  if (typeof rawPath === 'string') return [rawPath];
+  if (typeof rawPath === 'string') return rawPath.split('/').filter(Boolean);
 
   const urlStr = typeof req.url === 'string' ? req.url : '';
   if (!urlStr) return [];
