@@ -55,6 +55,10 @@
 }
 
 @media (max-width: 768px) {
+  .logo-area {
+    display: none;
+  }
+
   .logo-area h2 {
     margin-bottom: 12px;
     padding-left: 0;
@@ -63,11 +67,18 @@
 
   .sidebar-menu {
     gap: 8px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
   }
 
   .menu-item {
     padding: 12px;
     justify-content: center;
+    flex: 0 0 auto;
   }
 
   .menu-item .icon {

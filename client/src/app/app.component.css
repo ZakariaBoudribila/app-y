@@ -37,6 +37,33 @@
   gap: 30px; /* Espace entre les cartes d'une même colonne */
 }
 
+/* Mobile: la sidebar devient une barre en haut (PC inchangé) */
+@media (max-width: 768px) {
+  .app-layout {
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .sidebar-container {
+    width: 100%;
+    padding: 10px;
+    position: sticky;
+    top: 12px;
+    align-self: stretch;
+    z-index: 2;
+  }
+
+  .main-content {
+    overflow: visible;
+    padding-right: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 /* Petite adaptation pour les écrans plus petits (tablettes) */
 @media (max-width: 900px) {
   .dashboard-grid {
