@@ -23,6 +23,31 @@
   margin-top: 12px;
 }
 
+/* Champs du formulaire (la classe .input-field n'est pas globale) */
+.input-field {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--accent-color);
+  border-radius: 12px;
+  font-family: 'Nunito', sans-serif;
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.input-field:focus {
+  border-color: var(--text-title);
+  background-color: white;
+}
+
+.input-field::placeholder {
+  color: var(--text-main);
+  opacity: 0.75;
+}
+
+.input-field.textarea {
+  line-height: 1.4;
+}
+
 .cv-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -91,6 +116,10 @@
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+.tag-input .input-field {
+  flex: 1;
 }
 
 .tags {
