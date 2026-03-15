@@ -70,3 +70,7 @@
     grid-template-columns: 1fr; /* Passe sur 1 seule colonne */
   }
 }
+
+.route-container {
+  display: block;
+}

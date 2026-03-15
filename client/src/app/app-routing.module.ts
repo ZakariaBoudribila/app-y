@@ -18,18 +18,18 @@ const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   
   // Les routes principales
-  { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
-  { path: 'dashboard', component: DashboardComponent },
+  { path: 'login', component: LoginComponent, data: { animation: 'login' } },
+  { path: 'register', component: RegisterComponent, data: { animation: 'register' } },
+  { path: 'dashboard', component: DashboardComponent, data: { animation: 'dashboard' } },
 
   // Pages du menu (un seul widget par page)
-  { path: 'tasks', component: TasksPageComponent },
-  { path: 'journal', component: JournalPageComponent },
-  { path: 'mood', component: MoodPageComponent },
-  { path: 'goals', component: GoalsPageComponent },
-  { path: 'history', component: HistoryPageComponent },
-  { path: 'pro', component: ProPageComponent },
-  { path: 'settings', component: SettingsPageComponent },
+  { path: 'tasks', component: TasksPageComponent, data: { animation: 'tasks' } },
+  { path: 'journal', component: JournalPageComponent, data: { animation: 'journal' } },
+  { path: 'mood', component: MoodPageComponent, data: { animation: 'mood' } },
+  { path: 'goals', component: GoalsPageComponent, data: { animation: 'goals' } },
+  { path: 'history', component: HistoryPageComponent, data: { animation: 'history' } },
+  { path: 'pro', component: ProPageComponent, data: { animation: 'pro' } },
+  { path: 'settings', component: SettingsPageComponent, data: { animation: 'settings' } },
 
   // Si l'utilisateur tape une adresse qui n'existe pas, on le renvoie au login
   { path: '**', redirectTo: '/login' }
