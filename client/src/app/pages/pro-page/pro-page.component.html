@@ -17,6 +17,10 @@
     </div>
   </div>
 
+  <div class="app-alert app-alert--info" *ngIf="!isLoading && !isEditing">
+    Mode lecture. Cliquez sur « Modifier » pour éditer.
+  </div>
+
   <div class="app-alert app-alert--warning" *ngIf="isEditing && form.dirty && !isSaving">
     Modifications non enregistrées.
   </div>
