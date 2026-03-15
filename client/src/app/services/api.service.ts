@@ -93,13 +93,13 @@ export class ApiService {
     });
   }
 
-  addTask(description: string, date: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/tasks`, { description, date }, { headers: this.getHeaders() });
+  addTask(description: string, date: string, category?: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/tasks`, { description, date, category: category ?? 'Perso' }, { headers: this.getHeaders() });
   }
 
   updateTask(
     taskId: number,
-    payload: { description?: string; is_completed?: number | boolean }
+    payload: { description?: string; is_completed?: number | boolean; category?: string }
   ): Observable<any> {
     return this.http.put(`${this.baseUrl}/tasks/${taskId}`, payload, { headers: this.getHeaders() });
   }

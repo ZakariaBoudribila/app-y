@@ -6,6 +6,9 @@
 .custom-checkbox{display:flex;align-items:center;cursor:pointer}
 .custom-checkbox input[type="checkbox"]{margin-right:15px;width:18px;height:18px;accent-color:var(--accent-color);cursor:pointer}
 .task-content{flex:1;min-width:0}
+.category-pill{display:inline-flex;align-items:center;justify-content:center;padding:2px 8px;border-radius:999px;border:1px solid var(--accent-color);background:var(--card-bg);color:var(--text-title);font-size:.8rem;font-weight:700;margin-right:8px;white-space:nowrap}
+.category-select{padding:8px 10px;border:1px solid var(--accent-color);border-radius:12px;font-family:'Nunito',sans-serif;outline:none;background-color:rgba(255,255,255,.7)}
+.category-select:focus{border-color:var(--text-title);background:#fff}
 .custom-checkbox .task-text{font-size:1rem;color:var(--text-main);transition:all .2s ease-in-out}
 .custom-checkbox .task-text.done{text-decoration:line-through;color:#bcaaa4}
 .edit-input{width:100%;padding:8px 10px;border:1px solid var(--accent-color);border-radius:12px;font-family:'Nunito',sans-serif;outline:none;background-color:rgba(255,255,255,.7)}
@@ -22,3 +25,14 @@
 .inline-error{margin-top:10px;color:#c0392b;font-size:.95rem}
 .add-btn{background:var(--accent-color);color:#fff;border:none;padding:8px 16px;border-radius:20px;font-family:'Nunito',sans-serif;font-weight:600;cursor:pointer;transition:all .3s ease}
 .add-btn:hover{background:var(--text-title);color:#fff;transform:translateY(-2px)}
+
+.stats{margin:10px 0 16px;padding:12px;border:1px solid var(--accent-color);border-radius:14px;background:var(--card-bg)}
+.stats-row{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px}
+.stats-label{font-weight:900;color:var(--text-title)}
+.stats-value{color:var(--text-main)}
+.progress{height:10px;border-radius:999px;border:1px solid var(--accent-color);background:rgba(255,255,255,.5);overflow:hidden}
+.progress--thin{height:8px}
+.progress-bar{height:100%;background:var(--accent-color);width:0}
+.breakdown{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.breakdown-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+.breakdown-text{font-size:.9rem;opacity:.9}

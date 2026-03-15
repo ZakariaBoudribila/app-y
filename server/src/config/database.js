@@ -78,9 +78,13 @@ async function init() {
             user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             description TEXT NOT NULL,
             is_completed SMALLINT NOT NULL DEFAULT 0,
-            task_date DATE NOT NULL
+            task_date DATE NOT NULL,
+            category TEXT NOT NULL DEFAULT 'Perso'
         )
     `);
+
+    // Catégories de tâches (ajout non destructif)
+    await pool.query(`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'Perso'`);
 
     await pool.query(`
         CREATE TABLE IF NOT EXISTS goals (

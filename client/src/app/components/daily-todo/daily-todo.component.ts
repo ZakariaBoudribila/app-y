@@ -14,13 +14,17 @@ export class DailyTodoComponent implements OnInit, OnChanges {
   private selectedDate: string = new Date().toISOString().split('T')[0];
 
   newTaskText: string = '';
+  newTaskCategory: string = 'Perso';
   isAdding: boolean = false;
   addErrorMessage: string = '';
 
   editingTaskId: number | null = null;
   editTaskText: string = '';
+  editTaskCategory: string = 'Perso';
   isSavingEdit: boolean = false;
   deletingTaskId: number | null = null;
+
+  readonly categories: string[] = ['Pro', 'Perso', 'Études'];
 
   // On injecte l'API Service dans le constructeur
   constructor(private api: ApiService, private router: Router) {}
@@ -65,12 +69,15 @@ export class DailyTodoComponent implements OnInit, OnChanges {
     const description = this.newTaskText.trim();
     if (!description) return;
 
+    const category = this.normalizeCategory(this.newTaskCategory);
+
     this.isAdding = true;
     this.addErrorMessage = '';
 
-    this.api.addTask(description, this.selectedDate).subscribe({
+    this.api.addTask(description, this.selectedDate, category).subscribe({
       next: () => {
         this.newTaskText = '';
+        this.newTaskCategory = 'Perso';
         this.isAdding = false;
         this.loadTasks();
       },
@@ -108,21 +115,26 @@ export class DailyTodoComponent implements OnInit, OnChanges {
   startEdit(task: any) {
     this.editingTaskId = task.id;
     this.editTaskText = task.description ?? '';
+    this.editTaskCategory = this.normalizeCategory(task.category);
   }
 
   cancelEdit() {
     this.editingTaskId = null;
     this.editTaskText = '';
+    this.editTaskCategory = 'Perso';
   }
 
   saveEdit(task: any) {
     const description = this.editTaskText.trim();
     if (!description) return;
 
+    const category = this.normalizeCategory(this.editTaskCategory);
+
     this.isSavingEdit = true;
-    this.api.updateTask(task.id, { description }).subscribe({
+    this.api.updateTask(task.id, { description, category }).subscribe({
       next: () => {
         task.description = description;
+        task.category = category;
         this.isSavingEdit = false;
         this.cancelEdit();
       },
@@ -154,5 +166,45 @@ export class DailyTodoComponent implements OnInit, OnChanges {
         }
       }
     });
+  }
+
+  private normalizeCategory(value: any): string {
+    const raw = typeof value === 'string' ? value.trim() : '';
+    if (this.categories.includes(raw)) return raw;
+    return 'Perso';
+  }
+
+  get totalTasks(): number {
+    return Array.isArray(this.tasks) ? this.tasks.length : 0;
+  }
+
+  get completedTasks(): number {
+    return (this.tasks || []).filter((t) => !!t?.is_completed).length;
+  }
+
+  get completionPercent(): number {
+    if (!this.totalTasks) return 0;
+    return Math.round((this.completedTasks / this.totalTasks) * 100);
+  }
+
+  get byCategory(): Array<{ category: string; total: number; completed: number; percent: number }> {
+    const buckets = new Map<string, { total: number; completed: number }>();
+    for (const c of this.categories) buckets.set(c, { total: 0, completed: 0 });
+
+    for (const t of this.tasks || []) {
+      const c = this.normalizeCategory(t?.category);
+      const bucket = buckets.get(c);
+      if (!bucket) continue;
+      bucket.total += 1;
+      if (t?.is_completed) bucket.completed += 1;
+    }
+
+    return this.categories
+      .map((c) => {
+        const b = buckets.get(c) ?? { total: 0, completed: 0 };
+        const percent = b.total ? Math.round((b.completed / b.total) * 100) : 0;
+        return { category: c, total: b.total, completed: b.completed, percent };
+      })
+      .filter((x) => x.total > 0);
   }
 }

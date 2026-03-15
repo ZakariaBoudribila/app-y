@@ -3,6 +3,29 @@
   <div class="floral-decor">🌸</div> 
 </div>
 
+<div class="stats" *ngIf="totalTasks > 0">
+  <div class="stats-row">
+    <div class="stats-label">Complétion</div>
+    <div class="stats-value">{{ completedTasks }} / {{ totalTasks }} ({{ completionPercent }}%)</div>
+  </div>
+
+  <div class="progress" aria-hidden="true">
+    <div class="progress-bar" [style.width.%]="completionPercent"></div>
+  </div>
+
+  <div class="breakdown" *ngIf="byCategory.length > 0">
+    <div class="breakdown-item" *ngFor="let b of byCategory">
+      <div class="breakdown-head">
+        <span class="category-pill">{{ b.category }}</span>
+        <span class="breakdown-text">{{ b.completed }} / {{ b.total }} ({{ b.percent }}%)</span>
+      </div>
+      <div class="progress progress--thin" aria-hidden="true">
+        <div class="progress-bar" [style.width.%]="b.percent"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="task-list">
   <div class="task-item" *ngFor="let task of tasks">
     <label class="custom-checkbox">
@@ -15,6 +38,8 @@
     </label>
 
     <div class="task-content">
+      <span class="category-pill" *ngIf="editingTaskId !== task.id">{{ task.category || 'Perso' }}</span>
+
       <span
         class="task-text"
         [class.done]="task.is_completed"
@@ -29,6 +54,14 @@
         [name]="'editTaskText' + task.id"
         [(ngModel)]="editTaskText"
         autocomplete="off" />
+
+      <select
+        *ngIf="editingTaskId === task.id"
+        class="category-select"
+        [name]="'editTaskCategory' + task.id"
+        [(ngModel)]="editTaskCategory">
+        <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+      </select>
     </div>
 
     <div class="item-actions" *ngIf="editingTaskId !== task.id">
@@ -57,6 +90,9 @@
 
 <div class="card-actions">
   <form class="add-form" (ngSubmit)="addTask()">
+    <select class="category-select" name="newTaskCategory" [(ngModel)]="newTaskCategory">
+      <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+    </select>
     <input
       class="task-input"
       type="text"

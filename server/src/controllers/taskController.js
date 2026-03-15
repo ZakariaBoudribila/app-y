@@ -14,9 +14,11 @@ exports.getTasks = (req, res) => {
 // 2. Créer une tâche
 exports.createTask = (req, res) => {
     const userId = req.userData.id;
-    const { description, date } = req.body;
+    const { description, date, category } = req.body;
 
-    TaskModel.createTask(userId, description, date, (err, lastId) => {
+    const normalizedCategory = typeof category === 'string' && category.trim() ? category.trim() : 'Perso';
+
+    TaskModel.createTask(userId, description, date, normalizedCategory, (err, lastId) => {
         if (err) return res.status(500).json({ error: "Erreur création" });
         res.status(201).json({ id: lastId });
     });
@@ -26,12 +28,13 @@ exports.createTask = (req, res) => {
 exports.updateTaskStatus = (req, res) => {
     const userId = req.userData.id;
     const taskId = req.params.id;
-    const { is_completed, description } = req.body;
+    const { is_completed, description, category } = req.body;
 
     const hasDescription = typeof description === 'string';
     const hasCompleted = typeof is_completed !== 'undefined';
+    const hasCategory = typeof category === 'string';
 
-    if (!hasDescription && !hasCompleted) {
+    if (!hasDescription && !hasCompleted && !hasCategory) {
         return res.status(400).json({ error: "Aucun champ à mettre à jour" });
     }
 
@@ -42,6 +45,11 @@ exports.updateTaskStatus = (req, res) => {
     const fields = {};
     if (hasDescription) fields.description = description.trim();
     if (hasCompleted) fields.is_completed = !!is_completed;
+    if (hasCategory) {
+        const trimmed = category.trim();
+        if (!trimmed) return res.status(400).json({ error: "Catégorie invalide" });
+        fields.category = trimmed;
+    }
 
     // Un seul endpoint pour compat: status (checkbox) + edition description
     TaskModel.updateTask(userId, taskId, fields, (err) => {
