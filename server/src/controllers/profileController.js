@@ -29,6 +29,10 @@ exports.getProfile = async (req, res) => {
     return res.status(200).json({ profile: toProfessionalProfileDto(profile) });
   } catch (err) {
     console.error('[getProfile]', err);
+    const msg = typeof err?.message === 'string' ? err.message : '';
+    if (msg.includes('DATABASE_URL')) {
+      return res.status(503).json({ message: msg });
+    }
     return res.status(500).json({ message: 'Internal server error.' });
   }
 };
@@ -52,6 +56,10 @@ exports.saveProfile = async (req, res) => {
     return res.status(200).json({ profile: toProfessionalProfileDto(saved) });
   } catch (err) {
     console.error('[saveProfile]', err);
+    const msg = typeof err?.message === 'string' ? err.message : '';
+    if (msg.includes('DATABASE_URL')) {
+      return res.status(503).json({ message: msg });
+    }
     return res.status(500).json({ message: 'Internal server error.' });
   }
 };

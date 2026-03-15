@@ -28,6 +28,10 @@ module.exports = (req, res, next) => {
     // Sécurité/robustesse: si la DB a été recréée, un ancien token peut référencer un user absent.
     db.get('SELECT id FROM users WHERE id = ?', [userId], (err, row) => {
         if (err) {
+            const msg = typeof err?.message === 'string' ? err.message : '';
+            if (msg.includes('DATABASE_URL')) {
+                return res.status(503).json({ message: msg });
+            }
             return res.status(500).json({ message: 'Erreur base de données' });
         }
         if (!row) {
