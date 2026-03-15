@@ -24,7 +24,8 @@ Server (`server/src`):
 
 Dans `server/package.json`:
 - `cookie-parser` — lecture des cookies HttpOnly
-- `uuid` — génération d’un identifiant de famille pour les refresh tokens
+
+Note: l’identifiant de famille des refresh tokens est généré via `crypto.randomUUID()` (Node.js), donc aucun package externe n’est requis.
 
 (Packages déjà présents et utilisés: `jsonwebtoken`, `bcryptjs`, `pg`, `dotenv`, `cors`, `express`.)
 

@@ -65,7 +65,7 @@ Compatibilité:
 - `id` (INTEGER identity)
 - `token_hash` (TEXT unique)
 - `user_id` (INTEGER → FK users)
-- `family` (UUID ou TEXT) — identifiant de lignée
+- `family` (TEXT) — identifiant de lignée (UUID string, généré via `crypto.randomUUID()`)
 - `expires_at` (TIMESTAMPTZ)
 - `revoked` (BOOLEAN)
 - `created_at` (TIMESTAMPTZ)
