@@ -40,67 +40,81 @@ function shouldForwardHeader(name) {
 }
 
 async function readRawBody(req) {
-  const chunks = [];
-  for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  return Buffer.concat(chunks);
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
 }
 
 module.exports = async (req, res) => {
-  const upstreamBase = normalizeUpstreamBase(process.env.UPSTREAM_API_BASE);
-  if (!upstreamBase) {
+  try {
+    const upstreamBase = normalizeUpstreamBase(process.env.UPSTREAM_API_BASE);
+    if (!upstreamBase) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ message: 'Missing UPSTREAM_API_BASE on Vercel.' }));
+      return;
+    }
+
+    const pathParts = Array.isArray(req.query?.path) ? req.query.path : [];
+    const upstreamUrl = new URL(`${upstreamBase}/${pathParts.map(encodeURIComponent).join('/')}`);
+    appendQueryParams(upstreamUrl, req.query);
+
+    const method = (req.method || 'GET').toUpperCase();
+
+    const headers = {};
+    for (const [name, value] of Object.entries(req.headers || {})) {
+      if (!shouldForwardHeader(name)) continue;
+      if (value === undefined) continue;
+      headers[name] = value;
+    }
+
+    let body;
+    if (method !== 'GET' && method !== 'HEAD') {
+      const raw = await readRawBody(req);
+      body = raw.length ? raw : undefined;
+    }
+
+    const upstreamResp = await fetch(upstreamUrl.toString(), {
+      method,
+      headers,
+      body,
+      redirect: 'manual',
+    });
+
+    res.statusCode = upstreamResp.status;
+
+    // Forward relevant headers (especially Set-Cookie) back to the browser.
+    // Node18 fetch (undici) may expose getSetCookie(); fallback to single header.
+    const getSetCookie = upstreamResp.headers.getSetCookie?.bind(upstreamResp.headers);
+    const setCookies = typeof getSetCookie === 'function'
+      ? getSetCookie()
+      : (upstreamResp.headers.get('set-cookie') ? [upstreamResp.headers.get('set-cookie')] : []);
+
+    for (const [name, value] of upstreamResp.headers.entries()) {
+      const lower = name.toLowerCase();
+      if (lower === 'set-cookie') continue;
+      // Avoid overriding compression/content-length; Vercel handles it.
+      if (lower === 'content-encoding' || lower === 'content-length') continue;
+      res.setHeader(name, value);
+    }
+
+    if (setCookies.length) {
+      res.setHeader('Set-Cookie', setCookies);
+    }
+
+    const buf = Buffer.from(await upstreamResp.arrayBuffer());
+    res.end(buf);
+  } catch (err) {
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ message: 'Missing UPSTREAM_API_BASE on Vercel.' }));
-    return;
+    res.end(
+      JSON.stringify({
+        message: 'API proxy error on Vercel.',
+        error: err?.message || String(err),
+      })
+    );
   }
-
-  const pathParts = Array.isArray(req.query?.path) ? req.query.path : [];
-  const upstreamUrl = new URL(`${upstreamBase}/${pathParts.map(encodeURIComponent).join('/')}`);
-  appendQueryParams(upstreamUrl, req.query);
-
-  const method = (req.method || 'GET').toUpperCase();
-
-  const headers = {};
-  for (const [name, value] of Object.entries(req.headers || {})) {
-    if (!shouldForwardHeader(name)) continue;
-    if (value === undefined) continue;
-    headers[name] = value;
-  }
-
-  let body;
-  if (method !== 'GET' && method !== 'HEAD') {
-    const raw = await readRawBody(req);
-    body = raw.length ? raw : undefined;
-  }
-
-  const upstreamResp = await fetch(upstreamUrl.toString(), {
-    method,
-    headers,
-    body,
-    redirect: 'manual',
-  });
-
-  res.statusCode = upstreamResp.status;
-
-  // Forward relevant headers (especially Set-Cookie) back to the browser.
-  // Node18 fetch (undici) may expose getSetCookie(); fallback to single header.
-  const getSetCookie = upstreamResp.headers.getSetCookie?.bind(upstreamResp.headers);
-  const setCookies = typeof getSetCookie === 'function'
-    ? getSetCookie()
-    : (upstreamResp.headers.get('set-cookie') ? [upstreamResp.headers.get('set-cookie')] : []);
-
-  for (const [name, value] of upstreamResp.headers.entries()) {
-    const lower = name.toLowerCase();
-    if (lower === 'set-cookie') continue;
-    // Avoid overriding compression/content-length; Vercel handles it.
-    if (lower === 'content-encoding' || lower === 'content-length') continue;
-    res.setHeader(name, value);
-  }
-
-  if (setCookies.length) {
-    res.setHeader('Set-Cookie', setCookies);
-  }
-
-  const buf = Buffer.from(await upstreamResp.arrayBuffer());
-  res.end(buf);
 };
