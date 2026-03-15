@@ -34,8 +34,8 @@ export class ApiService {
   // AUTHENTIFICATION (LOGIN / REGISTER)
   // ==========================================
 
-  register(username: string, email: string, password: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/users/register`, { username, email, password });
+  register(username: string, email: string, password: string, firstName: string, lastName: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/users/register`, { username, email, password, firstName, lastName });
   }
 
   login(email: string, password: string): Observable<any> {
@@ -47,9 +47,17 @@ export class ApiService {
     return this.http.post(`${this.baseUrl}/auth/logout`, {}, { withCredentials: true });
   }
 
-  getMe(): Observable<{ user: { id: number; username: string; email: string; role?: string } }> {
-    return this.http.get<{ user: { id: number; username: string; email: string; role?: string } }>(
+  getMe(): Observable<{ user: { id: number; username: string; email: string; role?: string; first_name?: string | null; last_name?: string | null } }> {
+    return this.http.get<{ user: { id: number; username: string; email: string; role?: string; first_name?: string | null; last_name?: string | null } }>(
       `${this.baseUrl}/auth/me`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  updateProfile(firstName: string, lastName: string): Observable<{ user: any }> {
+    return this.http.put<{ user: any }>(
+      `${this.baseUrl}/auth/profile`,
+      { firstName, lastName },
       { headers: this.getHeaders() }
     );
   }

@@ -12,6 +12,8 @@ type MeUser = {
   username: string;
   email: string;
   role?: string;
+  first_name?: string | null;
+  last_name?: string | null;
 };
 
 @Component({
@@ -22,6 +24,15 @@ type MeUser = {
 export class SettingsPageComponent implements OnInit {
   me: MeUser | null = null;
   isLoadingMe = false;
+
+  isEditingProfile = false;
+  isSavingProfile = false;
+  profileErrorMessage = '';
+
+  profileForm = this.fb.group({
+    firstName: ['', [Validators.required, Validators.minLength(2)]],
+    lastName: ['', [Validators.required, Validators.minLength(2)]],
+  });
 
   isSubmittingPassword = false;
   passwordErrorMessage = '';
@@ -71,10 +82,63 @@ export class SettingsPageComponent implements OnInit {
     try {
       const resp = await firstValueFrom(this.api.getMe());
       this.me = resp?.user ?? null;
+
+      this.profileForm.patchValue({
+        firstName: (this.me?.first_name ?? '') || '',
+        lastName: (this.me?.last_name ?? '') || '',
+      });
     } catch {
       this.me = null;
     } finally {
       this.isLoadingMe = false;
+    }
+  }
+
+  startEditProfile() {
+    if (!this.me) return;
+    this.profileErrorMessage = '';
+    this.isEditingProfile = true;
+    this.profileForm.patchValue({
+      firstName: (this.me.first_name ?? '') || '',
+      lastName: (this.me.last_name ?? '') || '',
+    });
+    this.profileForm.markAsPristine();
+  }
+
+  cancelEditProfile() {
+    this.profileErrorMessage = '';
+    this.isEditingProfile = false;
+    if (!this.me) return;
+    this.profileForm.patchValue({
+      firstName: (this.me.first_name ?? '') || '',
+      lastName: (this.me.last_name ?? '') || '',
+    });
+    this.profileForm.markAsPristine();
+  }
+
+  async saveProfile() {
+    this.profileErrorMessage = '';
+    this.profileForm.markAllAsTouched();
+    if (this.profileForm.invalid) return;
+
+    const firstName = this.profileForm.value.firstName ?? '';
+    const lastName = this.profileForm.value.lastName ?? '';
+
+    this.isSavingProfile = true;
+    try {
+      const resp = await firstValueFrom(this.api.updateProfile(firstName, lastName));
+      this.me = resp?.user ?? this.me;
+      this.toast.success('Profil mis à jour.', { title: 'Profil' });
+      this.isEditingProfile = false;
+    } catch (err: any) {
+      const message =
+        err?.error?.message ||
+        err?.error?.error ||
+        'Impossible de mettre à jour le profil.';
+      this.profileErrorMessage = message;
+      this.toast.error(message, { title: 'Profil' });
+    } finally {
+      this.isSavingProfile = false;
     }
   }
 

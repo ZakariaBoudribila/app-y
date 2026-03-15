@@ -13,7 +13,52 @@
 
       <div class="app-alert app-alert--info" *ngIf="isLoadingMe">Chargement du profil...</div>
 
-      <div *ngIf="!isLoadingMe && me" class="kv">
+      <div class="app-alert app-alert--error" *ngIf="profileErrorMessage">{{ profileErrorMessage }}</div>
+
+      <form *ngIf="!isLoadingMe && me" class="kv" [formGroup]="profileForm" (ngSubmit)="saveProfile()" novalidate>
+        <div class="profile-actions">
+          <button
+            *ngIf="!isEditingProfile"
+            type="button"
+            class="primary-btn"
+            (click)="startEditProfile()">
+            Modifier
+          </button>
+
+          <div *ngIf="isEditingProfile" class="profile-actions__row">
+            <button type="button" class="danger-btn" (click)="cancelEditProfile()" [disabled]="isSavingProfile">
+              Annuler
+            </button>
+            <button type="submit" class="primary-btn" [disabled]="isSavingProfile || profileForm.invalid">
+              {{ isSavingProfile ? 'Enregistrement...' : 'Enregistrer' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Prénom</div>
+          <div class="kv-value" *ngIf="!isEditingProfile">{{ me.first_name || '-' }}</div>
+          <div class="kv-value" *ngIf="isEditingProfile">
+            <input class="input-field" type="text" formControlName="firstName" autocomplete="given-name" />
+            <div class="field-error" *ngIf="profileForm.get('firstName')?.touched && profileForm.get('firstName')?.invalid">
+              <span *ngIf="profileForm.get('firstName')?.errors?.['required']">Le prénom est obligatoire.</span>
+              <span *ngIf="profileForm.get('firstName')?.errors?.['minlength']">Minimum 2 caractères.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Nom</div>
+          <div class="kv-value" *ngIf="!isEditingProfile">{{ me.last_name || '-' }}</div>
+          <div class="kv-value" *ngIf="isEditingProfile">
+            <input class="input-field" type="text" formControlName="lastName" autocomplete="family-name" />
+            <div class="field-error" *ngIf="profileForm.get('lastName')?.touched && profileForm.get('lastName')?.invalid">
+              <span *ngIf="profileForm.get('lastName')?.errors?.['required']">Le nom est obligatoire.</span>
+              <span *ngIf="profileForm.get('lastName')?.errors?.['minlength']">Minimum 2 caractères.</span>
+            </div>
+          </div>
+        </div>
+
         <div class="kv-row">
           <div class="kv-key">Nom d'utilisateur</div>
           <div class="kv-value">{{ me.username }}</div>
@@ -26,11 +71,7 @@
           <div class="kv-key">Rôle</div>
           <div class="kv-value">{{ me.role }}</div>
         </div>
-
-        <div class="app-alert app-alert--info profile-hint">
-          Pour modifier ces informations, il faudra ajouter un endpoint dédié côté serveur.
-        </div>
-      </div>
+      </form>
 
       <div class="app-alert app-alert--warning" *ngIf="!isLoadingMe && !me">
         Impossible de charger le profil. Vérifie ta connexion ou reconnecte-toi.

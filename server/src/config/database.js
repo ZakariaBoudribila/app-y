@@ -40,12 +40,18 @@ async function init() {
             id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
             username TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL
+            password_hash TEXT NOT NULL,
+            first_name TEXT,
+            last_name TEXT
         )
     `);
 
     // Compat auth: role RBAC (ajout non destructif)
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user'`);
+
+    // Profil utilisateur (prénom/nom) (ajouts non destructifs)
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name TEXT`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name TEXT`);
 
     // Refresh tokens rotatifs (whitelist)
     await pool.query(`

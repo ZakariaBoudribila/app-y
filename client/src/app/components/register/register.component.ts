@@ -11,6 +11,8 @@ import { ToastService } from '../../services/toast.service';
 })
 export class RegisterComponent {
   readonly form = this.fb.group({
+    firstName: ['', [Validators.required, Validators.minLength(2)]],
+    lastName: ['', [Validators.required, Validators.minLength(2)]],
     username: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]]
@@ -53,6 +55,14 @@ export class RegisterComponent {
     return this.form.controls.username;
   }
 
+  get firstNameCtrl() {
+    return this.form.controls.firstName;
+  }
+
+  get lastNameCtrl() {
+    return this.form.controls.lastName;
+  }
+
   get emailCtrl() {
     return this.form.controls.email;
   }
@@ -67,13 +77,15 @@ export class RegisterComponent {
 
     if (this.form.invalid) return;
 
+    const firstName = this.form.value.firstName ?? '';
+    const lastName = this.form.value.lastName ?? '';
     const username = this.form.value.username ?? '';
     const email = this.form.value.email ?? '';
     const password = this.form.value.password ?? '';
 
     this.isSubmitting = true;
 
-    this.api.register(username, email, password).subscribe({
+    this.api.register(username, email, password, firstName, lastName).subscribe({
       next: () => {
         // Une fois inscrit, on le renvoie vers la page de login
         this.isSubmitting = false;

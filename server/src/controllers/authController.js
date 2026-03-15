@@ -43,6 +43,10 @@ function normalizeUsername(username) {
   return typeof username === 'string' ? username.trim() : '';
 }
 
+function normalizeNamePart(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
 function safeUsernameFallbackFromEmail(email) {
   const at = email.indexOf('@');
   if (at <= 0) return 'user';
@@ -101,6 +105,8 @@ async function register(req, res) {
     const email = normalizeEmail(req.body?.email);
     const password = req.body?.password;
     const usernameInput = normalizeUsername(req.body?.username);
+    const firstName = normalizeNamePart(req.body?.firstName);
+    const lastName = normalizeNamePart(req.body?.lastName);
 
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required.' });
@@ -112,6 +118,10 @@ async function register(req, res) {
 
     if (typeof password !== 'string' || password.length < 8) {
       return res.status(400).json({ message: 'Password must be at least 8 characters.' });
+    }
+
+    if (!firstName || !lastName) {
+      return res.status(400).json({ message: 'First name and last name are required.' });
     }
 
     const existing = await UserModel.findByEmail(email);
@@ -127,7 +137,7 @@ async function register(req, res) {
       return res.status(409).json({ message: 'Username already in use.' });
     }
 
-    const userId = await UserModel.create({ username, email, passwordHash, role: 'user' });
+    const userId = await UserModel.create({ username, email, passwordHash, role: 'user', firstName, lastName });
 
     return res.status(201).json({ message: 'Account created.', userId });
   } catch (err) {
@@ -242,6 +252,32 @@ async function me(req, res) {
   }
 }
 
+// ─── /api/auth/profile (update prénom/nom) ───────────────────────────────────
+async function updateProfile(req, res) {
+  try {
+    const userId = req.user?.sub ?? req.userData?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized.' });
+    }
+
+    const firstName = normalizeNamePart(req.body?.firstName);
+    const lastName = normalizeNamePart(req.body?.lastName);
+
+    if (!firstName || !lastName) {
+      return res.status(400).json({ message: 'First name and last name are required.' });
+    }
+
+    await UserModel.updateName(userId, { firstName, lastName });
+    const user = await UserModel.findById(userId);
+
+    return res.status(200).json({ user });
+  } catch (err) {
+    const errorId = randomUUID();
+    console.error(`[updateProfile:${errorId}]`, err);
+    return res.status(500).json({ message: 'Internal server error.', errorId });
+  }
+}
+
 // ─── /api/auth/change-password ──────────────────────────────────────────────
 async function changePassword(req, res) {
   try {
@@ -297,9 +333,15 @@ async function registerLegacy(req, res) {
     const username = normalizeUsername(req.body?.username);
     const email = normalizeEmail(req.body?.email);
     const password = req.body?.password;
+    const firstName = normalizeNamePart(req.body?.firstName);
+    const lastName = normalizeNamePart(req.body?.lastName);
 
     if (!username || !email || !password) {
       return res.status(400).json({ error: 'Champs manquants' });
+    }
+
+    if (!firstName || !lastName) {
+      return res.status(400).json({ error: 'Nom et prénom obligatoires' });
     }
 
     if (!emailRegex.test(email)) {
@@ -321,7 +363,7 @@ async function registerLegacy(req, res) {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-    await UserModel.create({ username, email, passwordHash, role: 'user' });
+    await UserModel.create({ username, email, passwordHash, role: 'user', firstName, lastName });
 
     return res.status(201).json({ message: 'Utilisateur créé avec succès' });
   } catch (err) {
@@ -376,6 +418,7 @@ module.exports = {
   logout,
   me,
   changePassword,
+  updateProfile,
   registerLegacy,
   loginLegacy,
 };
