@@ -145,13 +145,14 @@
       <section class="widget-card">
         <h2>Langues</h2>
         <div class="tag-input" *ngIf="isEditing">
-          <input
+          <select
             class="input-field"
             [(ngModel)]="languageInput"
             [ngModelOptions]="{ standalone: true }"
-            name="languageInput"
-            placeholder="Ajouter une langue (ex: Français)"
-            (keydown.enter)="$event.preventDefault(); addLanguage()" />
+            name="languageInput">
+            <option value="">Choisir une langue…</option>
+            <option *ngFor="let opt of languageOptions" [value]="opt">{{ opt }}</option>
+          </select>
           <button class="pro-btn" type="button" (click)="addLanguage()" [disabled]="isSaving">Ajouter</button>
         </div>
 

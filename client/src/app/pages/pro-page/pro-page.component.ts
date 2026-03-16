@@ -72,6 +72,8 @@ export class ProPageComponent {
   languageInput = '';
   softwareInput = '';
 
+  readonly languageOptions: string[] = this.buildLanguageOptions();
+
   readonly form = this.fb.group({
     phone: this.fb.control('', { nonNullable: true }),
     address: this.fb.control('', { nonNullable: true }),
@@ -90,6 +92,50 @@ export class ProPageComponent {
     private readonly toast: ToastService
   ) {
     this.load();
+  }
+
+  private buildLanguageOptions(): string[] {
+    // Codes ISO 639-1 (liste large, "comme sur le téléphone").
+    const codes = [
+      'af','sq','am','ar','hy','az','eu','be','bn','bs','bg','my','ca','zh','hr','cs','da','nl','en','et','fi','fr','ka','de','el','gu','ha','he','hi','hu','id','ga','is','it','ja','kn','kk','km','ky','lo','lv','lt','mk','ms','ml','mr','mn','ne','no','ur','uz','pa','fa','pl','pt','ro','ru','sr','sk','sl','so','es','sv','sw','ta','te','th','tr','uk','vi','wo','yo','ig','zu',
+      'aa','ab','ae','ak','an','as','av','ay','ba','bh','bi','bm','br','ce','ch','co','cr','cu','cv','dv','dz','ee','eo','ff','fj','fo','fy','gd','gl','gn','gv','ht','hz','ia','ie','ii','ik','io','iu','jv','kg','ki','kj','kl','ko','kr','ks','ku','kv','kw','la','lb','lg','li','ln','lu','mg','mh','mi','mt','na','nb','nd','ng','nn','nr','nv','ny','oc','oj','om','or','os','pi','ps','qu','rm','rn','rw','sa','sc','sd','se','sg','si','sm','sn','ss','st','su','tg','ti','tk','tl','tn','to','ts','tt','tw','ty','ug','ve','vo','wa','xh','yi','za',
+    ];
+
+    const DisplayNamesCtor = (Intl as any)?.DisplayNames;
+    const capitalize = (s: string) => (s ? s.charAt(0).toLocaleUpperCase('fr') + s.slice(1) : s);
+
+    if (typeof DisplayNamesCtor !== 'function') {
+      // Fallback minimal si le navigateur ne supporte pas Intl.DisplayNames.
+      return [
+        'Français',
+        'Anglais',
+        'Arabe',
+        'Espagnol',
+        'Allemand',
+        'Italien',
+        'Portugais',
+        'Russe',
+        'Chinois',
+        'Japonais',
+        'Coréen',
+        'Turc',
+      ];
+    }
+
+    const dn = new DisplayNamesCtor(['fr'], { type: 'language' });
+    const names = codes
+      .map((code) => {
+        try {
+          const name = dn.of(code);
+          return typeof name === 'string' ? name.trim() : '';
+        } catch {
+          return '';
+        }
+      })
+      .filter(Boolean)
+      .map(capitalize);
+
+    return Array.from(new Set(names)).sort((a, b) => a.localeCompare(b, 'fr'));
   }
 
   get experiencesArray(): FormArray {
