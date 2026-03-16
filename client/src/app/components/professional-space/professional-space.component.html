@@ -19,7 +19,49 @@
       <div formArrayName="languages" class="items">
         <div class="item" *ngFor="let group of languagesArray.controls; let i = index" [formGroupName]="i">
           <div class="row">
-            <input formControlName="name" placeholder="Langue (ex: Français, Darija, Wolof, Mandarin...)" />
+            <input formControlName="name" list="languagesList" placeholder="Choisir une langue…" />
+            <datalist id="languagesList">
+              <option value="Français"></option>
+              <option value="Anglais"></option>
+              <option value="Espagnol"></option>
+              <option value="Allemand"></option>
+              <option value="Italien"></option>
+              <option value="Portugais"></option>
+              <option value="Néerlandais"></option>
+              <option value="Arabe"></option>
+              <option value="Arabe marocain (Darija)"></option>
+              <option value="Amazigh (Tamazight)"></option>
+              <option value="Turc"></option>
+              <option value="Russe"></option>
+              <option value="Ukrainien"></option>
+              <option value="Polonais"></option>
+              <option value="Tchèque"></option>
+              <option value="Hongrois"></option>
+              <option value="Roumain"></option>
+              <option value="Grec"></option>
+              <option value="Hébreu"></option>
+              <option value="Persan (Farsi)"></option>
+              <option value="Hindi"></option>
+              <option value="Ourdou"></option>
+              <option value="Bengali"></option>
+              <option value="Tamoul"></option>
+              <option value="Punjabi"></option>
+              <option value="Chinois (Mandarin)"></option>
+              <option value="Chinois (Cantonais)"></option>
+              <option value="Japonais"></option>
+              <option value="Coréen"></option>
+              <option value="Vietnamien"></option>
+              <option value="Thaï"></option>
+              <option value="Indonésien"></option>
+              <option value="Malais"></option>
+              <option value="Swahili"></option>
+              <option value="Wolof"></option>
+              <option value="Peul (Fulfulde)"></option>
+              <option value="Lingala"></option>
+              <option value="Yoruba"></option>
+              <option value="Igbo"></option>
+              <option value="Zoulou"></option>
+            </datalist>
             <input formControlName="percent" type="number" min="0" max="100" placeholder="%" />
           </div>
           <div class="actions">
