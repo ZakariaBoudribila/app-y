@@ -79,7 +79,7 @@ const UserProfileModel = {
 
     const sql = `
       INSERT INTO user_profiles (user_id, about_me, experiences, education, languages, languages_levels, software, phone, address, linkedin)
-      VALUES (?, ?, ?::jsonb, ?::jsonb, ?, ?::jsonb, ?, ?, ?, ?)
+      VALUES (?, ?, ?::jsonb, ?::jsonb, ?::text[], ?::jsonb, ?::text[], ?, ?, ?)
       ON CONFLICT (user_id)
       DO UPDATE SET
         about_me = EXCLUDED.about_me,
