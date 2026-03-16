@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   experiences JSONB NOT NULL DEFAULT '[]'::jsonb,
   education JSONB NOT NULL DEFAULT '[]'::jsonb,
   languages TEXT[] NOT NULL DEFAULT ARRAY[]::text[],
+  languages_levels JSONB NOT NULL DEFAULT '[]'::jsonb,
   software TEXT[] NOT NULL DEFAULT ARRAY[]::text[],
   phone TEXT,
   address TEXT,
@@ -33,6 +34,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 );
 
 -- Si la table existait déjà (anciens schémas), on s'assure des colonnes contact.
+ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS languages_levels JSONB NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS phone TEXT;
 ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS address TEXT;
 ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS linkedin TEXT;

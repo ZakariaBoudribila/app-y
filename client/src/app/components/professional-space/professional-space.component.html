@@ -10,10 +10,24 @@
       <textarea formControlName="aboutMe" rows="5" placeholder="Résumé, objectifs, points forts…"></textarea>
     </label>
 
-    <label class="field">
-      <span>Langues (séparées par des virgules)</span>
-      <input formControlName="languagesText" placeholder="Français, Anglais" />
-    </label>
+    <div class="section">
+      <div class="section-header">
+        <h3>Langues</h3>
+        <button type="button" (click)="addLanguage()">+ Ajouter</button>
+      </div>
+
+      <div formArrayName="languages" class="items">
+        <div class="item" *ngFor="let group of languagesArray.controls; let i = index" [formGroupName]="i">
+          <div class="row">
+            <input formControlName="name" placeholder="Langue (ex: Français, Darija, Wolof, Mandarin...)" />
+            <input formControlName="percent" type="number" min="0" max="100" placeholder="%" />
+          </div>
+          <div class="actions">
+            <button type="button" (click)="removeLanguage(i)">Supprimer</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <label class="field">
       <span>Logiciels (séparés par des virgules)</span>

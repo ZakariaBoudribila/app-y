@@ -131,9 +131,12 @@ async function init() {
             experiences JSONB NOT NULL DEFAULT '[]'::jsonb,
             education JSONB NOT NULL DEFAULT '[]'::jsonb,
             languages TEXT[] NOT NULL DEFAULT ARRAY[]::text[],
+            languages_levels JSONB NOT NULL DEFAULT '[]'::jsonb,
             software TEXT[] NOT NULL DEFAULT ARRAY[]::text[]
         )
     `);
+
+    await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS languages_levels JSONB NOT NULL DEFAULT '[]'::jsonb`);
 
     // (Compat) champs contact si on décide de les stocker dans user_profiles aussi
     await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS phone TEXT`);

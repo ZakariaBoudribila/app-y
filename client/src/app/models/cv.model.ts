@@ -16,11 +16,17 @@ export interface CvEducation {
   description?: string;
 }
 
+export interface LanguageLevel {
+  name: string;
+  percent: number;
+}
+
 export interface UserProfile {
   aboutMe: string;
   experiences: CvExperience[];
   education: CvEducation[];
   languages: string[];
+  languagesLevels?: LanguageLevel[];
   software: string[];
   // Champs optionnels (compat backend)
   phone?: string;

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
-import { UserProfile, CvEducation, CvExperience } from '../../models/cv.model';
+import { UserProfile, CvEducation, CvExperience, LanguageLevel } from '../../models/cv.model';
 
 @Component({
   selector: 'app-professional-space',
@@ -15,7 +15,7 @@ export class ProfessionalSpaceComponent implements OnInit {
 
   form = this.fb.group({
     aboutMe: [''],
-    languagesText: [''],
+    languages: this.fb.array<FormGroup>([]),
     softwareText: [''],
     experiences: this.fb.array<FormGroup>([]),
     education: this.fb.array<FormGroup>([]),
@@ -38,12 +38,31 @@ export class ProfessionalSpaceComponent implements OnInit {
     return this.form.get('education') as FormArray<FormGroup>;
   }
 
+  get languagesArray(): FormArray<FormGroup> {
+    return this.form.get('languages') as FormArray<FormGroup>;
+  }
+
   private parseCommaList(value: unknown): string[] {
     if (typeof value !== 'string') return [];
     return value
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean);
+  }
+
+  private newLanguageGroup(value?: Partial<LanguageLevel>): FormGroup {
+    return this.fb.group({
+      name: [value?.name ?? ''],
+      percent: [typeof value?.percent === 'number' ? value.percent : 50],
+    });
+  }
+
+  addLanguage(value?: Partial<LanguageLevel>) {
+    this.languagesArray.push(this.newLanguageGroup(value));
+  }
+
+  removeLanguage(index: number) {
+    this.languagesArray.removeAt(index);
   }
 
   private newExperienceGroup(value?: Partial<CvExperience>): FormGroup {
@@ -107,21 +126,25 @@ export class ProfessionalSpaceComponent implements OnInit {
       experiences: Array.isArray(profile?.experiences) ? profile!.experiences : [],
       education: Array.isArray(profile?.education) ? profile!.education : [],
       languages: Array.isArray(profile?.languages) ? profile!.languages : [],
+      languagesLevels: Array.isArray(profile?.languagesLevels) ? profile!.languagesLevels : [],
       software: Array.isArray(profile?.software) ? profile!.software : [],
     };
 
     this.form.patchValue({
       aboutMe: safe.aboutMe,
-      languagesText: safe.languages.join(', '),
       softwareText: safe.software.join(', '),
     }, { emitEvent: false });
 
     // Reset arrays
     while (this.experiencesArray.length) this.experiencesArray.removeAt(0);
     while (this.educationArray.length) this.educationArray.removeAt(0);
+    while (this.languagesArray.length) this.languagesArray.removeAt(0);
 
     safe.experiences.forEach((e) => this.addExperience(e));
     safe.education.forEach((e) => this.addEducation(e));
+
+    const levels = (safe.languagesLevels?.length ? safe.languagesLevels : safe.languages.map((name) => ({ name, percent: 50 })));
+    levels.forEach((l) => this.addLanguage(l));
   }
 
   save() {
@@ -131,9 +154,24 @@ export class ProfessionalSpaceComponent implements OnInit {
 
     const raw = this.form.getRawValue() as any;
 
+    const languagesLevels: LanguageLevel[] = Array.isArray(raw.languages)
+      ? raw.languages
+          .map((l: any) => {
+            const name = typeof l?.name === 'string' ? l.name.trim() : '';
+            const percent = typeof l?.percent === 'number' ? l.percent : Number(l?.percent);
+            if (!name) return null;
+            const safePercent = Number.isFinite(percent) ? Math.max(0, Math.min(100, Math.round(percent))) : 0;
+            return { name, percent: safePercent };
+          })
+          .filter(Boolean)
+      : [];
+
+    const languages = [...new Set(languagesLevels.map((l) => l.name))];
+
     const payload: UserProfile = {
       aboutMe: typeof raw.aboutMe === 'string' ? raw.aboutMe : '',
-      languages: this.parseCommaList(raw.languagesText),
+      languages,
+      languagesLevels,
       software: this.parseCommaList(raw.softwareText),
       experiences: Array.isArray(raw.experiences) ? raw.experiences : [],
       education: Array.isArray(raw.education) ? raw.education : [],
