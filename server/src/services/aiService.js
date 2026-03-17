@@ -7,7 +7,7 @@ function getEnv(name) {
 
 function getGeminiModelName() {
   // Modèle par défaut (compatible generateContent pour la plupart des clés récentes)
-  return getEnv('GEMINI_MODEL') || 'gemini-2.5-flash';
+  return getEnv('GEMINI_MODEL') || 'gemini-2.0-flash-lite';
 }
 
 function getGeminiFallbackModelName() {
