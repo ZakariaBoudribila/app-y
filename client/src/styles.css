@@ -1,13 +1,36 @@
 /* You can add global styles to this file, and also import other style files */
-/* Thème global: Bootstrap (on garde les variables existantes mais on les aligne sur Bootstrap) */
+/* Thème global: Bootstrap + palette rose + photo en background */
 :root {
-  --bg-color: var(--bs-body-bg);
-  --card-bg: var(--bs-body-bg);
-  --text-main: var(--bs-body-color);
-  --text-title: var(--bs-heading-color);
-  --accent-color: var(--bs-primary);
-  --border-radius: var(--bs-border-radius-lg);
-  --shadow-soft: var(--bs-box-shadow);
+  /* Palette (rose) */
+  --bg-color: #fce4ec;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --text-main: #5d4037;
+  --text-title: #880e4f;
+  --accent-color: #f8bbd0;
+
+  /* Photo de fond */
+  --jasmine-photo: url('assets/yass4.jpg');
+
+  /* Shape */
+  --border-radius: 20px;
+  --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.05);
+
+  /* Bridge vers Bootstrap (pour garder le look Bootstrap avec ton thème) */
+  --bs-primary: var(--accent-color);
+  --bs-primary-rgb: 248, 187, 208;
+
+  --bs-body-bg: var(--bg-color);
+  --bs-body-color: var(--text-main);
+  --bs-heading-color: var(--text-title);
+  --bs-link-color: var(--text-title);
+  --bs-link-hover-color: var(--text-title);
+
+  --bs-border-color: rgba(248, 187, 208, 0.6);
+  --bs-box-shadow: var(--shadow-soft);
+  --bs-border-radius-lg: var(--border-radius);
+
+  --bs-card-bg: var(--card-bg);
+  --bs-card-border-color: rgba(248, 187, 208, 0.6);
 }
 
 /* Reset de base pour enlever les marges par défaut du navigateur */
@@ -20,10 +43,23 @@
 body {
   font-family: var(--bs-body-font-family);
   color: var(--bs-body-color);
-  background-color: var(--bs-body-bg);
+  background-color: var(--bg-color);
+  background-image:
+    url('https://www.transparenttextures.com/patterns/cream-paper.png'),
+    var(--jasmine-photo);
+  background-repeat: repeat, no-repeat;
+  background-size: auto, cover;
+  background-position: 0 0, center center;
+  background-attachment: scroll, fixed;
   height: auto;
   min-height: 100vh;
   display: block;
+}
+
+/* S'assurer que l'app reste lisible au-dessus de la photo */
+app-root {
+  position: relative;
+  z-index: 1;
 }
 
 /* ================================
