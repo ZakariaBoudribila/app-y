@@ -32,6 +32,9 @@
   --bs-card-bg: var(--card-bg);
   --bs-card-border-color: rgba(248, 187, 208, 0.6);
 
+  /* Focus ring (éviter le bleu Bootstrap) */
+  --bs-focus-ring-color: rgba(248, 187, 208, 0.45);
+
   /* Police globale (ta police choisie) */
   --bs-body-font-family: 'Great Vibes', cursive;
 }
@@ -266,6 +269,7 @@ app-root {
   --bs-btn-hover-border-color: var(--text-title);
   --bs-btn-active-bg: var(--text-title);
   --bs-btn-active-border-color: var(--text-title);
+  --bs-btn-focus-shadow-rgb: 248, 187, 208;
 }
 
 .btn-outline-primary {
@@ -277,6 +281,7 @@ app-root {
   --bs-btn-active-bg: var(--accent-color);
   --bs-btn-active-border-color: var(--accent-color);
   --bs-btn-active-color: #fff;
+  --bs-btn-focus-shadow-rgb: 248, 187, 208;
 }
 
 .btn-danger {
@@ -286,6 +291,13 @@ app-root {
   --bs-btn-hover-border-color: var(--accent-color);
   --bs-btn-active-bg: var(--accent-color);
   --bs-btn-active-border-color: var(--accent-color);
+  --bs-btn-focus-shadow-rgb: 248, 187, 208;
+}
+
+/* Forcer un focus ring rose (pas bleu) sur tous les boutons */
+.btn:focus,
+.btn:focus-visible {
+  box-shadow: 0 0 0 0.25rem rgba(248, 187, 208, 0.45);
 }
 
 .btn:disabled,
