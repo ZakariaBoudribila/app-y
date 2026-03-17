@@ -241,6 +241,55 @@ app-root {
   margin: 0;
 }
 
+/* =============================
+   Boutons – style global (uniforme)
+   ============================= */
+:root {
+  --app-btn-radius: 18px;
+  --app-btn-padding-y: 10px;
+  --app-btn-padding-x: 14px;
+}
+
+.btn {
+  border-radius: var(--app-btn-radius);
+  font-weight: 800;
+  min-height: 44px;
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--accent-color);
+  --bs-btn-border-color: var(--accent-color);
+  --bs-btn-hover-bg: var(--text-title);
+  --bs-btn-hover-border-color: var(--text-title);
+  --bs-btn-active-bg: var(--text-title);
+  --bs-btn-active-border-color: var(--text-title);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--text-title);
+  --bs-btn-border-color: var(--accent-color);
+  --bs-btn-hover-bg: var(--accent-color);
+  --bs-btn-hover-border-color: var(--accent-color);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-bg: var(--accent-color);
+  --bs-btn-active-border-color: var(--accent-color);
+  --bs-btn-active-color: #fff;
+}
+
+.btn-danger {
+  --bs-btn-bg: var(--text-title);
+  --bs-btn-border-color: var(--text-title);
+  --bs-btn-hover-bg: var(--accent-color);
+  --bs-btn-hover-border-color: var(--accent-color);
+  --bs-btn-active-bg: var(--accent-color);
+  --bs-btn-active-border-color: var(--accent-color);
+}
+
+.btn:disabled,
+.btn.disabled {
+  opacity: 0.6;
+}
+
 @media (max-width: 576px) {
   .title-cursive {
     font-size: 2.4rem;

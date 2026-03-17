@@ -52,29 +52,3 @@
   gap: 10px;
   margin-top: 14px;
 }
-
-.btn {
-  background: transparent;
-  border: 1px solid var(--accent-color);
-  color: var(--text-title);
-  padding: 8px 12px;
-  border-radius: 16px;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn:hover {
-  background: var(--accent-color);
-  color: var(--card-bg);
-}
-
-.btn.primary {
-  background: var(--accent-color);
-  color: var(--card-bg);
-}
-
-.btn.primary:hover {
-  background: var(--text-title);
-}

@@ -13,8 +13,9 @@
     <main class="col-12 col-md-9 col-lg-10">
       <h1 class="display-title mb-3">Paramètres</h1>
 
-    <section class="widget-card settings-section">
-      <h2 class="section-title">Profil</h2>
+      <div class="settings-shell">
+        <section class="widget-card settings-section">
+          <h2 class="section-title">Profil</h2>
 
       <div class="app-alert app-alert--info" *ngIf="isLoadingMe">Chargement du profil...</div>
 
@@ -22,19 +23,15 @@
 
       <form *ngIf="!isLoadingMe && me" class="kv" [formGroup]="profileForm" (ngSubmit)="saveProfile()" novalidate>
         <div class="profile-actions">
-          <button
-            *ngIf="!isEditingProfile"
-            type="button"
-            class="primary-btn"
-            (click)="startEditProfile()">
+          <button *ngIf="!isEditingProfile" type="button" class="btn btn-primary" (click)="startEditProfile()">
             Modifier
           </button>
 
           <div *ngIf="isEditingProfile" class="profile-actions__row">
-            <button type="button" class="danger-btn" (click)="cancelEditProfile()" [disabled]="isSavingProfile">
+            <button type="button" class="btn btn-danger" (click)="cancelEditProfile()" [disabled]="isSavingProfile">
               Annuler
             </button>
-            <button type="submit" class="primary-btn" [disabled]="isSavingProfile || profileForm.invalid">
+            <button type="submit" class="btn btn-primary" [disabled]="isSavingProfile || profileForm.invalid">
               {{ isSavingProfile ? 'Enregistrement...' : 'Enregistrer' }}
             </button>
           </div>
@@ -50,7 +47,7 @@
               </div>
 
               <div class="avatar-actions" *ngIf="isEditingProfile">
-                <label class="primary-btn" for="avatarInput" style="display: inline-flex; align-items: center; justify-content: center;">
+                <label class="btn btn-primary" for="avatarInput" style="display: inline-flex; align-items: center; justify-content: center;">
                   Choisir une photo
                 </label>
                 <input
@@ -60,7 +57,7 @@
                   class="file-input"
                   (change)="onAvatarFileSelected($event)" />
 
-                <button type="button" class="danger-btn" (click)="removeAvatar()" [disabled]="isSavingProfile">
+                <button type="button" class="btn btn-danger" (click)="removeAvatar()" [disabled]="isSavingProfile">
                   Supprimer
                 </button>
               </div>
@@ -169,7 +166,7 @@
           </div>
         </div>
 
-        <button class="primary-btn" type="submit" [disabled]="isSubmittingPassword || passwordForm.invalid">
+        <button class="btn btn-primary" type="submit" [disabled]="isSubmittingPassword || passwordForm.invalid">
           {{ isSubmittingPassword ? 'Mise à jour...' : 'Mettre à jour le mot de passe' }}
         </button>
       </form>
@@ -177,8 +174,9 @@
 
     <section class="widget-card settings-section">
       <h2 class="section-title">Session</h2>
-      <button type="button" class="danger-btn" (click)="logout()">Se déconnecter</button>
+      <button type="button" class="btn btn-danger" (click)="logout()">Se déconnecter</button>
     </section>
+      </div>
     </main>
   </div>
 </div>

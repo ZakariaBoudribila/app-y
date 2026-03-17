@@ -11,13 +11,13 @@
 .edit-input{width:100%;padding:8px 10px;border:1px solid var(--accent-color);border-radius:12px;font-family:'Nunito',sans-serif;outline:none;background-color:rgba(255,255,255,.7)}
 .edit-input:focus{border-color:var(--text-title);background:#fff}
 .item-actions{display:flex;gap:8px;align-items:center}
-.action-btn{background:transparent;border:1px solid var(--accent-color);color:var(--text-title);padding:6px 10px;border-radius:14px;font-family:'Nunito',sans-serif;font-weight:600;cursor:pointer;transition:all .2s ease;white-space:nowrap}
+.action-btn{background:transparent;border:1px solid var(--accent-color);color:var(--text-title);padding:10px 14px;border-radius:18px;font-family:'Nunito',sans-serif;font-weight:800;cursor:pointer;transition:all .2s ease;white-space:nowrap;min-height:44px}
 .action-btn:hover{background:var(--accent-color);color:#fff}
 .action-btn:disabled{opacity:.6;cursor:not-allowed}
-.action-btn.danger{border-color:var(--text-main)}
+.action-btn.danger{border-color:var(--text-title)}
 .card-actions{display:flex;justify-content:flex-end}
 .add-form{display:flex;gap:10px;align-items:center;width:100%;justify-content:flex-end}
 .goal-input{flex:1;min-width:140px;padding:10px 12px;border:1px solid var(--accent-color);border-radius:12px;font-family:'Nunito',sans-serif;outline:none;background-color:rgba(255,255,255,.7)}
 .goal-input:focus{border-color:var(--text-title);background:#fff}
-.add-btn{background:var(--accent-color);color:#fff;border:none;padding:8px 16px;border-radius:20px;font-family:'Nunito',sans-serif;font-weight:600;cursor:pointer;transition:all .3s ease}
+.add-btn{background:var(--accent-color);color:#fff;border:none;padding:10px 14px;border-radius:18px;font-family:'Nunito',sans-serif;font-weight:800;cursor:pointer;transition:all .25s ease;min-height:44px;box-shadow:var(--shadow-soft)}
 .add-btn:hover{background:var(--text-title);color:#fff;transform:translateY(-2px)}
