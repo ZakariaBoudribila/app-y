@@ -24,6 +24,12 @@ function parseRetryAfterSeconds(message) {
   const msg = typeof message === 'string' ? message : '';
   if (!msg) return null;
 
+  // Si on est sur un quota journalier free-tier, le retryDelay n'est pas très utile.
+  // Exemple: quotaId "GenerateRequestsPerDayPerProjectPerModel-FreeTier".
+  if (/GenerateRequestsPerDay/i.test(msg) || /PerDayPerProjectPerModel/i.test(msg) || /requests?\s+per\s+day/i.test(msg)) {
+    return null;
+  }
+
   // Ex: "Please retry in 30.345234893s."
   const m1 = msg.match(/Please\s+retry\s+in\s+([0-9.]+)s/i);
   if (m1?.[1]) {
@@ -41,6 +47,17 @@ function parseRetryAfterSeconds(message) {
   return null;
 }
 
+function detectRateLimitType(message) {
+  const msg = typeof message === 'string' ? message : '';
+  if (!msg) return 'temporary';
+
+  if (/GenerateRequestsPerDay/i.test(msg) || /PerDayPerProjectPerModel/i.test(msg) || /requests?\s+per\s+day/i.test(msg)) {
+    return 'daily';
+  }
+
+  return 'temporary';
+}
+
 function toGeminiError(e) {
   const err = e instanceof Error ? e : new Error(String(e));
   if (!err.code) err.code = 'GEMINI_ERROR';
@@ -52,6 +69,7 @@ function toGeminiError(e) {
   if (isRateLimited) {
     err.code = 'GEMINI_RATE_LIMIT';
     err.retryAfterSeconds = parseRetryAfterSeconds(msg);
+    err.rateLimitType = detectRateLimitType(msg);
   }
 
   return err;

@@ -195,6 +195,7 @@ exports.askSupport = async (req, res) => {
 
     if (code === 'GEMINI_RATE_LIMIT') {
       const retryAfterSeconds = typeof err?.retryAfterSeconds === 'number' ? err.retryAfterSeconds : null;
+      const rateLimitType = typeof err?.rateLimitType === 'string' ? err.rateLimitType : 'temporary';
       // Applique un cooldown aligné sur Gemini pour éviter de marteler l'API.
       if (req.userData?.id) {
         setCooldownSeconds(req.userData.id, retryAfterSeconds || 30);
@@ -204,12 +205,16 @@ exports.askSupport = async (req, res) => {
       }
 
       const payload = {
-        message: retryAfterSeconds
-          ? `Quota IA atteint. Réessaie dans ${Math.ceil(retryAfterSeconds)} secondes.`
-          : 'Quota IA atteint. Réessaie dans quelques secondes.',
+        message:
+          rateLimitType === 'daily'
+            ? "Quota IA journalier atteint (limite gratuite). Réessaie plus tard ou active un plan/billing."
+            : (retryAfterSeconds
+              ? `Quota IA atteint. Réessaie dans ${Math.ceil(retryAfterSeconds)} secondes.`
+              : 'Quota IA atteint. Réessaie dans quelques secondes.'),
         errorId,
         runtime,
         retryAfterSeconds,
+        rateLimitType,
       };
 
       if (debugEnabled) {
