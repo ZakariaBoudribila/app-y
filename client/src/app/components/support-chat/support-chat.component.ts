@@ -44,11 +44,25 @@ export class SupportChatComponent {
       },
       error: (err: any) => {
         const apiMessage = typeof err?.error?.message === 'string' ? err.error.message : '';
+        const apiDetail = typeof err?.error?.detail === 'string' ? err.error.detail : '';
+        const errorId = typeof err?.error?.errorId === 'string' ? err.error.errorId : '';
+        const runtime = err?.error?.runtime;
+
+        const extras: string[] = [];
+        if (apiDetail) extras.push(apiDetail);
+        if (errorId) extras.push(`errorId=${errorId}`);
+        if (runtime && (runtime.vercel === true || runtime.railway === true)) {
+          extras.push(`runtime=${runtime.vercel ? 'vercel' : (runtime.railway ? 'railway' : 'unknown')}`);
+        }
+
+        const extraText = extras.length ? `\n${extras.join('\n')}` : '';
         this.messages = [
           ...this.messages,
           {
             from: 'assistant',
-            text: apiMessage ? `Erreur: ${apiMessage}` : "Désolé, une erreur est survenue. Réessaie dans un instant.",
+            text: apiMessage
+              ? `Erreur: ${apiMessage}${extraText}`
+              : `Désolé, une erreur est survenue. Réessaie dans un instant.${extraText}`,
           },
         ];
         this.isSending = false;
