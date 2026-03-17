@@ -1,6 +1,7 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
+import { localIsoDate } from '../../utils/date';
 
 @Component({
   selector: 'app-mood-tracker',
@@ -21,7 +22,7 @@ export class MoodTrackerComponent implements OnInit {
   selectedMood: number | null = null;
 
   @Input() date?: string;
-  private todayDate: string = new Date().toISOString().split('T')[0];
+  private todayDate: string = localIsoDate();
 
   constructor(private api: ApiService, private router: Router) {}
 

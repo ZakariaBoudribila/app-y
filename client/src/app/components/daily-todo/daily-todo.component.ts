@@ -2,6 +2,7 @@ import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/cor
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service'; // On importe le service
+import { localIsoDate } from '../../utils/date';
 
 @Component({
   selector: 'app-daily-todo',
@@ -27,7 +28,7 @@ export class DailyTodoComponent implements OnInit, OnChanges {
   tasks: any[] = [];
 
   @Input() date?: string;
-  private selectedDate: string = new Date().toISOString().split('T')[0];
+  private selectedDate: string = localIsoDate();
 
   newTaskText: string = '';
   newTaskCategory: string = 'Perso';

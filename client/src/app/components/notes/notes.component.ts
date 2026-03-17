@@ -1,6 +1,7 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { Router } from '@angular/router';
+import { localIsoDate } from '../../utils/date';
 
 @Component({
   selector: 'app-notes',
@@ -9,7 +10,7 @@ import { Router } from '@angular/router';
 })
 export class NotesComponent implements OnInit, OnChanges {
   @Input() date?: string;
-  private todayDate: string = new Date().toISOString().split('T')[0];
+  private todayDate: string = localIsoDate();
   content: string = '';
   moodScore: number = 5;
 

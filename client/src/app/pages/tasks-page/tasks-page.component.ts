@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
+import { localIsoDate } from '../../utils/date';
 
 @Component({
   selector: 'app-tasks-page',
@@ -9,7 +10,7 @@ import { ApiService } from '../../services/api.service';
 })
 export class TasksPageComponent implements OnInit {
   userName: string = 'Utilisateur';
-  selectedDate: string = new Date().toISOString().split('T')[0];
+  selectedDate: string = localIsoDate();
 
   constructor(private api: ApiService, private router: Router) {}
 

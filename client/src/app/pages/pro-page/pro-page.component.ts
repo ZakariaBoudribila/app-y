@@ -5,6 +5,7 @@ import { ConfirmService } from '../../services/confirm.service';
 import { ToastService } from '../../services/toast.service';
 import { ProfessionalProfile } from '../../models/professional-profile';
 import { firstValueFrom } from 'rxjs';
+import { Router } from '@angular/router';
 
 type ExperienceFormValue = {
   title: string;
@@ -90,8 +91,14 @@ export class ProPageComponent {
     private readonly fb: FormBuilder,
     private readonly api: ApiService,
     private readonly confirm: ConfirmService,
-    private readonly toast: ToastService
+    private readonly toast: ToastService,
+    private readonly router: Router
   ) {
+    if (!this.api.isLoggedIn()) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
     this.load();
   }
 
@@ -418,6 +425,12 @@ export class ProPageComponent {
       },
       error: (err) => {
         this.isLoading = false;
+        if (err?.status === 401) {
+          this.api.logout();
+          this.toast.warning('Session expirée. Merci de te reconnecter.', { title: 'Espace Pro' });
+          this.router.navigate(['/login']);
+          return;
+        }
         const status = err?.status;
         const msg = err?.error?.message || err?.message;
         this.errorMessage = typeof msg === 'string' ? msg : `Erreur chargement profil (HTTP ${status || '?'})`;
@@ -449,6 +462,14 @@ export class ProPageComponent {
       },
       error: (err) => {
         this.isSaving = false;
+
+        if (err?.status === 401) {
+          this.api.logout();
+          this.toast.warning('Session expirée. Merci de te reconnecter.', { title: 'Espace Pro' });
+          this.router.navigate(['/login']);
+          return;
+        }
+
         const status = err?.status;
         const msg = err?.error?.message || err?.message;
         this.errorMessage = typeof msg === 'string' ? msg : `Erreur sauvegarde profil (HTTP ${status || '?'})`;

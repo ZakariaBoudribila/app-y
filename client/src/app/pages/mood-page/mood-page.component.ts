@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
+import { localIsoDate } from '../../utils/date';
 
 @Component({
   selector: 'app-mood-page',
@@ -9,8 +10,8 @@ import { ApiService } from '../../services/api.service';
 })
 export class MoodPageComponent implements OnInit {
   userName: string = 'Utilisateur';
-  selectedDate: string = new Date().toISOString().split('T')[0];
-  private todayDate: string = new Date().toISOString().split('T')[0];
+  selectedDate: string = localIsoDate();
+  private todayDate: string = this.selectedDate;
 
   constructor(private api: ApiService, private router: Router) {}
 

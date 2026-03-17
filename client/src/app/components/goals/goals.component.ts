@@ -1,6 +1,7 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { ToastService } from '../../services/toast.service';
+import { localIsoDate } from '../../utils/date';
 
 @Component({
   selector: 'app-goals',
@@ -9,7 +10,7 @@ import { ToastService } from '../../services/toast.service';
 })
 export class GoalsComponent implements OnInit, OnChanges {
   @Input() date?: string;
-  private selectedDate: string = new Date().toISOString().split('T')[0];
+  private selectedDate: string = localIsoDate();
   
   // Liste réelle qui contiendra les données de la base de données
   goals: any[] = [];

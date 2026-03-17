@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
+import { localIsoDate, parseIsoDateLocal } from '../../utils/date';
 
 type HistoryDaySummary = {
   tasks_total?: number;
@@ -25,7 +26,7 @@ export class CalendarHistoryComponent implements OnInit, OnChanges {
   @Input() compact: boolean = false;
   @Output() dateChange = new EventEmitter<string>();
 
-  todayIso = new Date().toISOString().split('T')[0];
+  todayIso = localIsoDate();
   selectedDateIso = this.todayIso;
 
   // Mois affiché (on utilise le 1er du mois)
@@ -53,7 +54,7 @@ export class CalendarHistoryComponent implements OnInit, OnChanges {
 
     if (typeof this.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(this.date)) {
       this.selectedDateIso = this.date;
-      const d = new Date(this.date);
+      const d = parseIsoDateLocal(this.date) ?? new Date();
       this.monthCursor = new Date(d.getFullYear(), d.getMonth(), 1);
     }
 
@@ -68,7 +69,7 @@ export class CalendarHistoryComponent implements OnInit, OnChanges {
       if (this.selectedDateIso === this.date) return;
 
       this.selectedDateIso = this.date;
-      const d = new Date(this.date);
+      const d = parseIsoDateLocal(this.date) ?? new Date();
       const shouldMoveMonth =
         d.getFullYear() !== this.monthCursor.getFullYear() || d.getMonth() !== this.monthCursor.getMonth();
 
@@ -135,7 +136,7 @@ export class CalendarHistoryComponent implements OnInit, OnChanges {
     while (cursor <= end) {
       const week: string[] = [];
       for (let i = 0; i < 7; i++) {
-        week.push(cursor.toISOString().split('T')[0]);
+        week.push(localIsoDate(cursor));
         cursor.setDate(cursor.getDate() + 1);
       }
       grid.push(week);
@@ -145,17 +146,13 @@ export class CalendarHistoryComponent implements OnInit, OnChanges {
   }
 
   isInCurrentMonth(dateIso: string): boolean {
-    const d = new Date(dateIso);
+    const d = parseIsoDateLocal(dateIso) ?? new Date(dateIso);
     return d.getFullYear() === this.monthCursor.getFullYear() && d.getMonth() === this.monthCursor.getMonth();
   }
 
   private loadMonthSummary(): void {
-    const from = new Date(this.monthCursor.getFullYear(), this.monthCursor.getMonth(), 1)
-      .toISOString()
-      .split('T')[0];
-    const to = new Date(this.monthCursor.getFullYear(), this.monthCursor.getMonth() + 1, 0)
-      .toISOString()
-      .split('T')[0];
+    const from = localIsoDate(new Date(this.monthCursor.getFullYear(), this.monthCursor.getMonth(), 1));
+    const to = localIsoDate(new Date(this.monthCursor.getFullYear(), this.monthCursor.getMonth() + 1, 0));
 
     this.isLoadingSummary = true;
     this.errorMessage = '';

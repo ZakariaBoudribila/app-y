@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { Router } from '@angular/router';
+import { localIsoDate } from '../../utils/date';
 
 @Component({
   selector: 'app-dashboard',
@@ -10,8 +11,8 @@ import { Router } from '@angular/router';
 export class DashboardComponent implements OnInit {
   // Données de l'utilisateur
   userName: string = 'Utilisateur';
-  today: string = new Date().toISOString().split('T')[0];
-  selectedDate: string = new Date().toISOString().split('T')[0];
+  today: string = localIsoDate();
+  selectedDate: string = this.today;
 
   // Données du jour (lecture seule)
   tasks: any[] = [];
