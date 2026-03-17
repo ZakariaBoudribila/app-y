@@ -267,6 +267,64 @@ export class ProPageComponent {
     this.form.markAsDirty();
   }
 
+  private parsePgTextArrayLiteral(value: unknown): string[] {
+    if (Array.isArray(value)) {
+      return value.filter((v) => typeof v === 'string') as string[];
+    }
+    if (typeof value !== 'string') return [];
+
+    const s = value.trim();
+    if (s === '{}' || s === '{NULL}') return [];
+    if (!s.startsWith('{') || !s.endsWith('}')) return [];
+
+    const input = s.slice(1, -1);
+    const out: string[] = [];
+    let i = 0;
+
+    while (i < input.length) {
+      if (input[i] === ',') {
+        i += 1;
+        continue;
+      }
+
+      let item = '';
+      let isQuoted = false;
+
+      if (input[i] === '"') {
+        isQuoted = true;
+        i += 1;
+        while (i < input.length) {
+          const ch = input[i];
+          if (ch === '\\') {
+            const next = input[i + 1];
+            if (typeof next === 'string') {
+              item += next;
+              i += 2;
+              continue;
+            }
+          }
+          if (ch === '"') {
+            i += 1;
+            break;
+          }
+          item += ch;
+          i += 1;
+        }
+        while (i < input.length && input[i] !== ',') i += 1;
+      } else {
+        while (i < input.length && input[i] !== ',') {
+          item += input[i];
+          i += 1;
+        }
+      }
+
+      const normalized = isQuoted ? item : item.trim();
+      if (normalized && normalized.toUpperCase() !== 'NULL') out.push(normalized);
+    }
+
+    return out;
+  }
+
   private normalizeIncomingProfile(p: ProfessionalProfile): ProfessionalProfile {
     return {
       phone: typeof (p as any)?.phone === 'string' ? (p as any).phone : '',
@@ -275,8 +333,8 @@ export class ProPageComponent {
       aboutMe: typeof p?.aboutMe === 'string' ? p.aboutMe : '',
       experiences: Array.isArray(p?.experiences) ? p.experiences : [],
       education: Array.isArray(p?.education) ? p.education : [],
-      languages: Array.isArray(p?.languages) ? p.languages.filter((x) => typeof x === 'string') : [],
-      software: Array.isArray(p?.software) ? p.software.filter((x) => typeof x === 'string') : [],
+      languages: this.parsePgTextArrayLiteral((p as any)?.languages),
+      software: this.parsePgTextArrayLiteral((p as any)?.software),
     };
   }
 
