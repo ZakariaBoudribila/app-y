@@ -153,6 +153,22 @@
             <option value="">Choisir une langue…</option>
             <option *ngFor="let opt of languageOptions" [value]="opt">{{ opt }}</option>
           </select>
+
+          <select
+            class="input-field"
+            [(ngModel)]="languageLevelInput"
+            [ngModelOptions]="{ standalone: true }"
+            name="languageLevelInput">
+            <option value="">Niveau…</option>
+            <option value="A1">A1</option>
+            <option value="A2">A2</option>
+            <option value="B1">B1</option>
+            <option value="B2">B2</option>
+            <option value="C1">C1</option>
+            <option value="C2">C2</option>
+            <option value="Natif">Natif</option>
+          </select>
+
           <button class="pro-btn" type="button" (click)="addLanguage()" [disabled]="isSaving">Ajouter</button>
         </div>
 

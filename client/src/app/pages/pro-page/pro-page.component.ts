@@ -70,6 +70,7 @@ export class ProPageComponent {
   @ViewChild('pdfContent') private pdfContentRef?: ElementRef<HTMLElement>;
 
   languageInput = '';
+  languageLevelInput = '';
   softwareInput = '';
 
   readonly languageOptions: string[] = this.buildLanguageOptions();
@@ -188,15 +189,26 @@ export class ProPageComponent {
     const raw = (this.languageInput || '').trim();
     if (!raw) return;
 
+    const level = (this.languageLevelInput || '').trim();
+    if (!level) return;
+
+    const baseOf = (value: string) => String(value || '').split('(')[0].trim().toLowerCase();
+    const composed = `${raw} (${level})`;
+
     const current = this.form.controls.languages.value || [];
-    const exists = current.some((x) => x.toLowerCase() === raw.toLowerCase());
-    if (exists) {
-      this.languageInput = '';
-      return;
+    const base = raw.toLowerCase();
+    const existingIndex = current.findIndex((x) => baseOf(x) === base);
+
+    if (existingIndex >= 0) {
+      const next = [...current];
+      next[existingIndex] = composed;
+      this.form.controls.languages.setValue(next);
+    } else {
+      this.form.controls.languages.setValue([...current, composed]);
     }
 
-    this.form.controls.languages.setValue([...current, raw]);
     this.languageInput = '';
+    this.languageLevelInput = '';
   }
 
   removeLanguage(value: string) {
