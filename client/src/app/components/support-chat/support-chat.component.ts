@@ -40,13 +40,20 @@ export class SupportChatComponent {
       next: (resp) => {
         const answer = typeof resp?.answer === 'string' ? resp.answer : '';
         this.messages = [...this.messages, { from: 'assistant', text: answer || 'Je n\'ai pas pu générer de réponse.' }];
-      },
-      error: () => {
-        this.messages = [...this.messages, { from: 'assistant', text: "Désolé, une erreur est survenue. Réessaie dans un instant." }];
-      },
-      complete: () => {
         this.isSending = false;
-      }
+      },
+      error: (err: any) => {
+        const apiMessage = typeof err?.error?.message === 'string' ? err.error.message : '';
+        this.messages = [
+          ...this.messages,
+          {
+            from: 'assistant',
+            text: apiMessage ? `Erreur: ${apiMessage}` : "Désolé, une erreur est survenue. Réessaie dans un instant.",
+          },
+        ];
+        this.isSending = false;
+      },
+      complete: () => {}
     });
   }
 
