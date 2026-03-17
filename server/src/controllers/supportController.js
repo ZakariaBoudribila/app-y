@@ -1,5 +1,6 @@
 const ProfileModel = require('../models/profileModel');
 const aiService = require('../services/aiService');
+const { randomUUID } = require('crypto');
 
 function safeJson(value, maxChars = 8000) {
   try {
@@ -51,21 +52,39 @@ exports.askSupport = async (req, res) => {
 
     return res.status(200).json({ answer });
   } catch (err) {
+    const errorId = randomUUID();
     const code = err?.code;
     const msg = typeof err?.message === 'string' ? err.message : 'Erreur IA.';
+    const debugEnabled = String(process.env.AI_DEBUG || '').toLowerCase() === 'true';
+
+    const runtime = {
+      nodeEnv: process.env.NODE_ENV || 'development',
+      vercel: Boolean(process.env.VERCEL),
+      railway: Boolean(process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_ID),
+    };
 
     if (code === 'MISSING_GEMINI_API_KEY') {
       return res.status(503).json({
         message: msg,
-        runtime: {
-          nodeEnv: process.env.NODE_ENV || 'development',
-          vercel: Boolean(process.env.VERCEL),
-          railway: Boolean(process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_ID),
-        },
+        errorId,
+        runtime,
       });
     }
 
-    console.error('[askSupport]', err);
-    return res.status(502).json({ message: 'Erreur lors de la génération IA.' });
+    console.error(`[askSupport:${errorId}]`, err);
+
+    const payload = {
+      message: 'Erreur lors de la génération IA.',
+      errorId,
+      runtime,
+    };
+
+    if (debugEnabled) {
+      payload.detail = msg;
+      if (typeof err?.name === 'string') payload.errorName = err.name;
+      if (typeof err?.status === 'number') payload.upstreamStatus = err.status;
+    }
+
+    return res.status(502).json(payload);
   }
 };

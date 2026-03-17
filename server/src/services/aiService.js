@@ -38,7 +38,19 @@ async function generateText({ systemInstruction, userMessage }) {
   }
 
   const model = genAI.getGenerativeModel(modelOptions);
-  const result = await model.generateContent(userMessage.trim());
+
+  let result;
+  try {
+    result = await model.generateContent(userMessage.trim());
+  } catch (e) {
+    const err = e instanceof Error ? e : new Error(String(e));
+    // Normalise pour que le controller puisse diagnostiquer.
+    if (!err.code) err.code = 'GEMINI_ERROR';
+    // Certaines versions exposent status/response.
+    if (typeof e?.status === 'number') err.status = e.status;
+    throw err;
+  }
+
   const text = result?.response?.text?.();
 
   if (typeof text !== 'string' || !text.trim()) {
