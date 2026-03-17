@@ -219,13 +219,36 @@ app-root {
   backdrop-filter: blur(10px); /* Effet "verre" (glassmorphism) très élégant */
 }
 
-/* Style global pour les grands titres (Comme "Yassmine's Journal" sur ton image) */
+/* Titres d'affichage (style cursif comme "Espace Pro") */
+.display-title,
 .title-cursive {
   font-family: 'Great Vibes', cursive;
   color: var(--text-title);
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+/* Legacy: conservé pour les pages déjà en place */
+.title-cursive {
   font-size: 3rem;
   text-align: center;
   margin-bottom: 20px;
+}
+
+/* Nouveau: recommandé pour les titres H1 des pages (sans marge imposée) */
+.display-title {
+  font-size: 2.75rem;
+  margin: 0;
+}
+
+@media (max-width: 576px) {
+  .title-cursive {
+    font-size: 2.4rem;
+  }
+
+  .display-title {
+    font-size: 2.2rem;
+  }
 }
 
 /* Date picker (même style partout: Tasks/Goals/Journal/Mood) */
