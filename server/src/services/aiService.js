@@ -13,6 +13,12 @@ function getGeminiFallbackModelName() {
   return getEnv('GEMINI_FALLBACK_MODEL') || 'gemini-pro';
 }
 
+function normalizeModelName(rawName) {
+  const name = typeof rawName === 'string' ? rawName.trim() : '';
+  if (!name) return '';
+  return name.startsWith('models/') ? name : `models/${name}`;
+}
+
 function createGeminiClient() {
   const apiKey = getEnv('GEMINI_API_KEY');
   if (!apiKey) {
@@ -39,7 +45,8 @@ async function generateText({ systemInstruction, userMessage }) {
   const trimmedSystem = typeof systemInstruction === 'string' ? systemInstruction.trim() : '';
 
   function buildModelOptions(name) {
-    const opts = { model: name };
+    const normalized = normalizeModelName(name);
+    const opts = { model: normalized };
     if (trimmedSystem) opts.systemInstruction = trimmedSystem;
     return opts;
   }
