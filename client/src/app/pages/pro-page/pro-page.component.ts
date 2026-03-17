@@ -445,6 +445,15 @@ export class ProPageComponent {
 
     this.isSaving = true;
 
+    // Si l'utilisateur a saisi une langue / un logiciel sans cliquer sur "Ajouter",
+    // on le capture avant d'envoyer le payload.
+    if ((this.languageInput || '').trim() && (this.languageLevelInput || '').trim()) {
+      this.addLanguage();
+    }
+    if ((this.softwareInput || '').trim()) {
+      this.addSoftware();
+    }
+
     const payload = this.getPayloadFromForm();
 
       this.api.updateProfile(payload).subscribe({
