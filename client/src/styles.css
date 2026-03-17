@@ -44,6 +44,36 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Supprimer les couleurs bleues par défaut (liens visités / focus) */
+a,
+a:visited,
+a:hover,
+a:active {
+  color: var(--text-title);
+}
+
+::selection {
+  background: rgba(248, 187, 208, 0.45);
+}
+
+/* Focus Bootstrap (inputs/select/checkbox) -> rose au lieu du bleu */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 0.25rem rgba(248, 187, 208, 0.35);
+}
+
+.form-check-input:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 0.25rem rgba(248, 187, 208, 0.35);
+}
+
+.form-check-input:checked {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
 }
 
 body {
