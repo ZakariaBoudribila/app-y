@@ -218,6 +218,9 @@ export class ProPageComponent {
       this.form.controls.languages.setValue([...current, composed]);
     }
 
+    this.form.controls.languages.markAsDirty();
+    this.form.markAsDirty();
+
     this.languageInput = '';
     this.languageLevelInput = '';
   }
@@ -234,6 +237,9 @@ export class ProPageComponent {
   removeLanguage(value: string) {
     const current = this.form.controls.languages.value || [];
     this.form.controls.languages.setValue(current.filter((x) => x !== value));
+
+    this.form.controls.languages.markAsDirty();
+    this.form.markAsDirty();
   }
 
   addSoftware() {
@@ -248,12 +254,17 @@ export class ProPageComponent {
     }
 
     this.form.controls.software.setValue([...current, raw]);
+    this.form.controls.software.markAsDirty();
+    this.form.markAsDirty();
     this.softwareInput = '';
   }
 
   removeSoftware(value: string) {
     const current = this.form.controls.software.value || [];
     this.form.controls.software.setValue(current.filter((x) => x !== value));
+
+    this.form.controls.software.markAsDirty();
+    this.form.markAsDirty();
   }
 
   private normalizeIncomingProfile(p: ProfessionalProfile): ProfessionalProfile {
