@@ -99,7 +99,23 @@ async function generateText({ systemInstruction, userMessage }) {
     result = await callModel(modelName);
   } catch (e) {
     const geminiErr = toGeminiError(e);
-    if (geminiErr.code === 'GEMINI_RATE_LIMIT') throw geminiErr;
+    if (geminiErr.code === 'GEMINI_RATE_LIMIT') {
+      // Tentative: basculer vers un autre modèle (quota potentiellement séparé par modèle).
+      const fallback = getGeminiFallbackModelName();
+
+      const primaryNorm = normalizeModelName(modelName);
+      const fallbackNorm = normalizeModelName(fallback);
+
+      if (fallbackNorm && fallbackNorm !== primaryNorm) {
+        try {
+          result = await callModel(fallback);
+        } catch (e2) {
+          throw toGeminiError(e2);
+        }
+      } else {
+        throw geminiErr;
+      }
+    }
 
     const message = typeof geminiErr?.message === 'string' ? geminiErr.message : String(geminiErr);
     const status = typeof geminiErr?.status === 'number' ? geminiErr.status : undefined;
