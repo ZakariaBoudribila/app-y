@@ -29,9 +29,9 @@
       type="text"
       [(ngModel)]="inputMessage"
       placeholder="Écris ton message…"
-      [disabled]="isSending"
+      [disabled]="isSending || !isAuthenticated"
       autocomplete="off"
     />
-    <button type="submit" [disabled]="isSending || !inputMessage.trim()">Envoyer</button>
+    <button type="submit" [disabled]="isSending || !isAuthenticated || !inputMessage.trim()">Envoyer</button>
   </form>
 </div>

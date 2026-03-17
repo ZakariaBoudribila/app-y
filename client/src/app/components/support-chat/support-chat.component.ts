@@ -20,8 +20,22 @@ export class SupportChatComponent {
 
   constructor(private apiService: ApiService) {}
 
+  get isAuthenticated(): boolean {
+    return this.apiService.isLoggedIn();
+  }
+
+  private addAssistantNoticeOnce(text: string) {
+    const last = this.messages.length ? this.messages[this.messages.length - 1] : null;
+    if (last && last.from === 'assistant' && last.text === text) return;
+    this.messages = [...this.messages, { from: 'assistant', text }];
+  }
+
   toggleOpen() {
     this.isOpen = !this.isOpen;
+
+    if (this.isOpen && !this.isAuthenticated) {
+      this.addAssistantNoticeOnce('Connecte-toi pour utiliser l\'assistant.');
+    }
   }
 
   close() {
@@ -29,6 +43,11 @@ export class SupportChatComponent {
   }
 
   send() {
+    if (!this.isAuthenticated) {
+      this.addAssistantNoticeOnce('Connecte-toi pour utiliser l\'assistant.');
+      return;
+    }
+
     const text = this.inputMessage.trim();
     if (!text || this.isSending) return;
 

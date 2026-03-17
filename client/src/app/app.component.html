@@ -1,6 +1,6 @@
 <app-toast-container></app-toast-container>
 <app-confirm-dialog></app-confirm-dialog>
-<app-support-chat></app-support-chat>
+<app-support-chat *ngIf="showAssistant"></app-support-chat>
 
 <div class="route-container">
 	<router-outlet></router-outlet>
