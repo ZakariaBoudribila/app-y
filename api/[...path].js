@@ -38,5 +38,22 @@ module.exports = (req, res) => {
 		req.url = `/api${buildQueryString(req.query)}`;
 	}
 
+	// Espace Pro: certains navigateurs envoient If-None-Match/If-Modified-Since,
+	// Express peut répondre 304 sans body, et Angular "perd" le profil.
+	// On force donc un 200 avec JSON complet uniquement pour GET /api/profile.
+	const url = typeof req.url === 'string' ? req.url : '';
+	if ((req.method || 'GET').toUpperCase() === 'GET' && (url === '/api/profile' || url.startsWith('/api/profile?'))) {
+		try {
+			if (req.headers) {
+				delete req.headers['if-none-match'];
+				delete req.headers['if-modified-since'];
+				delete req.headers['if-match'];
+				delete req.headers['if-unmodified-since'];
+			}
+		} catch {
+			// ignore
+		}
+	}
+
 	return app(req, res);
 };
