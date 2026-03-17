@@ -1,4 +1,5 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+require('dotenv').config();
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 function getEnv(name) {
   const value = process.env[name];
@@ -16,6 +17,35 @@ function extractModelsList(resp) {
   if (Array.isArray(resp)) return resp;
   if (Array.isArray(resp.models)) return resp.models;
   return [];
+}
+
+async function listModelsViaRest({ apiKey, apiVersion }) {
+  const base = `https://generativelanguage.googleapis.com/${apiVersion}/models`;
+  const url = new URL(base);
+  // API key via query param (standard pour cette API)
+  url.searchParams.set('key', apiKey);
+
+  const resp = await fetch(url.toString(), {
+    method: 'GET',
+    headers: { 'Accept': 'application/json' },
+  });
+
+  const text = await resp.text();
+  let json;
+  try {
+    json = text ? JSON.parse(text) : {};
+  } catch {
+    json = { raw: text };
+  }
+
+  if (!resp.ok) {
+    const err = new Error(`HTTP ${resp.status} lors de ListModels (${apiVersion}).`);
+    err.status = resp.status;
+    err.body = json;
+    throw err;
+  }
+
+  return json;
 }
 
 function supportsGenerateContent(model) {
@@ -48,11 +78,23 @@ async function run() {
   // 1) ListModels (diagnostic)
   let availableModels = [];
   try {
-    const modelsResp = await genAI.listModels();
+    // Le SDK @google/generative-ai ne fournit pas toujours listModels().
+    // On appelle donc l'API REST directement (v1beta pour matcher l'endpoint utilisé par le SDK).
+    const modelsResp = await listModelsViaRest({ apiKey, apiVersion: 'v1beta' });
     availableModels = extractModelsList(modelsResp);
+
+    // Si aucune liste utile n'est remontée, tente v1 (à titre informatif).
+    if (!availableModels.length) {
+      const v1Resp = await listModelsViaRest({ apiKey, apiVersion: 'v1' });
+      availableModels = extractModelsList(v1Resp);
+      console.log('ℹ️ Liste récupérée via API v1 (fallback).');
+    }
   } catch (err) {
     console.error('❌ Impossible de lister les modèles (ListModels):');
     console.error(err?.message || err);
+    if (err?.body) {
+      console.error('Détail:', JSON.stringify(err.body, null, 2));
+    }
     if (typeof err?.status === 'number') console.error(`status=${err.status}`);
     process.exitCode = 1;
     return;
