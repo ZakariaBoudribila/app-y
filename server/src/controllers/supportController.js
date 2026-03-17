@@ -4,7 +4,8 @@ const { randomUUID } = require('crypto');
 
 // Cooldown anti-spam (best-effort): mémoire locale du process
 // Note: si plusieurs instances (scaling), le cooldown est par instance.
-const nextAllowedAtByUserId = new Map();
+// Valeur: { untilMs: number, reason: 'cooldown' | 'rate_limit' }
+const nextAllowedByUserId = new Map();
 
 // Cache (best-effort) des réponses IA pour réduire la consommation de quota.
 // Clé: userId + message normalisé. Stockage en mémoire du process.
@@ -42,29 +43,40 @@ function getUserCooldownSeconds() {
   const raw = String(process.env.AI_USER_COOLDOWN_SECONDS || '').trim();
   const n = Number(raw);
   // Valeur par défaut courte pour éviter les doubles clics
-  if (!Number.isFinite(n) || n <= 0) return 3;
+  if (!Number.isFinite(n)) return 3;
+  // Permet de désactiver le cooldown après réponse avec 0
+  if (n === 0) return 0;
+  if (n < 0) return 3;
   return Math.min(Math.max(n, 1), 120);
 }
 
-function getRemainingCooldownSeconds(userId) {
-  const until = nextAllowedAtByUserId.get(String(userId));
-  if (typeof until !== 'number') return 0;
-  const remainingMs = until - Date.now();
-  if (remainingMs <= 0) return 0;
-  return Math.ceil(remainingMs / 1000);
+function getRemainingCooldown(userId) {
+  const entry = nextAllowedByUserId.get(String(userId));
+  const untilMs = entry?.untilMs;
+  if (typeof untilMs !== 'number') return { remainingSeconds: 0, reason: null };
+  const remainingMs = untilMs - Date.now();
+  if (remainingMs <= 0) return { remainingSeconds: 0, reason: null };
+  return {
+    remainingSeconds: Math.ceil(remainingMs / 1000),
+    reason: entry?.reason === 'rate_limit' ? 'rate_limit' : 'cooldown',
+  };
 }
 
-function setCooldownSeconds(userId, seconds) {
+function setCooldownSeconds(userId, seconds, reason = 'cooldown') {
   const s = Number(seconds);
   if (!Number.isFinite(s) || s <= 0) return;
   const bounded = Math.min(Math.max(Math.ceil(s), 1), 24 * 60 * 60);
-  nextAllowedAtByUserId.set(String(userId), Date.now() + bounded * 1000);
+  nextAllowedByUserId.set(String(userId), {
+    untilMs: Date.now() + bounded * 1000,
+    reason: reason === 'rate_limit' ? 'rate_limit' : 'cooldown',
+  });
 
   // Nettoyage léger si ça grossit trop
-  if (nextAllowedAtByUserId.size > 5000) {
+  if (nextAllowedByUserId.size > 5000) {
     const now = Date.now();
-    for (const [key, ts] of nextAllowedAtByUserId.entries()) {
-      if (typeof ts !== 'number' || ts <= now) nextAllowedAtByUserId.delete(key);
+    for (const [key, item] of nextAllowedByUserId.entries()) {
+      const ts = item?.untilMs;
+      if (typeof ts !== 'number' || ts <= now) nextAllowedByUserId.delete(key);
     }
   }
 }
@@ -100,12 +112,15 @@ exports.askSupport = async (req, res) => {
     const userId = req.userData?.id;
     if (!userId) return res.status(401).json({ message: 'Unauthorized.' });
 
-    const remainingCooldown = getRemainingCooldownSeconds(userId);
-    if (remainingCooldown > 0) {
-      res.setHeader('Retry-After', String(remainingCooldown));
+    const { remainingSeconds, reason } = getRemainingCooldown(userId);
+    if (remainingSeconds > 0) {
+      res.setHeader('Retry-After', String(remainingSeconds));
       return res.status(429).json({
-        message: `Patiente un peu avant de réessayer (${remainingCooldown}s).`,
-        retryAfterSeconds: remainingCooldown,
+        message:
+          reason === 'rate_limit'
+            ? `Quota IA atteint. Réessaie dans ${remainingSeconds} secondes.`
+            : `Patiente un peu avant de réessayer (${remainingSeconds}s).`,
+        retryAfterSeconds: remainingSeconds,
       });
     }
 
@@ -125,7 +140,8 @@ exports.askSupport = async (req, res) => {
       const key = buildSupportCacheKey(userId, message);
       const cached = supportAnswerCache.get(key);
       if (cached && typeof cached.expiresAt === 'number' && cached.expiresAt > Date.now() && typeof cached.answer === 'string') {
-        setCooldownSeconds(userId, getUserCooldownSeconds());
+        const cooldown = getUserCooldownSeconds();
+        if (cooldown > 0) setCooldownSeconds(userId, cooldown, 'cooldown');
         return res.status(200).json({ answer: cached.answer });
       }
 
@@ -133,7 +149,8 @@ exports.askSupport = async (req, res) => {
       const inflight = inflightSupportRequests.get(key);
       if (inflight && typeof inflight.then === 'function') {
         const answer = await inflight;
-        setCooldownSeconds(userId, getUserCooldownSeconds());
+        const cooldown = getUserCooldownSeconds();
+        if (cooldown > 0) setCooldownSeconds(userId, cooldown, 'cooldown');
         return res.status(200).json({ answer });
       }
 
@@ -157,7 +174,8 @@ exports.askSupport = async (req, res) => {
 
       try {
         const answer = await promise;
-        setCooldownSeconds(userId, getUserCooldownSeconds());
+        const cooldown = getUserCooldownSeconds();
+        if (cooldown > 0) setCooldownSeconds(userId, cooldown, 'cooldown');
         return res.status(200).json({ answer });
       } finally {
         inflightSupportRequests.delete(key);
@@ -171,7 +189,8 @@ exports.askSupport = async (req, res) => {
       systemInstruction,
       userMessage: message,
     });
-    setCooldownSeconds(userId, getUserCooldownSeconds());
+    const cooldown = getUserCooldownSeconds();
+    if (cooldown > 0) setCooldownSeconds(userId, cooldown, 'cooldown');
     return res.status(200).json({ answer });
   } catch (err) {
     const errorId = randomUUID();
@@ -198,7 +217,7 @@ exports.askSupport = async (req, res) => {
       const rateLimitType = typeof err?.rateLimitType === 'string' ? err.rateLimitType : 'temporary';
       // Applique un cooldown aligné sur Gemini pour éviter de marteler l'API.
       if (req.userData?.id) {
-        setCooldownSeconds(req.userData.id, retryAfterSeconds || 30);
+        setCooldownSeconds(req.userData.id, retryAfterSeconds || 30, 'rate_limit');
       }
       if (retryAfterSeconds && Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
         res.setHeader('Retry-After', String(Math.ceil(retryAfterSeconds)));
