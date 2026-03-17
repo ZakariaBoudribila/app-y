@@ -20,6 +20,7 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { CalendarHistoryComponent } from './components/calendar-history/calendar-history.component';
 import { ToastContainerComponent } from './components/toast-container/toast-container.component';
 import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
+import { SupportChatComponent } from './components/support-chat/support-chat.component';
 import { TasksPageComponent } from './pages/tasks-page/tasks-page.component';
 import { JournalPageComponent } from './pages/journal-page/journal-page.component';
 import { MoodPageComponent } from './pages/mood-page/mood-page.component';
@@ -47,6 +48,7 @@ import { AuthInterceptor } from './services/auth.interceptor';
     CalendarHistoryComponent,
     ToastContainerComponent,
     ConfirmDialogComponent,
+    SupportChatComponent,
     TasksPageComponent,
     JournalPageComponent,
     MoodPageComponent,

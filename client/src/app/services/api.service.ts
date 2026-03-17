@@ -189,6 +189,18 @@ export class ApiService {
   }
 
   // ==========================================
+  // IA / ASSISTANT (SUPPORT)
+  // ==========================================
+
+  askAssistant(message: string): Observable<{ answer: string }> {
+    return this.http.post<{ answer: string }>(
+      `${this.baseUrl}/ai/support`,
+      { message },
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // ==========================================
   // UTILITAIRES DE SESSION
   // ==========================================
 

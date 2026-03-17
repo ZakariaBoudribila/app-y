@@ -1,0 +1,37 @@
+<div class="chat-fab">
+  <button class="fab-button" type="button" (click)="toggleOpen()" [attr.aria-expanded]="isOpen">
+    Assistant
+  </button>
+</div>
+
+<div class="chat-panel" *ngIf="isOpen" role="dialog" aria-label="Assistant">
+  <div class="chat-header">
+    <div class="chat-title">Assistant</div>
+    <button class="chat-close" type="button" (click)="close()" aria-label="Fermer">×</button>
+  </div>
+
+  <div class="chat-messages" aria-live="polite">
+    <div
+      class="bubble"
+      *ngFor="let m of messages; trackBy: trackByIndex"
+      [class.bubble--user]="m.from === 'user'"
+      [class.bubble--assistant]="m.from === 'assistant'"
+    >
+      {{ m.text }}
+    </div>
+
+    <div class="bubble bubble--assistant" *ngIf="isSending">…</div>
+  </div>
+
+  <form class="chat-input" (ngSubmit)="send()">
+    <input
+      name="message"
+      type="text"
+      [(ngModel)]="inputMessage"
+      placeholder="Écris ton message…"
+      [disabled]="isSending"
+      autocomplete="off"
+    />
+    <button type="submit" [disabled]="isSending || !inputMessage.trim()">Envoyer</button>
+  </form>
+</div>
