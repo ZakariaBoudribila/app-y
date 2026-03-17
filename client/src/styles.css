@@ -301,17 +301,18 @@ app-root {
 }
 
 .btn-primary {
-  --bs-btn-bg: var(--accent-color);
-  --bs-btn-border-color: var(--accent-color);
-  --bs-btn-hover-bg: var(--text-title);
-  --bs-btn-hover-border-color: var(--text-title);
-  --bs-btn-active-bg: var(--text-title);
-  --bs-btn-active-border-color: var(--text-title);
-  --bs-btn-focus-shadow-rgb: 248, 187, 208;
+  --bs-btn-bg: var(--accent-color) !important;
+  --bs-btn-border-color: var(--accent-color) !important;
+  --bs-btn-hover-bg: var(--text-title) !important;
+  --bs-btn-hover-border-color: var(--text-title) !important;
+  --bs-btn-active-bg: var(--text-title) !important;
+  --bs-btn-active-border-color: var(--text-title) !important;
+  --bs-btn-focus-shadow-rgb: 248, 187, 208 !important;
 
   /* Overrides directs: éviter tout bleu résiduel */
   background-color: var(--accent-color) !important;
   border-color: var(--accent-color) !important;
+  color: #fff !important;
 }
 
 .btn-primary:hover,
@@ -322,15 +323,15 @@ app-root {
 }
 
 .btn-outline-primary {
-  --bs-btn-color: var(--text-title);
-  --bs-btn-border-color: var(--accent-color);
-  --bs-btn-hover-bg: var(--accent-color);
-  --bs-btn-hover-border-color: var(--accent-color);
-  --bs-btn-hover-color: #fff;
-  --bs-btn-active-bg: var(--accent-color);
-  --bs-btn-active-border-color: var(--accent-color);
-  --bs-btn-active-color: #fff;
-  --bs-btn-focus-shadow-rgb: 248, 187, 208;
+  --bs-btn-color: var(--text-title) !important;
+  --bs-btn-border-color: var(--accent-color) !important;
+  --bs-btn-hover-bg: var(--accent-color) !important;
+  --bs-btn-hover-border-color: var(--accent-color) !important;
+  --bs-btn-hover-color: #fff !important;
+  --bs-btn-active-bg: var(--accent-color) !important;
+  --bs-btn-active-border-color: var(--accent-color) !important;
+  --bs-btn-active-color: #fff !important;
+  --bs-btn-focus-shadow-rgb: 248, 187, 208 !important;
 
   color: var(--text-title) !important;
   border-color: var(--accent-color) !important;
