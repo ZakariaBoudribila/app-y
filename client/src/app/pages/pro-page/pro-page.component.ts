@@ -189,11 +189,15 @@ export class ProPageComponent {
     const raw = (this.languageInput || '').trim();
     if (!raw) return;
 
-    const level = (this.languageLevelInput || '').trim();
-    if (!level) return;
+    const levelRaw = (this.languageLevelInput || '').trim();
+    if (!levelRaw) return;
+
+    const percentNum = Number(levelRaw);
+    if (!Number.isFinite(percentNum)) return;
+    const percent = Math.max(0, Math.min(100, Math.round(percentNum)));
 
     const baseOf = (value: string) => String(value || '').split('(')[0].trim().toLowerCase();
-    const composed = `${raw} (${level})`;
+    const composed = `${raw} (${percent}%)`;
 
     const current = this.form.controls.languages.value || [];
     const base = raw.toLowerCase();

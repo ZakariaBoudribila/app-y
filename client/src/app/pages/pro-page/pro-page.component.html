@@ -159,14 +159,13 @@
             [(ngModel)]="languageLevelInput"
             [ngModelOptions]="{ standalone: true }"
             name="languageLevelInput">
-            <option value="">Niveau…</option>
-            <option value="A1">A1</option>
-            <option value="A2">A2</option>
-            <option value="B1">B1</option>
-            <option value="B2">B2</option>
-            <option value="C1">C1</option>
-            <option value="C2">C2</option>
-            <option value="Natif">Natif</option>
+            <option value="">Niveau (%)…</option>
+            <option value="20">Débutant (20%)</option>
+            <option value="40">Élémentaire (40%)</option>
+            <option value="60">Intermédiaire (60%)</option>
+            <option value="80">Avancé (80%)</option>
+            <option value="90">Courant (90%)</option>
+            <option value="100">Natif (100%)</option>
           </select>
 
           <button class="pro-btn" type="button" (click)="addLanguage()" [disabled]="isSaving">Ajouter</button>
