@@ -286,3 +286,123 @@ app-root {
   border-color: var(--text-title);
   background-color: white;
 }
+
+/* Styles PDF (utilisés dans la page /pro) */
+.pdf-root {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: 794px; /* ~A4 @ 96dpi */
+  background: #fff;
+}
+
+.pdf-surface {
+  width: 794px;
+  padding: 28px;
+  background: #fff;
+  color: var(--text-main);
+}
+
+.pdf-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--accent-color);
+}
+
+.pdf-header-left { display: flex; align-items: center; gap: 12px; }
+.pdf-avatar { width: 56px; height: 56px; border-radius: 999px; border: 1px solid var(--accent-color); overflow: hidden; background: var(--card-bg); }
+.pdf-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.pdf-title {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  color: var(--text-title);
+}
+
+.pdf-subtitle {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.pdf-section {
+  margin-top: 14px;
+}
+
+.pdf-h2 {
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-title);
+  margin-bottom: 8px;
+}
+
+.pdf-text {
+  white-space: pre-wrap;
+  line-height: 1.45;
+  font-size: 12px;
+}
+
+.pdf-muted {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.pdf-item {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--accent-color);
+  margin-bottom: 8px;
+}
+
+.pdf-item:last-child {
+  border-bottom: none;
+}
+
+.pdf-item-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.pdf-strong {
+  font-weight: 900;
+}
+
+.pdf-sep {
+  margin: 0 8px;
+  opacity: 0.7;
+}
+
+.pdf-meta {
+  font-size: 11px;
+  opacity: 0.8;
+  margin-top: 2px;
+  margin-bottom: 6px;
+}
+
+.pdf-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.pdf-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pdf-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-color);
+  font-size: 11px;
+}
