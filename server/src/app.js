@@ -16,6 +16,26 @@ const aiRoutes = require('./routes/aiRoutes');
 
 const app = express();
 
+function getEnv(name) {
+  const value = process.env[name];
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function getAiHealth() {
+  const groqApiKeyPresent = Boolean(getEnv('GROQ_API_KEY'));
+  const geminiApiKeyPresent = Boolean(getEnv('GEMINI_API_KEY'));
+
+  return {
+    provider: 'groq',
+    model: getEnv('GROQ_MODEL') || 'llama-3.3-70b-versatile',
+    configured: groqApiKeyPresent,
+    keysPresent: {
+      groq: groqApiKeyPresent,
+      gemini: geminiApiKeyPresent,
+    },
+  };
+}
+
 function parseCorsOrigins() {
   const raw = process.env.CORS_ORIGINS || process.env.CORS_ORIGIN;
   if (!raw) return [];
@@ -80,6 +100,7 @@ app.get('/api/health', (req, res) => {
       vercel: Boolean(process.env.VERCEL),
       railway: Boolean(process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_ID),
     },
+    ai: getAiHealth(),
   });
 });
 
