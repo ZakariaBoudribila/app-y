@@ -73,7 +73,14 @@ app.use('/api/user-profile', userProfileRoutes);
 app.use('/api/ai', aiRoutes);
 
 app.get('/api/health', (req, res) => {
-  res.json({ ok: true });
+  res.json({
+    ok: true,
+    runtime: {
+      nodeEnv: process.env.NODE_ENV || 'development',
+      vercel: Boolean(process.env.VERCEL),
+      railway: Boolean(process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_ID),
+    },
+  });
 });
 
 module.exports = app;

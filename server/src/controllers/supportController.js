@@ -55,7 +55,14 @@ exports.askSupport = async (req, res) => {
     const msg = typeof err?.message === 'string' ? err.message : 'Erreur IA.';
 
     if (code === 'MISSING_GEMINI_API_KEY') {
-      return res.status(503).json({ message: msg });
+      return res.status(503).json({
+        message: msg,
+        runtime: {
+          nodeEnv: process.env.NODE_ENV || 'development',
+          vercel: Boolean(process.env.VERCEL),
+          railway: Boolean(process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_ID),
+        },
+      });
     }
 
     console.error('[askSupport]', err);
