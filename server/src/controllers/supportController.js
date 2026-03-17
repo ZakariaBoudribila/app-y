@@ -72,6 +72,30 @@ exports.askSupport = async (req, res) => {
       });
     }
 
+    if (code === 'GEMINI_RATE_LIMIT') {
+      const retryAfterSeconds = typeof err?.retryAfterSeconds === 'number' ? err.retryAfterSeconds : null;
+      if (retryAfterSeconds && Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
+        res.setHeader('Retry-After', String(Math.ceil(retryAfterSeconds)));
+      }
+
+      const payload = {
+        message: retryAfterSeconds
+          ? `Quota IA atteint. Réessaie dans ${Math.ceil(retryAfterSeconds)} secondes.`
+          : 'Quota IA atteint. Réessaie dans quelques secondes.',
+        errorId,
+        runtime,
+        retryAfterSeconds,
+      };
+
+      if (debugEnabled) {
+        payload.detail = msg;
+        if (typeof err?.name === 'string') payload.errorName = err.name;
+        if (typeof err?.status === 'number') payload.upstreamStatus = err.status;
+      }
+
+      return res.status(429).json(payload);
+    }
+
     console.error(`[askSupport:${errorId}]`, err);
 
     const payload = {

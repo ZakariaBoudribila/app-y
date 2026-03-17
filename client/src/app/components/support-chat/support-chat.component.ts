@@ -66,8 +66,12 @@ export class SupportChatComponent {
         const apiDetail = typeof err?.error?.detail === 'string' ? err.error.detail : '';
         const errorId = typeof err?.error?.errorId === 'string' ? err.error.errorId : '';
         const runtime = err?.error?.runtime;
+        const retryAfterSeconds = typeof err?.error?.retryAfterSeconds === 'number' ? err.error.retryAfterSeconds : null;
 
         const extras: string[] = [];
+        if (retryAfterSeconds && Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
+          extras.push(`Réessaie dans ${Math.ceil(retryAfterSeconds)} secondes.`);
+        }
         if (apiDetail) extras.push(apiDetail);
         if (errorId) extras.push(`errorId=${errorId}`);
         if (runtime && (runtime.vercel === true || runtime.railway === true)) {

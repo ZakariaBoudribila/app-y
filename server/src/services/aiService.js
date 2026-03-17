@@ -20,6 +20,43 @@ function normalizeModelName(rawName) {
   return name.startsWith('models/') ? name : `models/${name}`;
 }
 
+function parseRetryAfterSeconds(message) {
+  const msg = typeof message === 'string' ? message : '';
+  if (!msg) return null;
+
+  // Ex: "Please retry in 30.345234893s."
+  const m1 = msg.match(/Please\s+retry\s+in\s+([0-9.]+)s/i);
+  if (m1?.[1]) {
+    const n = Number(m1[1]);
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+
+  // Ex: "\"retryDelay\":\"30s\""
+  const m2 = msg.match(/"retryDelay"\s*:\s*"(\d+)s"/i);
+  if (m2?.[1]) {
+    const n = Number(m2[1]);
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+
+  return null;
+}
+
+function toGeminiError(e) {
+  const err = e instanceof Error ? e : new Error(String(e));
+  if (!err.code) err.code = 'GEMINI_ERROR';
+  if (typeof e?.status === 'number') err.status = e.status;
+
+  const msg = typeof err.message === 'string' ? err.message : '';
+  const status = typeof err.status === 'number' ? err.status : undefined;
+  const isRateLimited = status === 429 || /too many requests/i.test(msg) || /quota exceeded/i.test(msg);
+  if (isRateLimited) {
+    err.code = 'GEMINI_RATE_LIMIT';
+    err.retryAfterSeconds = parseRetryAfterSeconds(msg);
+  }
+
+  return err;
+}
+
 function createGeminiClient() {
   const apiKey = getEnv('GEMINI_API_KEY');
   if (!apiKey) {
@@ -61,8 +98,11 @@ async function generateText({ systemInstruction, userMessage }) {
   try {
     result = await callModel(modelName);
   } catch (e) {
-    const message = typeof e?.message === 'string' ? e.message : String(e);
-    const status = typeof e?.status === 'number' ? e.status : undefined;
+    const geminiErr = toGeminiError(e);
+    if (geminiErr.code === 'GEMINI_RATE_LIMIT') throw geminiErr;
+
+    const message = typeof geminiErr?.message === 'string' ? geminiErr.message : String(geminiErr);
+    const status = typeof geminiErr?.status === 'number' ? geminiErr.status : undefined;
 
     const isModelNotFound = status === 404 || /not found/i.test(message) || /not supported/i.test(message);
     if (isModelNotFound) {
@@ -70,16 +110,10 @@ async function generateText({ systemInstruction, userMessage }) {
       try {
         result = await callModel(fallback);
       } catch (e2) {
-        const err = e2 instanceof Error ? e2 : new Error(String(e2));
-        if (!err.code) err.code = 'GEMINI_ERROR';
-        if (typeof e2?.status === 'number') err.status = e2.status;
-        throw err;
+        throw toGeminiError(e2);
       }
     } else {
-      const err = e instanceof Error ? e : new Error(String(e));
-      if (!err.code) err.code = 'GEMINI_ERROR';
-      if (typeof e?.status === 'number') err.status = e.status;
-      throw err;
+      throw geminiErr;
     }
   }
 
