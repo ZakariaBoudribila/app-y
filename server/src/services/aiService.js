@@ -9,6 +9,10 @@ function getGeminiModelName() {
   return getEnv('GEMINI_MODEL') || 'gemini-1.5-flash';
 }
 
+function getGeminiFallbackModelName() {
+  return getEnv('GEMINI_FALLBACK_MODEL') || 'gemini-pro';
+}
+
 function createGeminiClient() {
   const apiKey = getEnv('GEMINI_API_KEY');
   if (!apiKey) {
@@ -32,23 +36,43 @@ async function generateText({ systemInstruction, userMessage }) {
 
   const { genAI, modelName } = createGeminiClient();
 
-  const modelOptions = { model: modelName };
-  if (typeof systemInstruction === 'string' && systemInstruction.trim()) {
-    modelOptions.systemInstruction = systemInstruction.trim();
+  const trimmedSystem = typeof systemInstruction === 'string' ? systemInstruction.trim() : '';
+
+  function buildModelOptions(name) {
+    const opts = { model: name };
+    if (trimmedSystem) opts.systemInstruction = trimmedSystem;
+    return opts;
   }
 
-  const model = genAI.getGenerativeModel(modelOptions);
+  async function callModel(name) {
+    const model = genAI.getGenerativeModel(buildModelOptions(name));
+    return model.generateContent(userMessage.trim());
+  }
 
   let result;
   try {
-    result = await model.generateContent(userMessage.trim());
+    result = await callModel(modelName);
   } catch (e) {
-    const err = e instanceof Error ? e : new Error(String(e));
-    // Normalise pour que le controller puisse diagnostiquer.
-    if (!err.code) err.code = 'GEMINI_ERROR';
-    // Certaines versions exposent status/response.
-    if (typeof e?.status === 'number') err.status = e.status;
-    throw err;
+    const message = typeof e?.message === 'string' ? e.message : String(e);
+    const status = typeof e?.status === 'number' ? e.status : undefined;
+
+    const isModelNotFound = status === 404 || /not found/i.test(message) || /not supported/i.test(message);
+    if (isModelNotFound) {
+      const fallback = getGeminiFallbackModelName();
+      try {
+        result = await callModel(fallback);
+      } catch (e2) {
+        const err = e2 instanceof Error ? e2 : new Error(String(e2));
+        if (!err.code) err.code = 'GEMINI_ERROR';
+        if (typeof e2?.status === 'number') err.status = e2.status;
+        throw err;
+      }
+    } else {
+      const err = e instanceof Error ? e : new Error(String(e));
+      if (!err.code) err.code = 'GEMINI_ERROR';
+      if (typeof e?.status === 'number') err.status = e.status;
+      throw err;
+    }
   }
 
   const text = result?.response?.text?.();
