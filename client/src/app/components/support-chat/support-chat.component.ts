@@ -62,6 +62,7 @@ export class SupportChatComponent {
         this.isSending = false;
       },
       error: (err: any) => {
+        const httpStatus = typeof err?.status === 'number' ? err.status : null;
         const apiMessage = typeof err?.error?.message === 'string' ? err.error.message : '';
         const apiDetail = typeof err?.error?.detail === 'string' ? err.error.detail : '';
         const errorId = typeof err?.error?.errorId === 'string' ? err.error.errorId : '';
@@ -72,7 +73,8 @@ export class SupportChatComponent {
         if (retryAfterSeconds && Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
           extras.push(`Réessaie dans ${Math.ceil(retryAfterSeconds)} secondes.`);
         }
-        if (apiDetail) extras.push(apiDetail);
+        // On évite d'afficher les détails techniques pour les erreurs quota/rate limit.
+        if (apiDetail && httpStatus !== 429) extras.push(apiDetail);
         if (errorId) extras.push(`errorId=${errorId}`);
         if (runtime && (runtime.vercel === true || runtime.railway === true)) {
           extras.push(`runtime=${runtime.vercel ? 'vercel' : (runtime.railway ? 'railway' : 'unknown')}`);
