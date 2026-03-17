@@ -24,7 +24,7 @@
   height: 50px;
   border-radius: 50%; /* Fait un rond parfait */
   border: none;
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   cursor: pointer;
   display: flex;
   justify-content: center;
@@ -46,4 +46,9 @@
     box-shadow: 0 6px 12px rgba(0,0,0,0.2);
     border: 3px solid white; /* Petite bordure pour le faire ressortir */
   }
+}
+
+.mood-btn .bi {
+  line-height: 1;
+  font-size: 1em;
 }

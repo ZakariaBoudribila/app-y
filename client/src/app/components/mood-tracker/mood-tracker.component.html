@@ -9,7 +9,9 @@
     class="mood-btn" 
     [class.active]="selectedMood === mood.score"
     [style.background-color]="mood.color"
-    (click)="selectMood(mood.score)">
-    {{ mood.icon }}
+    (click)="selectMood(mood.score)"
+    type="button"
+    [attr.aria-label]="mood.label">
+    <i class="bi" [ngClass]="mood.iconClass" aria-hidden="true"></i>
   </button>
 </div>

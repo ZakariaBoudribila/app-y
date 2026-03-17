@@ -11,11 +11,11 @@ import { localIsoDate } from '../../utils/date';
 export class MoodTrackerComponent implements OnInit {
   // Liste de tes humeurs avec un score de 1 à 5
   moods = [
-    { score: 1, icon: '😠', color: '#ffadad' }, // Rouge (Triste/En colère)
-    { score: 2, icon: '😟', color: '#ffd6a5' }, // Orange
-    { score: 3, icon: '😐', color: '#fdffb6' }, // Jaune (Neutre)
-    { score: 4, icon: '😯', color: '#caffbf' }, // Vert clair
-    { score: 5, icon: '😄', color: '#9bf6ff' }  // Bleu/Vert (Très bien)
+    { score: 1, iconClass: 'bi-emoji-angry-fill', color: '#ffadad', label: 'Très mal' },
+    { score: 2, iconClass: 'bi-emoji-frown-fill', color: '#ffd6a5', label: 'Mal' },
+    { score: 3, iconClass: 'bi-emoji-neutral-fill', color: '#fdffb6', label: 'Neutre' },
+    { score: 4, iconClass: 'bi-emoji-smile-fill', color: '#caffbf', label: 'Bien' },
+    { score: 5, iconClass: 'bi-emoji-laughing-fill', color: '#9bf6ff', label: 'Très bien' }
   ];
 
   // Humeur sélectionnée par défaut (aucune au début)
