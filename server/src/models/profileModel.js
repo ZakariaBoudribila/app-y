@@ -169,6 +169,39 @@ const ProfileModel = {
       linkedin,
     ]);
 
+    // Compat: maintient aussi l'ancienne table `profiles` (si elle est consultée ailleurs).
+    // Cela évite l'impression "ça n'enregistre pas" quand on regarde `profiles` au lieu de `user_profiles`.
+    const legacySql = `
+      INSERT INTO profiles (user_id, about_me, experiences, education, languages, software, phone, address, linkedin)
+      VALUES (?, ?, ?::jsonb, ?::jsonb, ?::text[], ?::text[], ?, ?, ?)
+      ON CONFLICT (user_id)
+      DO UPDATE SET
+        about_me = EXCLUDED.about_me,
+        experiences = EXCLUDED.experiences,
+        education = EXCLUDED.education,
+        languages = EXCLUDED.languages,
+        software = EXCLUDED.software,
+        phone = EXCLUDED.phone,
+        address = EXCLUDED.address,
+        linkedin = EXCLUDED.linkedin
+    `;
+
+    try {
+      await dbRun(legacySql, [
+        userId,
+        aboutMe,
+        JSON.stringify(experiences),
+        JSON.stringify(education),
+        languages,
+        software,
+        phone,
+        address,
+        linkedin,
+      ]);
+    } catch {
+      // Best-effort only.
+    }
+
     return this.getProfile(userId);
   },
 };
