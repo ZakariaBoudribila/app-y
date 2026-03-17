@@ -1,12 +1,7 @@
-<div class="card-header">
-  <h3 class="card-title">Mood Tracker</h3>
-  <div class="floral-decor">🌿</div>
-</div>
-
 <div class="mood-container">
-  <button 
-    *ngFor="let mood of moods" 
-    class="mood-btn" 
+  <button
+    *ngFor="let mood of moods"
+    class="btn mood-btn rounded-circle"
     [class.active]="selectedMood === mood.score"
     [style.background-color]="mood.color"
     (click)="selectMood(mood.score)"

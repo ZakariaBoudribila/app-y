@@ -1,23 +1,13 @@
 /* You can add global styles to this file, and also import other style files */
-/* Variables CSS pour réutiliser facilement tes couleurs */
+/* Thème global: Bootstrap (on garde les variables existantes mais on les aligne sur Bootstrap) */
 :root {
-  --bg-color: #fce4ec; /* Le fond rose très clair */
-  --card-bg: rgba(255, 255, 255, 0.85); /* Blanc légèrement transparent */
-  --text-main: #5d4037; /* Marron doux pour le texte */
-  --text-title: #880e4f; /* Bordeaux doux pour les titres */
-  --accent-color: #f8bbd0; /* Rose un peu plus foncé pour les boutons/sélections */
-
-  /* Photo de fond (à remplacer par ta photo) */
-  --jasmine-photo: url('assets/yass4.jpg');
-  /* Motif fleurs (style jasmin) en SVG, répété en arrière-plan */
-  /* Bouquets (coins) en SVG: tons déjà utilisés (blanc/rose/bordeaux/marron) */
-  /*
-    Photo (optionnelle) : mets ton image ici
-    Chemin attendu: client/src/assets/jasmine-bouquet.png
-    (Si le fichier n'existe pas, le navigateur n'affichera juste pas cette couche.)
-  */
-  --border-radius: 20px;
-  --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.05);
+  --bg-color: var(--bs-body-bg);
+  --card-bg: var(--bs-body-bg);
+  --text-main: var(--bs-body-color);
+  --text-title: var(--bs-heading-color);
+  --accent-color: var(--bs-primary);
+  --border-radius: var(--bs-border-radius-lg);
+  --shadow-soft: var(--bs-box-shadow);
 }
 
 /* Reset de base pour enlever les marges par défaut du navigateur */
@@ -28,70 +18,12 @@
 }
 
 body {
-  font-family: 'Nunito', sans-serif;
-  color: var(--text-main);
-  background-color: var(--bg-color); 
-  /* Photo + texture papier (la texture reste au-dessus) */
-  background-image:
-    url('https://www.transparenttextures.com/patterns/cream-paper.png'),
-    var(--jasmine-photo);
-  background-repeat: repeat, no-repeat;
-  background-size: auto, cover;
-  background-position: 0 0, center center;
-  background-attachment: scroll, fixed;
-  position: relative;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Bouquets de jasmin (coins) par-dessus le motif répété */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.30;
-  background-image:
-    var(--bouquet-corners),
-    var(--bouquet-corners);
-  background-repeat: no-repeat;
-  background-size:
-    520px 520px,
-    520px 520px;
-  background-position:
-    left -110px top -110px,
-    left -110px bottom -110px;
-}
-
-/* Même bouquets à droite via mirroring */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.30;
-  transform: scaleX(-1);
-  transform-origin: center;
-  background-image:
-    var(--bouquet-corners),
-    var(--bouquet-corners);
-  background-repeat: no-repeat;
-  background-size:
-    520px 520px,
-    520px 520px;
-  background-position:
-    left -110px top -110px,
-    left -110px bottom -110px;
-}
-
-/* S'assurer que l'app reste au-dessus de l'overlay */
-app-root {
-  position: relative;
-  z-index: 1;
+  font-family: var(--bs-body-font-family);
+  color: var(--bs-body-color);
+  background-color: var(--bs-body-bg);
+  height: auto;
+  min-height: 100vh;
+  display: block;
 }
 
 /* ================================

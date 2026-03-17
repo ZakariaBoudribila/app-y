@@ -1,12 +1,24 @@
 <app-header></app-header>
 
-<div class="app-layout">
-  <aside class="sidebar-container">
-    <app-sidebar></app-sidebar>
-  </aside>
+<div class="container-fluid py-3">
+  <div class="row g-3">
+    <aside class="col-12 col-md-3 col-lg-2">
+      <div class="card">
+        <div class="card-body p-2">
+          <app-sidebar></app-sidebar>
+        </div>
+      </div>
+    </aside>
 
-  <main class="main-content">
-    <h1 class="title-cursive">{{ userName }}'s History</h1>
-    <app-calendar-history class="widget-card"></app-calendar-history>
-  </main>
+    <main class="col-12 col-md-9 col-lg-10">
+      <div class="d-flex flex-column gap-3">
+        <h1 class="h3 mb-0">{{ userName }}'s History</h1>
+        <div class="card">
+          <div class="card-body">
+            <app-calendar-history></app-calendar-history>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
 </div>

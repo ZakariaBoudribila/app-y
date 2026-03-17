@@ -1,20 +1,43 @@
 <app-header></app-header>
 
-<div class="app-layout">
-  <aside class="sidebar-container">
-    <app-sidebar></app-sidebar>
-  </aside>
-
-  <main class="main-content">
-    <h1 class="title-cursive">{{ userName }}'s Mood</h1>
-
-    <div class="widget-card">
-      <div class="date-row">
-        <label for="moodDate">Date</label>
-        <input id="moodDate" type="date" [(ngModel)]="selectedDate" (ngModelChange)="onDateChange($event)">
+<div class="container-fluid py-3">
+  <div class="row g-3">
+    <aside class="col-12 col-md-3 col-lg-2">
+      <div class="card">
+        <div class="card-body p-2">
+          <app-sidebar></app-sidebar>
+        </div>
       </div>
-    </div>
+    </aside>
 
-    <app-mood-tracker class="widget-card" [date]="selectedDate"></app-mood-tracker>
-  </main>
+    <main class="col-12 col-md-9 col-lg-10">
+      <div class="d-flex flex-column gap-3">
+        <h1 class="h3 mb-0">{{ userName }}'s Mood</h1>
+
+        <div class="card">
+          <div class="card-body">
+            <div class="row g-2 align-items-center">
+              <div class="col-auto">
+                <label for="moodDate" class="col-form-label">Date</label>
+              </div>
+              <div class="col-auto">
+                <input
+                  id="moodDate"
+                  type="date"
+                  class="form-control"
+                  [(ngModel)]="selectedDate"
+                  (ngModelChange)="onDateChange($event)">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <app-mood-tracker [date]="selectedDate"></app-mood-tracker>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
 </div>
