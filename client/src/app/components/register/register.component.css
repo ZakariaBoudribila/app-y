@@ -27,7 +27,7 @@
 .subtitle {
   color: var(--text-main);
   margin-bottom: 30px;
-  font-family: 'Nunito', sans-serif;
+  font-family: inherit;
 }
 
 .form-group {
@@ -47,7 +47,7 @@
   padding: 12px;
   border: 1px solid var(--accent-color);
   border-radius: 10px;
-  font-family: 'Nunito', sans-serif;
+  font-family: inherit;
   outline: none;
   background-color: rgba(255, 255, 255, 0.7);
 }

@@ -31,6 +31,9 @@
 
   --bs-card-bg: var(--card-bg);
   --bs-card-border-color: rgba(248, 187, 208, 0.6);
+
+  /* Police globale (ta police choisie) */
+  --bs-body-font-family: 'Great Vibes', cursive;
 }
 
 /* Reset de base pour enlever les marges par défaut du navigateur */
@@ -317,7 +320,7 @@ app-root {
   padding: 10px 12px;
   border: 1px solid var(--accent-color);
   border-radius: 12px;
-  font-family: 'Nunito', sans-serif;
+  font-family: inherit;
   outline: none;
   background-color: rgba(255, 255, 255, 0.7);
 }
@@ -438,7 +441,7 @@ app-root {
   padding: 12px;
   border: 1px solid var(--accent-color);
   border-radius: 12px;
-  font-family: 'Nunito', sans-serif;
+  font-family: inherit;
   outline: none;
   background: var(--card-bg);
   box-shadow: 0 0 0 0 rgba(0,0,0,0);
