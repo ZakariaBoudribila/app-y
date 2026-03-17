@@ -185,7 +185,7 @@ exports.askSupport = async (req, res) => {
       railway: Boolean(process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_ID),
     };
 
-    if (code === 'MISSING_GEMINI_API_KEY') {
+    if (code === 'MISSING_GEMINI_API_KEY' || code === 'MISSING_GROQ_API_KEY') {
       return res.status(503).json({
         message: msg,
         errorId,
@@ -193,7 +193,7 @@ exports.askSupport = async (req, res) => {
       });
     }
 
-    if (code === 'GEMINI_RATE_LIMIT') {
+    if (code === 'GEMINI_RATE_LIMIT' || code === 'GROQ_RATE_LIMIT') {
       const retryAfterSeconds = typeof err?.retryAfterSeconds === 'number' ? err.retryAfterSeconds : null;
       const rateLimitType = typeof err?.rateLimitType === 'string' ? err.rateLimitType : 'temporary';
       // Applique un cooldown aligné sur Gemini pour éviter de marteler l'API.

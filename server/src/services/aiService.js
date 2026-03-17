@@ -1,92 +1,61 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const Groq = require('groq-sdk');
 
 function getEnv(name) {
   const value = process.env[name];
   return typeof value === 'string' ? value.trim() : '';
 }
 
-function getGeminiModelName() {
-  // Modèle par défaut (compatible generateContent pour la plupart des clés récentes)
-  return getEnv('GEMINI_MODEL') || 'gemini-2.0-flash-lite';
+function getGroqModel() {
+  return getEnv('GROQ_MODEL') || 'llama-3.3-70b-versatile';
 }
 
-function getGeminiFallbackModelName() {
-  return getEnv('GEMINI_FALLBACK_MODEL') || 'gemini-pro-latest';
+function getGroqTemperature() {
+  const raw = getEnv('GROQ_TEMPERATURE');
+  if (!raw) return 0.7;
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return 0.7;
+  return Math.min(Math.max(n, 0), 2);
 }
 
-function normalizeModelName(rawName) {
-  const name = typeof rawName === 'string' ? rawName.trim() : '';
-  if (!name) return '';
-  return name.startsWith('models/') ? name : `models/${name}`;
-}
+function parseRetryAfterSecondsFromError(e) {
+  const h = e?.headers;
 
-function parseRetryAfterSeconds(message) {
-  const msg = typeof message === 'string' ? message : '';
-  if (!msg) return null;
+  // Some SDKs expose headers as plain object; others as Map-like.
+  const retryAfter =
+    (typeof h?.get === 'function' ? h.get('retry-after') : undefined) ||
+    (h && typeof h === 'object' ? (h['retry-after'] || h['Retry-After']) : undefined);
 
-  // Si on est sur un quota journalier free-tier, le retryDelay n'est pas très utile.
-  // Exemple: quotaId "GenerateRequestsPerDayPerProjectPerModel-FreeTier".
-  if (/GenerateRequestsPerDay/i.test(msg) || /PerDayPerProjectPerModel/i.test(msg) || /requests?\s+per\s+day/i.test(msg)) {
-    return null;
-  }
-
-  // Ex: "Please retry in 30.345234893s."
-  const m1 = msg.match(/Please\s+retry\s+in\s+([0-9.]+)s/i);
-  if (m1?.[1]) {
-    const n = Number(m1[1]);
-    if (Number.isFinite(n) && n > 0) return n;
-  }
-
-  // Ex: "\"retryDelay\":\"30s\""
-  const m2 = msg.match(/"retryDelay"\s*:\s*"(\d+)s"/i);
-  if (m2?.[1]) {
-    const n = Number(m2[1]);
-    if (Number.isFinite(n) && n > 0) return n;
-  }
-
+  const n = Number(retryAfter);
+  if (Number.isFinite(n) && n > 0) return n;
   return null;
 }
 
-function detectRateLimitType(message) {
-  const msg = typeof message === 'string' ? message : '';
-  if (!msg) return 'temporary';
-
-  if (/GenerateRequestsPerDay/i.test(msg) || /PerDayPerProjectPerModel/i.test(msg) || /requests?\s+per\s+day/i.test(msg)) {
-    return 'daily';
-  }
-
-  return 'temporary';
-}
-
-function toGeminiError(e) {
+function toGroqError(e) {
   const err = e instanceof Error ? e : new Error(String(e));
-  if (!err.code) err.code = 'GEMINI_ERROR';
+  if (!err.code) err.code = 'GROQ_ERROR';
   if (typeof e?.status === 'number') err.status = e.status;
 
   const msg = typeof err.message === 'string' ? err.message : '';
   const status = typeof err.status === 'number' ? err.status : undefined;
-  const isRateLimited = status === 429 || /too many requests/i.test(msg) || /quota exceeded/i.test(msg);
-  if (isRateLimited) {
-    err.code = 'GEMINI_RATE_LIMIT';
-    err.retryAfterSeconds = parseRetryAfterSeconds(msg);
-    err.rateLimitType = detectRateLimitType(msg);
+
+  if (status === 429 || /too many requests/i.test(msg) || /rate limit/i.test(msg)) {
+    err.code = 'GROQ_RATE_LIMIT';
+    err.retryAfterSeconds = parseRetryAfterSecondsFromError(e);
+    err.rateLimitType = 'temporary';
   }
 
   return err;
 }
 
-function createGeminiClient() {
-  const apiKey = getEnv('GEMINI_API_KEY');
+function createGroqClient() {
+  const apiKey = getEnv('GROQ_API_KEY');
   if (!apiKey) {
-    const err = new Error('GEMINI_API_KEY est manquant dans les variables d\'environnement.');
-    err.code = 'MISSING_GEMINI_API_KEY';
+    const err = new Error('GROQ_API_KEY est manquant dans les variables d\'environnement.');
+    err.code = 'MISSING_GROQ_API_KEY';
     throw err;
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const modelName = getGeminiModelName();
-
-  return { genAI, modelName };
+  return new Groq({ apiKey });
 }
 
 async function generateText({ systemInstruction, userMessage }) {
@@ -96,70 +65,36 @@ async function generateText({ systemInstruction, userMessage }) {
     throw err;
   }
 
-  const { genAI, modelName } = createGeminiClient();
-
+  const groq = createGroqClient();
   const trimmedSystem = typeof systemInstruction === 'string' ? systemInstruction.trim() : '';
 
-  function buildModelOptions(name) {
-    const normalized = normalizeModelName(name);
-    const opts = { model: normalized };
-    if (trimmedSystem) opts.systemInstruction = trimmedSystem;
-    return opts;
-  }
-
-  async function callModel(name) {
-    const model = genAI.getGenerativeModel(buildModelOptions(name));
-    return model.generateContent(userMessage.trim());
-  }
-
-  let result;
   try {
-    result = await callModel(modelName);
+    const completion = await groq.chat.completions.create({
+      model: getGroqModel(),
+      temperature: getGroqTemperature(),
+      messages: [
+        {
+          role: 'system',
+          content: trimmedSystem || "Tu es l'assistant IA de Lalla Yassmine.",
+        },
+        {
+          role: 'user',
+          content: userMessage.trim(),
+        },
+      ],
+    });
+
+    const text = completion?.choices?.[0]?.message?.content;
+    if (typeof text !== 'string' || !text.trim()) {
+      const err = new Error('Réponse IA vide.');
+      err.code = 'EMPTY_AI_RESPONSE';
+      throw err;
+    }
+
+    return text.trim();
   } catch (e) {
-    const geminiErr = toGeminiError(e);
-    if (geminiErr.code === 'GEMINI_RATE_LIMIT') {
-      // Tentative: basculer vers un autre modèle (quota potentiellement séparé par modèle).
-      const fallback = getGeminiFallbackModelName();
-
-      const primaryNorm = normalizeModelName(modelName);
-      const fallbackNorm = normalizeModelName(fallback);
-
-      if (fallbackNorm && fallbackNorm !== primaryNorm) {
-        try {
-          result = await callModel(fallback);
-        } catch (e2) {
-          throw toGeminiError(e2);
-        }
-      } else {
-        throw geminiErr;
-      }
-    }
-
-    const message = typeof geminiErr?.message === 'string' ? geminiErr.message : String(geminiErr);
-    const status = typeof geminiErr?.status === 'number' ? geminiErr.status : undefined;
-
-    const isModelNotFound = status === 404 || /not found/i.test(message) || /not supported/i.test(message);
-    if (isModelNotFound) {
-      const fallback = getGeminiFallbackModelName();
-      try {
-        result = await callModel(fallback);
-      } catch (e2) {
-        throw toGeminiError(e2);
-      }
-    } else {
-      throw geminiErr;
-    }
+    throw toGroqError(e);
   }
-
-  const text = result?.response?.text?.();
-
-  if (typeof text !== 'string' || !text.trim()) {
-    const err = new Error('Réponse IA vide.');
-    err.code = 'EMPTY_AI_RESPONSE';
-    throw err;
-  }
-
-  return text.trim();
 }
 
 module.exports = {
