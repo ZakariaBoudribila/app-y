@@ -1,12 +1,17 @@
 <app-header></app-header>
 
-<div class="app-layout">
-  <aside class="sidebar-container">
-    <app-sidebar></app-sidebar>
-  </aside>
+<div class="container-fluid py-3">
+  <div class="row g-3">
+    <aside class="col-12 col-md-3 col-lg-2">
+      <div class="card">
+        <div class="card-body p-2">
+          <app-sidebar></app-sidebar>
+        </div>
+      </div>
+    </aside>
 
-  <main class="main-content">
-    <h1 class="title-cursive">Paramètres</h1>
+    <main class="col-12 col-md-9 col-lg-10">
+      <h1 class="h3 mb-3">Paramètres</h1>
 
     <section class="widget-card settings-section">
       <h2 class="section-title">Profil</h2>
@@ -174,5 +179,6 @@
       <h2 class="section-title">Session</h2>
       <button type="button" class="danger-btn" (click)="logout()">Se déconnecter</button>
     </section>
-  </main>
+    </main>
+  </div>
 </div>
