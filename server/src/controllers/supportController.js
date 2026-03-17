@@ -15,7 +15,7 @@ function safeJson(value, maxChars = 8000) {
 
 function buildSystemInstruction({ profile }) {
   return [
-    "Tu es l'assistant IA de l'application App-Y.",
+    "Tu es l'assistant IA de Lalla Yassmine.",
     "Tu aides l'utilisateur en te basant sur son profil professionnel (CV) ci-dessous.",
     "Réponds en français, de façon claire et utile.",
     "Règles importantes :",
