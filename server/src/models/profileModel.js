@@ -1,5 +1,61 @@
 const db = require('../config/database');
 
+function parsePgTextArrayLiteral(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value !== 'string') return [];
+
+  const s = value.trim();
+  if (s === '{}' || s === '{NULL}') return [];
+  if (!s.startsWith('{') || !s.endsWith('}')) return [];
+
+  const input = s.slice(1, -1);
+  const out = [];
+  let i = 0;
+
+  while (i < input.length) {
+    if (input[i] === ',') {
+      i += 1;
+      continue;
+    }
+
+    let item = '';
+    let isQuoted = false;
+
+    if (input[i] === '"') {
+      isQuoted = true;
+      i += 1;
+      while (i < input.length) {
+        const ch = input[i];
+        if (ch === '\\') {
+          const next = input[i + 1];
+          if (typeof next === 'string') {
+            item += next;
+            i += 2;
+            continue;
+          }
+        }
+        if (ch === '"') {
+          i += 1;
+          break;
+        }
+        item += ch;
+        i += 1;
+      }
+      while (i < input.length && input[i] !== ',') i += 1;
+    } else {
+      while (i < input.length && input[i] !== ',') {
+        item += input[i];
+        i += 1;
+      }
+    }
+
+    const normalized = isQuoted ? item : item.trim();
+    if (normalized && normalized.toUpperCase() !== 'NULL') out.push(normalized);
+  }
+
+  return out;
+}
+
 function dbGet(sql, params) {
   return new Promise((resolve, reject) => {
     db.get(sql, params, (err, row) => {
@@ -19,7 +75,8 @@ function dbRun(sql, params) {
 }
 
 function normalizeTextArray(value) {
-  if (Array.isArray(value)) return value.filter((v) => typeof v === 'string').map((v) => v.trim()).filter(Boolean);
+  const arr = Array.isArray(value) ? value : parsePgTextArrayLiteral(value);
+  if (Array.isArray(arr)) return arr.filter((v) => typeof v === 'string').map((v) => v.trim()).filter(Boolean);
   return [];
 }
 
@@ -37,7 +94,13 @@ const ProfileModel = {
     `;
 
     const row = await dbGet(sql, [userId]);
-    if (row) return row;
+    if (row) {
+      return {
+        ...row,
+        languages: normalizeTextArray(row.languages),
+        software: normalizeTextArray(row.software),
+      };
+    }
 
     // Fallback: ancienne table `profiles` (si des données existent déjà en base)
     const legacySql = `
@@ -48,12 +111,24 @@ const ProfileModel = {
     const legacy = await dbGet(legacySql, [userId]);
     if (!legacy) return null;
 
+    const normalizedLegacy = {
+      ...legacy,
+      languages: normalizeTextArray(legacy.languages),
+      software: normalizeTextArray(legacy.software),
+    };
+
     // Copie best-effort vers user_profiles
     try {
-      await this.upsertProfile(userId, legacy);
-      return dbGet(sql, [userId]);
+      await this.upsertProfile(userId, normalizedLegacy);
+      const copied = await dbGet(sql, [userId]);
+      if (!copied) return normalizedLegacy;
+      return {
+        ...copied,
+        languages: normalizeTextArray(copied.languages),
+        software: normalizeTextArray(copied.software),
+      };
     } catch {
-      return legacy;
+      return normalizedLegacy;
     }
   },
 
