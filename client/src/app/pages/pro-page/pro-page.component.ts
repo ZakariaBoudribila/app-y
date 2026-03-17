@@ -215,6 +215,15 @@ export class ProPageComponent {
     this.languageLevelInput = '';
   }
 
+  getLanguagePercent(label: string): number {
+    if (typeof label !== 'string') return 0;
+    const match = label.match(/\((\s*\d{1,3})\s*%\s*\)/);
+    if (!match) return 0;
+    const n = Number(match[1]);
+    if (!Number.isFinite(n)) return 0;
+    return Math.max(0, Math.min(100, Math.round(n)));
+  }
+
   removeLanguage(value: string) {
     const current = this.form.controls.languages.value || [];
     this.form.controls.languages.setValue(current.filter((x) => x !== value));

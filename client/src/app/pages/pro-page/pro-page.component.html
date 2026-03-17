@@ -174,9 +174,17 @@
         <div class="empty" *ngIf="(form.controls.languages.value?.length || 0) === 0">Aucune langue renseignée.</div>
 
         <div class="tags" *ngIf="(form.controls.languages.value?.length || 0) > 0">
-          <span class="tag" *ngFor="let lang of form.controls.languages.value">
-            {{ lang }}
-            <button class="tag-remove" *ngIf="isEditing" type="button" (click)="removeLanguage(lang)">×</button>
+          <span
+            class="tag tag--lang"
+            *ngFor="let lang of form.controls.languages.value"
+            [style.--p]="getLanguagePercent(lang) + '%'">
+            <span class="tag-label">
+              <span>{{ lang }}</span>
+              <button class="tag-remove" *ngIf="isEditing" type="button" (click)="removeLanguage(lang)">×</button>
+            </span>
+            <span class="tag-meter" aria-hidden="true">
+              <span class="tag-meter-fill"></span>
+            </span>
           </span>
         </div>
       </section>

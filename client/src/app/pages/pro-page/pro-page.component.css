@@ -44,8 +44,6 @@
 }
 
 .cv-identity { margin-bottom: 12px; }
-
-/* Champs du formulaire (la classe .input-field n'est pas globale) */
 .input-field {
   width: 100%;
   padding: 12px;
@@ -86,8 +84,6 @@
     grid-template-columns: 1fr;
   }
 }
-
-/* Les cartes utilisent la classe globale .widget-card (styles.css) */
 
 .widget-card h2 {
   margin: 0 0 10px;
@@ -167,6 +163,42 @@
   font-size: 13px;
 }
 
+.tag.tag--lang {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 8px 10px;
+}
+
+.tag-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tag-meter {
+  height: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-color);
+  background: var(--card-bg);
+  overflow: hidden;
+}
+
+.tag-meter-fill {
+  display: block;
+  height: 100%;
+  width: var(--p, 0%);
+  background: var(--accent-color);
+  border-radius: 999px;
+  animation: langFill 650ms ease-out;
+}
+
+@keyframes langFill {
+  from { width: 0; }
+  to { width: var(--p, 0%); }
+}
+
 .tag-remove {
   border: none;
   background: transparent;
@@ -186,10 +218,6 @@
   font-weight: 700;
   transition: transform 0.2s, background 0.3s;
 }
-
-/* =============================
-   PDF (hors écran)
-   ============================= */
 .pdf-root {
   position: fixed;
   left: -10000px;
