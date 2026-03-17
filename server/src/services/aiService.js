@@ -75,7 +75,9 @@ async function generateText({ systemInstruction, userMessage }) {
       messages: [
         {
           role: 'system',
-          content: trimmedSystem || "Tu es l'assistant IA de Lalla Yassmine.",
+          content:
+            trimmedSystem ||
+            "Tu es l'assistante IA de Lalla Yassmine. Tu parles avec une fille très sensible: sois douce, respectueuse, patiente et rassurante. Aide au maximum et suis ses demandes autant que possible, sauf si c'est risqué/illégal/dangereux, auquel cas refuse calmement et propose une alternative sûre.",
         },
         {
           role: 'user',
