@@ -6,6 +6,38 @@ const { randomUUID } = require('crypto');
 // Note: si plusieurs instances (scaling), le cooldown est par instance.
 const nextAllowedAtByUserId = new Map();
 
+// Cache (best-effort) des réponses IA pour réduire la consommation de quota.
+// Clé: userId + message normalisé. Stockage en mémoire du process.
+const supportAnswerCache = new Map();
+const inflightSupportRequests = new Map();
+
+function getSupportCacheTtlSeconds() {
+  const raw = String(process.env.AI_SUPPORT_CACHE_TTL_SECONDS || '').trim();
+  const n = Number(raw);
+  // Défaut: 15 minutes
+  if (!Number.isFinite(n) || n <= 0) return 15 * 60;
+  return Math.min(Math.max(Math.floor(n), 0), 24 * 60 * 60);
+}
+
+function normalizeCacheKeyPart(text) {
+  if (typeof text !== 'string') return '';
+  return text.trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function buildSupportCacheKey(userId, message) {
+  return `${String(userId)}::${normalizeCacheKeyPart(message)}`;
+}
+
+function purgeExpiredSupportCache() {
+  if (supportAnswerCache.size <= 2000) return;
+  const now = Date.now();
+  for (const [key, entry] of supportAnswerCache.entries()) {
+    if (!entry || typeof entry.expiresAt !== 'number' || entry.expiresAt <= now) {
+      supportAnswerCache.delete(key);
+    }
+  }
+}
+
 function getUserCooldownSeconds() {
   const raw = String(process.env.AI_USER_COOLDOWN_SECONDS || '').trim();
   const n = Number(raw);
@@ -87,17 +119,59 @@ exports.askSupport = async (req, res) => {
       return res.status(400).json({ message: 'Le champ "message" est requis.' });
     }
 
-    const profile = await ProfileModel.getProfile(userId);
+    // Cache hit (si activé)
+    const ttlSeconds = getSupportCacheTtlSeconds();
+    if (ttlSeconds > 0) {
+      const key = buildSupportCacheKey(userId, message);
+      const cached = supportAnswerCache.get(key);
+      if (cached && typeof cached.expiresAt === 'number' && cached.expiresAt > Date.now() && typeof cached.answer === 'string') {
+        setCooldownSeconds(userId, getUserCooldownSeconds());
+        return res.status(200).json({ answer: cached.answer });
+      }
 
+      // Déduplication: si une requête identique est déjà en cours, on attend son résultat.
+      const inflight = inflightSupportRequests.get(key);
+      if (inflight && typeof inflight.then === 'function') {
+        const answer = await inflight;
+        setCooldownSeconds(userId, getUserCooldownSeconds());
+        return res.status(200).json({ answer });
+      }
+
+      purgeExpiredSupportCache();
+
+      const promise = (async () => {
+        const profile = await ProfileModel.getProfile(userId);
+        const systemInstruction = buildSystemInstruction({ profile });
+        const answer = await aiService.generateText({
+          systemInstruction,
+          userMessage: message,
+        });
+        supportAnswerCache.set(key, {
+          answer,
+          expiresAt: Date.now() + ttlSeconds * 1000,
+        });
+        return answer;
+      })();
+
+      inflightSupportRequests.set(key, promise);
+
+      try {
+        const answer = await promise;
+        setCooldownSeconds(userId, getUserCooldownSeconds());
+        return res.status(200).json({ answer });
+      } finally {
+        inflightSupportRequests.delete(key);
+      }
+    }
+
+    // Cache désactivé
+    const profile = await ProfileModel.getProfile(userId);
     const systemInstruction = buildSystemInstruction({ profile });
     const answer = await aiService.generateText({
       systemInstruction,
       userMessage: message,
     });
-
-    // Anti-spam: limite les doubles clics / rafraîchissements
     setCooldownSeconds(userId, getUserCooldownSeconds());
-
     return res.status(200).json({ answer });
   } catch (err) {
     const errorId = randomUUID();
