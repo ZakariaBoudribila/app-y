@@ -287,6 +287,86 @@ app-root {
   background-color: white;
 }
 
+/* =============================
+   Espace Pro (/pro) – style & animations
+   (scopé à .pro-page pour éviter les effets de bord)
+   ============================= */
+.pro-page .pro-header {
+  box-shadow: var(--shadow-soft);
+  transform-origin: top;
+  animation: proHeaderIn 260ms ease-out;
+}
+
+.pro-page .widget-card {
+  box-shadow: var(--shadow-soft);
+  transform: translateY(0);
+  animation: proCardIn 320ms ease-out both;
+}
+
+.pro-page .cv-grid > .widget-card:nth-child(1) { animation-delay: 40ms; }
+.pro-page .cv-grid > .widget-card:nth-child(2) { animation-delay: 80ms; }
+.pro-page .cv-grid > .widget-card:nth-child(3) { animation-delay: 120ms; }
+.pro-page .cv-grid > .widget-card:nth-child(4) { animation-delay: 160ms; }
+.pro-page .cv-grid > .widget-card:nth-child(5) { animation-delay: 200ms; }
+.pro-page .cv-grid > .widget-card:nth-child(6) { animation-delay: 240ms; }
+
+.pro-page .widget-card:hover {
+  transform: translateY(-1px);
+}
+
+.pro-page .pro-btn:focus-visible,
+.pro-page .tag-remove:focus-visible,
+.pro-page .input-field:focus-visible {
+  outline: 2px solid var(--text-title);
+  outline-offset: 2px;
+}
+
+.pro-page .pro-btn {
+  box-shadow: var(--shadow-soft);
+}
+
+.pro-page .pro-btn:active {
+  transform: translateY(0);
+}
+
+.pro-page .tag {
+  transition: transform 160ms ease;
+}
+
+.pro-page .tag:hover {
+  transform: translateY(-1px);
+}
+
+.pro-page .tag-remove {
+  transition: transform 160ms ease;
+}
+
+.pro-page .tag-remove:hover {
+  transform: scale(1.05);
+}
+
+@keyframes proHeaderIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes proCardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pro-page .pro-header,
+  .pro-page .widget-card {
+    animation: none;
+  }
+  .pro-page .widget-card,
+  .pro-page .tag,
+  .pro-page .tag-remove {
+    transition: none;
+  }
+}
+
 /* Styles PDF (utilisés dans la page /pro) */
 .pdf-root {
   position: fixed;
