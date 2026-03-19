@@ -639,6 +639,40 @@ app-root {
   flex-wrap: wrap;
 }
 
+.pro-page .cv-style {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border: 1px solid var(--accent-color);
+  border-radius: 14px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-soft);
+}
+
+.pro-page .cv-style-label {
+  font-weight: 900;
+  color: var(--text-main);
+}
+
+.pro-page .cv-style-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.pro-page .cv-style-field input[type='color'] {
+  width: 38px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--accent-color);
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+}
+
 .pro-page .pro-btn {
   border: 1px solid transparent;
   border-radius: 14px;
@@ -742,14 +776,14 @@ app-root {
   left: -10000px;
   top: 0;
   width: 794px; /* ~A4 @ 96dpi */
-  background: #fff;
+  background: var(--pdf-bg, #fff);
 }
 
 .pdf-surface {
   width: 794px;
   padding: 28px;
-  background: #fff;
-  color: var(--text-main);
+  background: var(--pdf-bg, #fff);
+  color: var(--pdf-text, var(--text-main));
 }
 
 .pdf-header {
@@ -759,18 +793,18 @@ app-root {
   gap: 12px;
   padding-bottom: 12px;
   margin-bottom: 14px;
-  border-bottom: 1px solid var(--accent-color);
+  border-bottom: 1px solid var(--pdf-accent, var(--accent-color));
 }
 
 .pdf-header-left { display: flex; align-items: center; gap: 12px; }
-.pdf-avatar { width: 56px; height: 56px; border-radius: 999px; border: 1px solid var(--accent-color); overflow: hidden; background: var(--card-bg); }
+.pdf-avatar { width: 56px; height: 56px; border-radius: 999px; border: 1px solid var(--pdf-accent, var(--accent-color)); overflow: hidden; background: var(--card-bg); }
 .pdf-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
 .pdf-title {
   font-size: 22px;
   font-weight: 900;
   letter-spacing: 0.5px;
-  color: var(--text-title);
+  color: var(--pdf-primary, var(--text-title));
 }
 
 .pdf-subtitle {
@@ -787,7 +821,7 @@ app-root {
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: var(--text-title);
+  color: var(--pdf-primary, var(--text-title));
   margin-bottom: 8px;
 }
 
@@ -804,7 +838,7 @@ app-root {
 
 .pdf-item {
   padding: 8px 0;
-  border-bottom: 1px solid var(--accent-color);
+  border-bottom: 1px solid var(--pdf-accent, var(--accent-color));
   margin-bottom: 8px;
 }
 
@@ -852,6 +886,6 @@ app-root {
   align-items: center;
   padding: 4px 8px;
   border-radius: 999px;
-  border: 1px solid var(--accent-color);
+  border: 1px solid var(--pdf-accent, var(--accent-color));
   font-size: 11px;
 }

@@ -15,6 +15,28 @@
       <div class="pro-header">
         <h1 class="title-cursive">Espace Pro</h1>
         <div class="actions">
+          <div class="cv-style" aria-label="Style du CV (PDF)">
+            <span class="cv-style-label">Style CV</span>
+
+            <label class="cv-style-field">
+              <span>Couleur</span>
+              <input
+                type="color"
+                [(ngModel)]="cvPrimaryColor"
+                [ngModelOptions]="{ standalone: true }"
+                name="cvPrimaryColor" />
+            </label>
+
+            <label class="cv-style-field">
+              <span>Accent</span>
+              <input
+                type="color"
+                [(ngModel)]="cvAccentColor"
+                [ngModelOptions]="{ standalone: true }"
+                name="cvAccentColor" />
+            </label>
+          </div>
+
           <button class="pro-btn" type="button" (click)="refresh()" [disabled]="isLoading || isSaving">Rafraîchir</button>
 
           <button class="pro-btn" type="button" (click)="downloadPdf()" [disabled]="isLoading || isSaving || isExportingPdf">
@@ -221,7 +243,11 @@
 
       <!-- Rendu dédié PDF (hors écran) -->
       <div class="pdf-root" *ngIf="pdfVm" aria-hidden="true">
-        <div class="pdf-surface" #pdfContent>
+        <div
+          class="pdf-surface"
+          #pdfContent
+          [style.--pdf-primary]="cvPrimaryColor"
+          [style.--pdf-accent]="cvAccentColor">
           <div class="pdf-header">
             <div class="pdf-header-left">
               <div class="pdf-avatar" *ngIf="pdfVm.avatarDataUrl; else pdfNoAvatar">

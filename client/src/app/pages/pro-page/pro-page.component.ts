@@ -68,6 +68,9 @@ export class ProPageComponent {
   pdfVm: CvPdfViewModel | null = null;
   pdfGeneratedAt: Date | null = null;
 
+  cvPrimaryColor = '';
+  cvAccentColor = '';
+
   @ViewChild('pdfContent') private pdfContentRef?: ElementRef<HTMLElement>;
 
   languageInput = '';
@@ -99,7 +102,28 @@ export class ProPageComponent {
       return;
     }
 
+    this.initCvStyleDefaults();
+
     this.load();
+  }
+
+  private readCssVar(name: string): string {
+    try {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    } catch {
+      return '';
+    }
+  }
+
+  private initCvStyleDefaults() {
+    // Par défaut: reprendre les couleurs du thème. L'utilisateur peut les changer
+    // via les sélecteurs avant de télécharger le PDF.
+    const primary = this.readCssVar('--text-title');
+    const accent = this.readCssVar('--accent-color');
+
+    // Fallbacks: valeurs déjà utilisées par le thème.
+    this.cvPrimaryColor = primary || '#880e4f';
+    this.cvAccentColor = accent || '#f8bbd0';
   }
 
   private buildLanguageOptions(): string[] {
