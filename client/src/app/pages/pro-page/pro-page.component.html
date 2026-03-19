@@ -106,6 +106,14 @@
               name="pdfFreeLayoutEnabled" />
             <span>Mode Canva (libre)</span>
           </label>
+          <button
+            class="pro-btn"
+            type="button"
+            *ngIf="isEditing"
+            (click)="resetPdfLayout()"
+            [disabled]="isSaving">
+            Réinitialiser la disposition
+          </button>
         </div>
 
         <div class="pdf-layout-grid" *ngIf="!pdfFreeLayoutEnabled">
@@ -476,7 +484,6 @@
                     </div>
                   </div>
                 </div>
-                <div class="pdf-meta" *ngIf="pdfGeneratedAt as d">{{ d | date: 'dd/MM/yyyy' }}</div>
               </div>
 
               <button
@@ -784,7 +791,6 @@
                 </div>
               </div>
             </div>
-            <div class="pdf-meta" *ngIf="pdfGeneratedAt as d">{{ d | date: 'dd/MM/yyyy' }}</div>
           </div>
 
           <ng-template #pdfSectionTpl let-sid>

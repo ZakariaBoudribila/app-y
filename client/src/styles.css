@@ -205,6 +205,13 @@ app-root {
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-soft);
   padding: 20px;
+
+  /* Desktop: garder la sidebar visible pendant le scroll */
+  position: sticky;
+  top: 20px;
+  align-self: flex-start;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
 }
 
 .main-content {

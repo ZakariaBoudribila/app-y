@@ -379,6 +379,26 @@ export class ProPageComponent {
     }
   }
 
+  resetPdfLayout() {
+    if (!this.isEditing) return;
+
+    if (this.pdfFreeLayoutEnabled) {
+      // Mode Canva: supprimer toutes les positions/tailles pour repartir sur l'auto-layout.
+      this.pdfBlocksLayout = {};
+      this.form.markAsDirty();
+      this.queueSyncPdfPreview();
+      return;
+    }
+
+    // Mode structuré: réinitialiser ordre + colonnes.
+    this.pdfSectionOrder = [...this.defaultPdfSectionOrder];
+    this.pdfSectionsLayout = {
+      left: [...this.defaultPdfSectionsLayout.left],
+      right: [...this.defaultPdfSectionsLayout.right],
+    };
+    this.form.markAsDirty();
+  }
+
   private getUserForPdfPreview(): { fullName: string; email: string; avatarDataUrl: string | null } {
     return this.userVm ?? { fullName: '—', email: '', avatarDataUrl: null };
   }
