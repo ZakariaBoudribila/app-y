@@ -272,6 +272,27 @@ app-root {
   }
 }
 
+/* =============================
+   Sidebar sticky sur /pro (desktop)
+   ============================= */
+@media (min-width: 768px) {
+  .pro-sidebar {
+    position: sticky;
+    top: 12px;
+    align-self: flex-start;
+    height: calc(100vh - 24px);
+  }
+
+  .pro-sidebar > .card {
+    height: 100%;
+  }
+
+  .pro-sidebar .card-body {
+    height: 100%;
+    overflow-y: auto;
+  }
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
