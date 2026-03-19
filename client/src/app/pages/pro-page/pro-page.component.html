@@ -148,7 +148,7 @@
           <div class="pdf-muted" *ngIf="!pdfVm">Aperçu en cours…</div>
           <div class="pdf-preview" *ngIf="pdfVm">
             <div class="pdf-surface" [style.--pdf-primary]="cvPrimaryColor" [style.--pdf-accent]="cvAccentColor">
-              <ng-container *ngTemplateOutlet="pdfBodyTemplate; context: { interactive: true }"></ng-container>
+              <ng-container *ngTemplateOutlet="pdfBodyTemplate; context: { interactive: isEditing }"></ng-container>
             </div>
           </div>
         </div>

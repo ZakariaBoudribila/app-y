@@ -391,33 +391,72 @@ export class ProPageComponent {
         const user = this.getUserForPdfPreview();
         this.pdfVm = this.cleanCvForPdf(this.getPayloadFromForm(), user);
         this.pdfGeneratedAt = new Date();
+
+        // En mode Canva, on s'assure que tous les blocs visibles ont une position/taille.
+        // Important: éviter de muter l'état depuis un getter appelé par le template.
+        this.ensureFreeLayoutBlocksFromVm();
       } catch {
         // ignore
       }
     }, 0);
   }
 
-  getBlockLayout(blockId: string): PdfBlockLayout {
-    const existing = this.pdfBlocksLayout[blockId];
-    if (existing) return existing;
-
+  private createDefaultBlockLayout(index: number): PdfBlockLayout {
     // Auto-layout simple si le bloc n'a jamais été positionné.
     // Canvas interne ~ 794 - 2*28 = 738.
     const canvasW = 738;
     const canvasH = 1123 - 2 * 28;
-    const defaultW = this.clamp(canvasW, 200, canvasW);
-    const defaultH = 120;
 
-    const count = Object.keys(this.pdfBlocksLayout).length;
-    const col = count % 2;
-    const row = Math.floor(count / 2);
+    const col = index % 2;
+    const row = Math.floor(index / 2);
     const x = col === 0 ? 0 : Math.floor(canvasW / 2) + 6;
     const y = this.clamp(row * 130, 0, canvasH - 60);
-    const w = col === 0 ? Math.floor(canvasW / 2) - 6 : Math.floor(canvasW / 2) - 6;
+    const w = Math.floor(canvasW / 2) - 6;
+    const h = 120;
 
-    const created: PdfBlockLayout = { x, y, w: Math.max(220, w), h: defaultH };
+    return { x, y, w: Math.max(220, w), h };
+  }
+
+  private ensureBlockLayout(blockId: string): PdfBlockLayout {
+    const existing = this.pdfBlocksLayout[blockId];
+    if (existing) return existing;
+
+    const created = this.createDefaultBlockLayout(Object.keys(this.pdfBlocksLayout).length);
     this.pdfBlocksLayout = { ...this.pdfBlocksLayout, [blockId]: created };
     return created;
+  }
+
+  private ensureFreeLayoutBlocksFromVm() {
+    if (!this.pdfFreeLayoutEnabled) return;
+    const vm = this.pdfVm;
+    if (!vm) return;
+
+    const required: string[] = ['header', 'profile', 'skills', 'languages', 'software', 'interests'];
+
+    for (const exp of vm.experiences || []) required.push(`exp:${(exp as any).uid}`);
+    for (const edu of vm.education || []) required.push(`edu:${(edu as any).uid}`);
+    for (const prj of vm.projects || []) required.push(`prj:${(prj as any).uid}`);
+    for (const cert of vm.certifications || []) required.push(`cert:${(cert as any).uid}`);
+    for (const lnk of vm.links || []) required.push(`link:${(lnk as any).uid}`);
+
+    let next = this.pdfBlocksLayout;
+    let changed = false;
+
+    for (const id of required) {
+      if (typeof id !== 'string' || !id) continue;
+      if (next[id]) continue;
+      const created = this.createDefaultBlockLayout(Object.keys(next).length);
+      next = { ...next, [id]: created };
+      changed = true;
+    }
+
+    if (changed) {
+      this.pdfBlocksLayout = next;
+    }
+  }
+
+  getBlockLayout(blockId: string): PdfBlockLayout | null {
+    return this.pdfBlocksLayout[blockId] ?? null;
   }
 
   onBlockDragEnded(blockId: string, event: CdkDragEnd) {
@@ -427,7 +466,7 @@ export class ProPageComponent {
     const pos = event?.source?.getFreeDragPosition?.();
     if (!pos) return;
 
-    const prev = this.getBlockLayout(blockId);
+    const prev = this.ensureBlockLayout(blockId);
     this.pdfBlocksLayout = {
       ...this.pdfBlocksLayout,
       [blockId]: {
@@ -446,7 +485,7 @@ export class ProPageComponent {
     ev.preventDefault();
     ev.stopPropagation();
 
-    const prev = this.getBlockLayout(blockId);
+    const prev = this.ensureBlockLayout(blockId);
     this.resizeState = {
       blockId,
       startClientX: ev.clientX,
@@ -463,7 +502,7 @@ export class ProPageComponent {
       const nextW = Math.max(80, Math.round(this.resizeState.startW + dx));
       const nextH = Math.max(60, Math.round(this.resizeState.startH + dy));
       const id = this.resizeState.blockId;
-      const current = this.getBlockLayout(id);
+      const current = this.ensureBlockLayout(id);
       this.pdfBlocksLayout = {
         ...this.pdfBlocksLayout,
         [id]: { ...current, w: nextW, h: nextH },
@@ -976,6 +1015,11 @@ export class ProPageComponent {
 
     this.form.markAsPristine();
     this.form.markAsUntouched();
+
+    // Génère l'aperçu en mode libre même en lecture seule.
+    if (this.pdfFreeLayoutEnabled) {
+      this.queueSyncPdfPreview();
+    }
   }
 
   private getPayloadFromForm(): ProfessionalProfile {

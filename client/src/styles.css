@@ -979,3 +979,53 @@ app-root {
   max-width: 100%;
   word-break: break-word;
 }
+
+/* =============================
+   PDF – Mode Canva (placement libre)
+   ============================= */
+.pdf-canvas {
+  position: relative;
+  width: 100%;
+  height: 1067px; /* A4 @96dpi (1123) - padding .pdf-surface (2*28) */
+  overflow: hidden;
+}
+
+.pdf-block {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Poignée de redimensionnement (affichée seulement en mode interactif) */
+.pdf-resize-handle {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border-radius: 4px;
+  border: 1px solid var(--bs-border-color);
+  background: rgba(255, 255, 255, 0.7);
+  cursor: nwse-resize;
+}
+
+.pdf-canva .pdf-preview {
+  max-width: 100%;
+  overflow: auto;
+}
+
+.pdf-canva .pdf-surface {
+  margin: 0 auto;
+  border: 1px solid var(--bs-border-color);
+}
+
+.pdf-canva .pdf-block {
+  cursor: grab;
+}
+
+.pdf-canva .pdf-block.cdk-drag-dragging {
+  cursor: grabbing;
+}
