@@ -21,6 +21,25 @@ type EducationFormValue = {
   description: string;
 };
 
+type ProjectFormValue = {
+  name: string;
+  tech: string;
+  link: string;
+  description: string;
+};
+
+type CertificationFormValue = {
+  name: string;
+  issuer: string;
+  year: string;
+  link: string;
+};
+
+type LinkFormValue = {
+  label: string;
+  url: string;
+};
+
 type PdfExperience = {
   title: string;
   company: string;
@@ -35,6 +54,25 @@ type PdfEducation = {
   description: string;
 };
 
+type PdfProject = {
+  name: string;
+  tech: string;
+  link: string;
+  description: string;
+};
+
+type PdfCertification = {
+  name: string;
+  issuer: string;
+  year: string;
+  link: string;
+};
+
+type PdfLink = {
+  label: string;
+  url: string;
+};
+
 type CvPdfViewModel = {
   fullName: string;
   email: string;
@@ -42,11 +80,18 @@ type CvPdfViewModel = {
   address: string;
   linkedin: string;
   avatarDataUrl: string | null;
+  jobTitle: string;
+  headline: string;
   aboutMe: string;
   experiences: PdfExperience[];
   education: PdfEducation[];
   languages: string[];
   software: string[];
+  skills: string[];
+  projects: PdfProject[];
+  certifications: PdfCertification[];
+  interests: string[];
+  links: PdfLink[];
 };
 
 @Component({
@@ -76,10 +121,14 @@ export class ProPageComponent {
   languageInput = '';
   languageLevelInput = '';
   softwareInput = '';
+  skillInput = '';
+  interestInput = '';
 
   readonly languageOptions: string[] = this.buildLanguageOptions();
 
   readonly form = this.fb.group({
+    jobTitle: this.fb.control('', { nonNullable: true }),
+    headline: this.fb.control('', { nonNullable: true }),
     phone: this.fb.control('', { nonNullable: true }),
     address: this.fb.control('', { nonNullable: true }),
     linkedin: this.fb.control('', { nonNullable: true }),
@@ -88,6 +137,11 @@ export class ProPageComponent {
     education: this.fb.array([] as any[]),
     languages: this.fb.control<string[]>([], { nonNullable: true }),
     software: this.fb.control<string[]>([], { nonNullable: true }),
+    skills: this.fb.control<string[]>([], { nonNullable: true }),
+    interests: this.fb.control<string[]>([], { nonNullable: true }),
+    projects: this.fb.array([] as any[]),
+    certifications: this.fb.array([] as any[]),
+    links: this.fb.array([] as any[]),
   });
 
   constructor(
@@ -170,6 +224,18 @@ export class ProPageComponent {
     return this.form.controls.education as unknown as FormArray;
   }
 
+  get projectsArray(): FormArray {
+    return this.form.controls.projects as unknown as FormArray;
+  }
+
+  get certificationsArray(): FormArray {
+    return this.form.controls.certifications as unknown as FormArray;
+  }
+
+  get linksArray(): FormArray {
+    return this.form.controls.links as unknown as FormArray;
+  }
+
   private createExperienceGroup(value?: Partial<ExperienceFormValue>) {
     return this.fb.group({
       title: this.fb.control(value?.title ?? '', { nonNullable: true }),
@@ -185,6 +251,31 @@ export class ProPageComponent {
       degree: this.fb.control(value?.degree ?? '', { nonNullable: true }),
       period: this.fb.control(value?.period ?? '', { nonNullable: true }),
       description: this.fb.control(value?.description ?? '', { nonNullable: true }),
+    });
+  }
+
+  private createProjectGroup(value?: Partial<ProjectFormValue>) {
+    return this.fb.group({
+      name: this.fb.control(value?.name ?? '', { nonNullable: true }),
+      tech: this.fb.control(value?.tech ?? '', { nonNullable: true }),
+      link: this.fb.control(value?.link ?? '', { nonNullable: true }),
+      description: this.fb.control(value?.description ?? '', { nonNullable: true }),
+    });
+  }
+
+  private createCertificationGroup(value?: Partial<CertificationFormValue>) {
+    return this.fb.group({
+      name: this.fb.control(value?.name ?? '', { nonNullable: true }),
+      issuer: this.fb.control(value?.issuer ?? '', { nonNullable: true }),
+      year: this.fb.control(value?.year ?? '', { nonNullable: true }),
+      link: this.fb.control(value?.link ?? '', { nonNullable: true }),
+    });
+  }
+
+  private createLinkGroup(value?: Partial<LinkFormValue>) {
+    return this.fb.group({
+      label: this.fb.control(value?.label ?? '', { nonNullable: true }),
+      url: this.fb.control(value?.url ?? '', { nonNullable: true }),
     });
   }
 
@@ -214,6 +305,48 @@ export class ProPageComponent {
     if (!ok) return;
 
     this.educationArray.removeAt(index);
+  }
+
+  addProject(prefill?: Partial<ProjectFormValue>) {
+    this.projectsArray.push(this.createProjectGroup(prefill));
+  }
+
+  async removeProject(index: number) {
+    if (!this.isEditing) return;
+    if (this.projectsArray.length <= 1) return;
+
+    const ok = await this.confirm.confirm('Supprimer ce projet ?', { title: 'Projets' });
+    if (!ok) return;
+
+    this.projectsArray.removeAt(index);
+  }
+
+  addCertification(prefill?: Partial<CertificationFormValue>) {
+    this.certificationsArray.push(this.createCertificationGroup(prefill));
+  }
+
+  async removeCertification(index: number) {
+    if (!this.isEditing) return;
+    if (this.certificationsArray.length <= 1) return;
+
+    const ok = await this.confirm.confirm('Supprimer cette certification ?', { title: 'Certifications' });
+    if (!ok) return;
+
+    this.certificationsArray.removeAt(index);
+  }
+
+  addLink(prefill?: Partial<LinkFormValue>) {
+    this.linksArray.push(this.createLinkGroup(prefill));
+  }
+
+  async removeLink(index: number) {
+    if (!this.isEditing) return;
+    if (this.linksArray.length <= 1) return;
+
+    const ok = await this.confirm.confirm('Supprimer ce lien ?', { title: 'Liens' });
+    if (!ok) return;
+
+    this.linksArray.removeAt(index);
   }
 
   addLanguage() {
@@ -291,6 +424,56 @@ export class ProPageComponent {
     this.form.markAsDirty();
   }
 
+  addSkill() {
+    const raw = (this.skillInput || '').trim();
+    if (!raw) return;
+
+    const current = this.form.controls.skills.value || [];
+    const exists = current.some((x) => x.toLowerCase() === raw.toLowerCase());
+    if (exists) {
+      this.skillInput = '';
+      return;
+    }
+
+    this.form.controls.skills.setValue([...current, raw]);
+    this.form.controls.skills.markAsDirty();
+    this.form.markAsDirty();
+    this.skillInput = '';
+  }
+
+  removeSkill(value: string) {
+    const current = this.form.controls.skills.value || [];
+    this.form.controls.skills.setValue(current.filter((x) => x !== value));
+
+    this.form.controls.skills.markAsDirty();
+    this.form.markAsDirty();
+  }
+
+  addInterest() {
+    const raw = (this.interestInput || '').trim();
+    if (!raw) return;
+
+    const current = this.form.controls.interests.value || [];
+    const exists = current.some((x) => x.toLowerCase() === raw.toLowerCase());
+    if (exists) {
+      this.interestInput = '';
+      return;
+    }
+
+    this.form.controls.interests.setValue([...current, raw]);
+    this.form.controls.interests.markAsDirty();
+    this.form.markAsDirty();
+    this.interestInput = '';
+  }
+
+  removeInterest(value: string) {
+    const current = this.form.controls.interests.value || [];
+    this.form.controls.interests.setValue(current.filter((x) => x !== value));
+
+    this.form.controls.interests.markAsDirty();
+    this.form.markAsDirty();
+  }
+
   private parsePgTextArrayLiteral(value: unknown): string[] {
     if (Array.isArray(value)) {
       return value.filter((v) => typeof v === 'string') as string[];
@@ -351,6 +534,8 @@ export class ProPageComponent {
 
   private normalizeIncomingProfile(p: ProfessionalProfile): ProfessionalProfile {
     return {
+      jobTitle: typeof (p as any)?.jobTitle === 'string' ? (p as any).jobTitle : (typeof (p as any)?.job_title === 'string' ? (p as any).job_title : ''),
+      headline: typeof (p as any)?.headline === 'string' ? (p as any).headline : '',
       phone: typeof (p as any)?.phone === 'string' ? (p as any).phone : '',
       address: typeof (p as any)?.address === 'string' ? (p as any).address : '',
       linkedin: typeof (p as any)?.linkedin === 'string' ? (p as any).linkedin : '',
@@ -359,6 +544,11 @@ export class ProPageComponent {
       education: Array.isArray(p?.education) ? p.education : [],
       languages: this.parsePgTextArrayLiteral((p as any)?.languages),
       software: this.parsePgTextArrayLiteral((p as any)?.software),
+      skills: this.parsePgTextArrayLiteral((p as any)?.skills),
+      interests: this.parsePgTextArrayLiteral((p as any)?.interests),
+      links: Array.isArray((p as any)?.links) ? (p as any).links : [],
+      projects: Array.isArray((p as any)?.projects) ? (p as any).projects : [],
+      certifications: Array.isArray((p as any)?.certifications) ? (p as any).certifications : [],
     };
   }
 
@@ -382,6 +572,8 @@ export class ProPageComponent {
   }
 
   private setFormFromProfile(profile: ProfessionalProfile) {
+    this.form.controls.jobTitle.setValue(profile.jobTitle || '');
+    this.form.controls.headline.setValue(profile.headline || '');
     this.form.controls.phone.setValue(profile.phone || '');
     this.form.controls.address.setValue(profile.address || '');
     this.form.controls.linkedin.setValue(profile.linkedin || '');
@@ -389,6 +581,9 @@ export class ProPageComponent {
 
     this.experiencesArray.clear();
     this.educationArray.clear();
+    this.projectsArray.clear();
+    this.certificationsArray.clear();
+    this.linksArray.clear();
 
     for (const exp of profile.experiences || []) {
       this.addExperience(this.toExperienceFormValue(exp));
@@ -400,6 +595,20 @@ export class ProPageComponent {
 
     this.form.controls.languages.setValue(this.normalizeStringArray(profile.languages));
     this.form.controls.software.setValue(this.normalizeStringArray(profile.software));
+    this.form.controls.skills.setValue(this.normalizeStringArray((profile as any).skills));
+    this.form.controls.interests.setValue(this.normalizeStringArray((profile as any).interests));
+
+    for (const prj of (profile as any).projects || []) {
+      this.addProject(this.toProjectFormValue(prj));
+    }
+
+    for (const cert of (profile as any).certifications || []) {
+      this.addCertification(this.toCertificationFormValue(cert));
+    }
+
+    for (const l of (profile as any).links || []) {
+      this.addLink(this.toLinkFormValue(l));
+    }
 
     this.form.markAsPristine();
     this.form.markAsUntouched();
@@ -409,6 +618,8 @@ export class ProPageComponent {
     const raw = this.form.getRawValue();
 
     return {
+      jobTitle: raw.jobTitle || '',
+      headline: raw.headline || '',
       phone: raw.phone || '',
       address: raw.address || '',
       linkedin: raw.linkedin || '',
@@ -417,6 +628,11 @@ export class ProPageComponent {
       education: (raw.education as any[]) || [],
       languages: this.normalizeStringArray(raw.languages),
       software: this.normalizeStringArray(raw.software),
+      skills: this.normalizeStringArray(raw.skills),
+      interests: this.normalizeStringArray(raw.interests),
+      projects: (raw.projects as any[]) || [],
+      certifications: (raw.certifications as any[]) || [],
+      links: (raw.links as any[]) || [],
     };
   }
 
@@ -429,6 +645,9 @@ export class ProPageComponent {
     // UX: quand on passe en édition, on met au moins une ligne.
     if (this.experiencesArray.length === 0) this.addExperience();
     if (this.educationArray.length === 0) this.addEducation();
+    if (this.projectsArray.length === 0) this.addProject();
+    if (this.certificationsArray.length === 0) this.addCertification();
+    if (this.linksArray.length === 0) this.addLink();
   }
 
   async cancelEdit() {
@@ -476,6 +695,31 @@ export class ProPageComponent {
       degree: typeof item?.degree === 'string' ? item.degree : '',
       period: typeof item?.period === 'string' ? item.period : '',
       description: typeof item?.description === 'string' ? item.description : '',
+    };
+  }
+
+  private toProjectFormValue(item: any): ProjectFormValue {
+    return {
+      name: typeof item?.name === 'string' ? item.name : '',
+      tech: typeof item?.tech === 'string' ? item.tech : '',
+      link: typeof item?.link === 'string' ? item.link : '',
+      description: typeof item?.description === 'string' ? item.description : '',
+    };
+  }
+
+  private toCertificationFormValue(item: any): CertificationFormValue {
+    return {
+      name: typeof item?.name === 'string' ? item.name : '',
+      issuer: typeof item?.issuer === 'string' ? item.issuer : '',
+      year: typeof item?.year === 'string' ? item.year : '',
+      link: typeof item?.link === 'string' ? item.link : '',
+    };
+  }
+
+  private toLinkFormValue(item: any): LinkFormValue {
+    return {
+      label: typeof item?.label === 'string' ? item.label : '',
+      url: typeof item?.url === 'string' ? item.url : '',
     };
   }
 
@@ -546,6 +790,12 @@ export class ProPageComponent {
     if ((this.softwareInput || '').trim()) {
       this.addSoftware();
     }
+    if ((this.skillInput || '').trim()) {
+      this.addSkill();
+    }
+    if ((this.interestInput || '').trim()) {
+      this.addInterest();
+    }
 
     const payload = this.getPayloadFromForm();
 
@@ -600,6 +850,31 @@ export class ProPageComponent {
       }))
       .filter((x) => x.school || x.degree || x.period || x.description);
 
+    const projects = ((profile as any).projects || [])
+      .map((x: any) => ({
+        name: trim(x?.name),
+        tech: trim(x?.tech),
+        link: trim(x?.link),
+        description: trim(x?.description),
+      }))
+      .filter((x: any) => x.name || x.tech || x.link || x.description);
+
+    const certifications = ((profile as any).certifications || [])
+      .map((x: any) => ({
+        name: trim(x?.name),
+        issuer: trim(x?.issuer),
+        year: trim(x?.year),
+        link: trim(x?.link),
+      }))
+      .filter((x: any) => x.name || x.issuer || x.year || x.link);
+
+    const links = ((profile as any).links || [])
+      .map((x: any) => ({
+        label: trim(x?.label),
+        url: trim(x?.url),
+      }))
+      .filter((x: any) => x.label || x.url);
+
     return {
       fullName: user.fullName,
       email: user.email,
@@ -607,11 +882,18 @@ export class ProPageComponent {
       address: trim((profile as any)?.address),
       linkedin: trim((profile as any)?.linkedin),
       avatarDataUrl: user.avatarDataUrl,
+      jobTitle: trim((profile as any)?.jobTitle || (profile as any)?.job_title),
+      headline: trim((profile as any)?.headline),
       aboutMe: trim(profile.aboutMe),
       experiences,
       education,
       languages: this.normalizeStringArray(profile.languages),
       software: this.normalizeStringArray(profile.software),
+      skills: this.normalizeStringArray((profile as any).skills),
+      projects,
+      certifications,
+      interests: this.normalizeStringArray((profile as any).interests),
+      links,
     };
   }
 

@@ -80,6 +80,8 @@
 
             <div>
               <div class="pdf-title">{{ userVm?.fullName || '—' }}</div>
+              <div class="pdf-subtitle" *ngIf="form.controls.jobTitle.value">{{ form.controls.jobTitle.value }}</div>
+              <div class="pdf-muted" *ngIf="form.controls.headline.value">{{ form.controls.headline.value }}</div>
               <div class="pdf-subtitle">
                 <span *ngIf="userVm?.email">{{ userVm?.email }}</span>
                 <span *ngIf="form.controls.phone.value">• {{ form.controls.phone.value }}</span>
@@ -91,14 +93,15 @@
         </section>
 
         <div class="cv-grid">
-      <!-- Colonne gauche -->
       <section class="widget-card">
-        <h2>À propos</h2>
+        <h2>Titre & accroche</h2>
+
+        <input class="input-field" formControlName="jobTitle" placeholder="Titre du poste (ex: Développeuse Web)" />
         <textarea
           class="input-field textarea"
-          formControlName="aboutMe"
-          rows="6"
-          placeholder="Présente-toi en quelques lignes…"></textarea>
+          formControlName="headline"
+          rows="3"
+          placeholder="Accroche (2–3 lignes)…"></textarea>
       </section>
 
       <section class="widget-card">
@@ -110,6 +113,39 @@
         </div>
 
         <input class="input-field" formControlName="address" placeholder="Adresse (ville, pays)" />
+      </section>
+
+      <section class="widget-card">
+        <h2>À propos</h2>
+        <textarea
+          class="input-field textarea"
+          formControlName="aboutMe"
+          rows="6"
+          placeholder="Présente-toi en quelques lignes…"></textarea>
+      </section>
+
+      <section class="widget-card">
+        <h2>Compétences</h2>
+
+        <div class="tag-input" *ngIf="isEditing">
+          <input
+            class="input-field"
+            [(ngModel)]="skillInput"
+            [ngModelOptions]="{ standalone: true }"
+            name="skillInput"
+            placeholder="Ajouter une compétence (ex: Angular)"
+            (keydown.enter)="$event.preventDefault(); addSkill()" />
+          <button class="pro-btn" type="button" (click)="addSkill()" [disabled]="isSaving">Ajouter</button>
+        </div>
+
+        <div class="empty" *ngIf="(form.controls.skills.value?.length || 0) === 0">Aucune compétence renseignée.</div>
+
+        <div class="tags" *ngIf="(form.controls.skills.value?.length || 0) > 0">
+          <span class="tag" *ngFor="let s of form.controls.skills.value">
+            {{ s }}
+            <button class="tag-remove" *ngIf="isEditing" type="button" (click)="removeSkill(s)">×</button>
+          </span>
+        </div>
       </section>
 
       <section class="widget-card">
@@ -142,6 +178,34 @@
 
       <section class="widget-card">
         <div class="section-header">
+          <h2>Projets</h2>
+          <button class="pro-btn" *ngIf="isEditing" type="button" (click)="addProject()">+ Ajouter</button>
+        </div>
+
+        <div class="empty" *ngIf="projectsArray.length === 0">Aucun projet pour le moment.</div>
+
+        <div class="items" formArrayName="projects" *ngIf="projectsArray.length > 0">
+          <div class="item" *ngFor="let grp of projectsArray.controls; let i = index" [formGroupName]="i">
+            <div class="row">
+              <input class="input-field" formControlName="name" placeholder="Nom du projet" />
+              <input class="input-field" formControlName="tech" placeholder="Technos (ex: Angular, Node)" />
+            </div>
+            <div class="row">
+              <input class="input-field" formControlName="link" placeholder="Lien (GitHub / démo)" />
+            </div>
+            <textarea class="input-field textarea" rows="3" formControlName="description" placeholder="Description…"></textarea>
+
+            <div class="item-actions" *ngIf="isEditing">
+              <button class="pro-btn pro-btn--danger" type="button" (click)="removeProject(i)" [disabled]="projectsArray.length <= 1 || isSaving">
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="widget-card">
+        <div class="section-header">
           <h2>Éducation</h2>
           <button class="pro-btn" *ngIf="isEditing" type="button" (click)="addEducation()">+ Ajouter</button>
         </div>
@@ -161,6 +225,34 @@
 
             <div class="item-actions" *ngIf="isEditing">
               <button class="pro-btn pro-btn--danger" type="button" (click)="removeEducation(i)" [disabled]="educationArray.length <= 1 || isSaving">
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="widget-card">
+        <div class="section-header">
+          <h2>Certifications</h2>
+          <button class="pro-btn" *ngIf="isEditing" type="button" (click)="addCertification()">+ Ajouter</button>
+        </div>
+
+        <div class="empty" *ngIf="certificationsArray.length === 0">Aucune certification pour le moment.</div>
+
+        <div class="items" formArrayName="certifications" *ngIf="certificationsArray.length > 0">
+          <div class="item" *ngFor="let grp of certificationsArray.controls; let i = index" [formGroupName]="i">
+            <div class="row">
+              <input class="input-field" formControlName="name" placeholder="Nom" />
+              <input class="input-field" formControlName="issuer" placeholder="Organisme" />
+            </div>
+            <div class="row">
+              <input class="input-field" formControlName="year" placeholder="Année (ex: 2025)" />
+              <input class="input-field" formControlName="link" placeholder="Lien (optionnel)" />
+            </div>
+
+            <div class="item-actions" *ngIf="isEditing">
+              <button class="pro-btn pro-btn--danger" type="button" (click)="removeCertification(i)" [disabled]="certificationsArray.length <= 1 || isSaving">
                 Supprimer
               </button>
             </div>
@@ -238,6 +330,53 @@
           </span>
         </div>
       </section>
+
+      <section class="widget-card">
+        <h2>Centres d’intérêt</h2>
+        <div class="tag-input" *ngIf="isEditing">
+          <input
+            class="input-field"
+            [(ngModel)]="interestInput"
+            [ngModelOptions]="{ standalone: true }"
+            name="interestInput"
+            placeholder="Ajouter un centre d’intérêt (ex: Lecture)"
+            (keydown.enter)="$event.preventDefault(); addInterest()" />
+          <button class="pro-btn" type="button" (click)="addInterest()" [disabled]="isSaving">Ajouter</button>
+        </div>
+
+        <div class="empty" *ngIf="(form.controls.interests.value?.length || 0) === 0">Aucun centre d’intérêt renseigné.</div>
+
+        <div class="tags" *ngIf="(form.controls.interests.value?.length || 0) > 0">
+          <span class="tag" *ngFor="let it of form.controls.interests.value">
+            {{ it }}
+            <button class="tag-remove" *ngIf="isEditing" type="button" (click)="removeInterest(it)">×</button>
+          </span>
+        </div>
+      </section>
+
+      <section class="widget-card">
+        <div class="section-header">
+          <h2>Liens</h2>
+          <button class="pro-btn" *ngIf="isEditing" type="button" (click)="addLink()">+ Ajouter</button>
+        </div>
+
+        <div class="empty" *ngIf="linksArray.length === 0">Aucun lien pour le moment.</div>
+
+        <div class="items" formArrayName="links" *ngIf="linksArray.length > 0">
+          <div class="item" *ngFor="let grp of linksArray.controls; let i = index" [formGroupName]="i">
+            <div class="row">
+              <input class="input-field" formControlName="label" placeholder="Label (ex: GitHub)" />
+              <input class="input-field" formControlName="url" placeholder="URL" />
+            </div>
+
+            <div class="item-actions" *ngIf="isEditing">
+              <button class="pro-btn pro-btn--danger" type="button" (click)="removeLink(i)" [disabled]="linksArray.length <= 1 || isSaving">
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
       </form>
 
@@ -259,6 +398,8 @@
 
               <div class="pdf-id">
                 <div class="pdf-title">{{ pdfVm.fullName || '—' }}</div>
+                <div class="pdf-role" *ngIf="pdfVm.jobTitle">{{ pdfVm.jobTitle }}</div>
+                <div class="pdf-headline" *ngIf="pdfVm.headline">{{ pdfVm.headline }}</div>
                 <div class="pdf-subtitle">
                   <span *ngIf="pdfVm.email">{{ pdfVm.email }}</span>
                   <span *ngIf="pdfVm.phone">• {{ pdfVm.phone }}</span>
@@ -291,6 +432,19 @@
             </div>
           </div>
 
+          <div class="pdf-section" *ngIf="(pdfVm.projects?.length || 0) > 0">
+            <div class="pdf-h2">Projets</div>
+            <div class="pdf-item" *ngFor="let p of pdfVm.projects">
+              <div class="pdf-item-title">
+                <span class="pdf-strong">{{ p.name || '—' }}</span>
+                <span class="pdf-sep" *ngIf="p.tech">—</span>
+                <span *ngIf="p.tech">{{ p.tech }}</span>
+              </div>
+              <div class="pdf-meta" *ngIf="p.link">{{ p.link }}</div>
+              <div class="pdf-text" *ngIf="p.description">{{ p.description }}</div>
+            </div>
+          </div>
+
           <div class="pdf-section" *ngIf="(pdfVm.education?.length || 0) > 0">
             <div class="pdf-h2">Éducation</div>
             <div class="pdf-item" *ngFor="let edu of pdfVm.education">
@@ -304,7 +458,33 @@
             </div>
           </div>
 
+          <div class="pdf-section" *ngIf="(pdfVm.certifications?.length || 0) > 0">
+            <div class="pdf-h2">Certifications</div>
+            <div class="pdf-item" *ngFor="let c of pdfVm.certifications">
+              <div class="pdf-item-title">
+                <span class="pdf-strong">{{ c.name || '—' }}</span>
+                <span class="pdf-sep" *ngIf="c.issuer">—</span>
+                <span *ngIf="c.issuer">{{ c.issuer }}</span>
+              </div>
+              <div class="pdf-meta" *ngIf="c.year || c.link">
+                <span *ngIf="c.year">{{ c.year }}</span>
+                <span *ngIf="c.year && c.link"> • </span>
+                <span *ngIf="c.link">{{ c.link }}</span>
+              </div>
+            </div>
+          </div>
+
           <div class="pdf-grid">
+            <div class="pdf-section">
+              <div class="pdf-h2">Compétences</div>
+              <div class="pdf-tags" *ngIf="(pdfVm.skills?.length || 0) > 0; else noSkills">
+                <span class="pdf-tag" *ngFor="let s of pdfVm.skills">{{ s }}</span>
+              </div>
+              <ng-template #noSkills>
+                <div class="pdf-muted">—</div>
+              </ng-template>
+            </div>
+
             <div class="pdf-section">
               <div class="pdf-h2">Langues</div>
               <div class="pdf-tags" *ngIf="(pdfVm.languages?.length || 0) > 0; else noLang">
@@ -324,6 +504,26 @@
                 <div class="pdf-muted">—</div>
               </ng-template>
             </div>
+
+            <div class="pdf-section">
+              <div class="pdf-h2">Centres d’intérêt</div>
+              <div class="pdf-tags" *ngIf="(pdfVm.interests?.length || 0) > 0; else noInterests">
+                <span class="pdf-tag" *ngFor="let it of pdfVm.interests">{{ it }}</span>
+              </div>
+              <ng-template #noInterests>
+                <div class="pdf-muted">—</div>
+              </ng-template>
+            </div>
+          </div>
+
+          <div class="pdf-section">
+            <div class="pdf-h2">Liens</div>
+            <div class="pdf-tags" *ngIf="(pdfVm.links?.length || 0) > 0; else noLinks">
+              <span class="pdf-tag" *ngFor="let l of pdfVm.links">{{ l.label || l.url }}</span>
+            </div>
+            <ng-template #noLinks>
+              <div class="pdf-muted">—</div>
+            </ng-template>
           </div>
         </div>
       </div>

@@ -85,10 +85,15 @@ function normalizeJsonArray(value) {
   return [];
 }
 
+function normalizeString(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
 const ProfileModel = {
   async getProfile(userId) {
     const sql = `
-      SELECT user_id, about_me, experiences, education, languages, software, phone, address, linkedin
+      SELECT user_id, about_me, experiences, education, languages, software, phone, address, linkedin,
+             job_title, headline, skills, interests, links, projects, certifications
       FROM user_profiles
       WHERE user_id = ?
     `;
@@ -99,12 +104,18 @@ const ProfileModel = {
         ...row,
         languages: normalizeTextArray(row.languages),
         software: normalizeTextArray(row.software),
+        skills: normalizeTextArray(row.skills),
+        interests: normalizeTextArray(row.interests),
+        links: normalizeJsonArray(row.links),
+        projects: normalizeJsonArray(row.projects),
+        certifications: normalizeJsonArray(row.certifications),
       };
     }
 
     // Fallback: ancienne table `profiles` (si des données existent déjà en base)
     const legacySql = `
-      SELECT user_id, about_me, experiences, education, languages, software, phone, address, linkedin
+      SELECT user_id, about_me, experiences, education, languages, software, phone, address, linkedin,
+             job_title, headline, skills, interests, links, projects, certifications
       FROM profiles
       WHERE user_id = ?
     `;
@@ -115,6 +126,11 @@ const ProfileModel = {
       ...legacy,
       languages: normalizeTextArray(legacy.languages),
       software: normalizeTextArray(legacy.software),
+      skills: normalizeTextArray(legacy.skills),
+      interests: normalizeTextArray(legacy.interests),
+      links: normalizeJsonArray(legacy.links),
+      projects: normalizeJsonArray(legacy.projects),
+      certifications: normalizeJsonArray(legacy.certifications),
     };
 
     // Copie best-effort vers user_profiles
@@ -126,6 +142,11 @@ const ProfileModel = {
         ...copied,
         languages: normalizeTextArray(copied.languages),
         software: normalizeTextArray(copied.software),
+        skills: normalizeTextArray(copied.skills),
+        interests: normalizeTextArray(copied.interests),
+        links: normalizeJsonArray(copied.links),
+        projects: normalizeJsonArray(copied.projects),
+        certifications: normalizeJsonArray(copied.certifications),
       };
     } catch {
       return normalizedLegacy;
@@ -142,9 +163,25 @@ const ProfileModel = {
     const address = typeof data?.address === 'string' ? data.address.trim() : null;
     const linkedin = typeof data?.linkedin === 'string' ? data.linkedin.trim() : null;
 
+    const jobTitle = normalizeString(data?.job_title || data?.jobTitle) || null;
+    const headline = normalizeString(data?.headline) || null;
+    const skills = normalizeTextArray(data?.skills);
+    const interests = normalizeTextArray(data?.interests);
+    const links = normalizeJsonArray(data?.links);
+    const projects = normalizeJsonArray(data?.projects);
+    const certifications = normalizeJsonArray(data?.certifications);
+
     const sql = `
-      INSERT INTO user_profiles (user_id, about_me, experiences, education, languages, software, phone, address, linkedin)
-      VALUES (?, ?, ?::jsonb, ?::jsonb, ?::text[], ?::text[], ?, ?, ?)
+      INSERT INTO user_profiles (
+        user_id, about_me, experiences, education, languages, software,
+        phone, address, linkedin,
+        job_title, headline, skills, interests, links, projects, certifications
+      )
+      VALUES (
+        ?, ?, ?::jsonb, ?::jsonb, ?::text[], ?::text[],
+        ?, ?, ?,
+        ?, ?, ?::text[], ?::text[], ?::jsonb, ?::jsonb, ?::jsonb
+      )
       ON CONFLICT (user_id)
       DO UPDATE SET
         about_me = EXCLUDED.about_me,
@@ -154,7 +191,14 @@ const ProfileModel = {
         software = EXCLUDED.software,
         phone = EXCLUDED.phone,
         address = EXCLUDED.address,
-        linkedin = EXCLUDED.linkedin
+        linkedin = EXCLUDED.linkedin,
+        job_title = EXCLUDED.job_title,
+        headline = EXCLUDED.headline,
+        skills = EXCLUDED.skills,
+        interests = EXCLUDED.interests,
+        links = EXCLUDED.links,
+        projects = EXCLUDED.projects,
+        certifications = EXCLUDED.certifications
     `;
 
     await dbRun(sql, [
@@ -167,13 +211,28 @@ const ProfileModel = {
       phone,
       address,
       linkedin,
+      jobTitle,
+      headline,
+      skills,
+      interests,
+      JSON.stringify(links),
+      JSON.stringify(projects),
+      JSON.stringify(certifications),
     ]);
 
     // Compat: maintient aussi l'ancienne table `profiles` (si elle est consultée ailleurs).
     // Cela évite l'impression "ça n'enregistre pas" quand on regarde `profiles` au lieu de `user_profiles`.
     const legacySql = `
-      INSERT INTO profiles (user_id, about_me, experiences, education, languages, software, phone, address, linkedin)
-      VALUES (?, ?, ?::jsonb, ?::jsonb, ?::text[], ?::text[], ?, ?, ?)
+      INSERT INTO profiles (
+        user_id, about_me, experiences, education, languages, software,
+        phone, address, linkedin,
+        job_title, headline, skills, interests, links, projects, certifications
+      )
+      VALUES (
+        ?, ?, ?::jsonb, ?::jsonb, ?::text[], ?::text[],
+        ?, ?, ?,
+        ?, ?, ?::text[], ?::text[], ?::jsonb, ?::jsonb, ?::jsonb
+      )
       ON CONFLICT (user_id)
       DO UPDATE SET
         about_me = EXCLUDED.about_me,
@@ -183,7 +242,14 @@ const ProfileModel = {
         software = EXCLUDED.software,
         phone = EXCLUDED.phone,
         address = EXCLUDED.address,
-        linkedin = EXCLUDED.linkedin
+        linkedin = EXCLUDED.linkedin,
+        job_title = EXCLUDED.job_title,
+        headline = EXCLUDED.headline,
+        skills = EXCLUDED.skills,
+        interests = EXCLUDED.interests,
+        links = EXCLUDED.links,
+        projects = EXCLUDED.projects,
+        certifications = EXCLUDED.certifications
     `;
 
     try {
@@ -197,6 +263,13 @@ const ProfileModel = {
         phone,
         address,
         linkedin,
+        jobTitle,
+        headline,
+        skills,
+        interests,
+        JSON.stringify(links),
+        JSON.stringify(projects),
+        JSON.stringify(certifications),
       ]);
     } catch {
       // Best-effort only.

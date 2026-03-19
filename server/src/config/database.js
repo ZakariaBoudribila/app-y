@@ -119,7 +119,14 @@ async function init() {
             software TEXT[] NOT NULL DEFAULT ARRAY[]::text[],
             phone TEXT,
             address TEXT,
-            linkedin TEXT
+            linkedin TEXT,
+            job_title TEXT,
+            headline TEXT,
+            skills TEXT[] NOT NULL DEFAULT ARRAY[]::text[],
+            interests TEXT[] NOT NULL DEFAULT ARRAY[]::text[],
+            links JSONB NOT NULL DEFAULT '[]'::jsonb,
+            projects JSONB NOT NULL DEFAULT '[]'::jsonb,
+            certifications JSONB NOT NULL DEFAULT '[]'::jsonb
         )
     `);
 
@@ -132,21 +139,47 @@ async function init() {
             education JSONB NOT NULL DEFAULT '[]'::jsonb,
             languages TEXT[] NOT NULL DEFAULT ARRAY[]::text[],
             languages_levels JSONB NOT NULL DEFAULT '[]'::jsonb,
-            software TEXT[] NOT NULL DEFAULT ARRAY[]::text[]
+            software TEXT[] NOT NULL DEFAULT ARRAY[]::text[],
+            phone TEXT,
+            address TEXT,
+            linkedin TEXT,
+            job_title TEXT,
+            headline TEXT,
+            skills TEXT[] NOT NULL DEFAULT ARRAY[]::text[],
+            interests TEXT[] NOT NULL DEFAULT ARRAY[]::text[],
+            links JSONB NOT NULL DEFAULT '[]'::jsonb,
+            projects JSONB NOT NULL DEFAULT '[]'::jsonb,
+            certifications JSONB NOT NULL DEFAULT '[]'::jsonb
         )
     `);
 
     await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS languages_levels JSONB NOT NULL DEFAULT '[]'::jsonb`);
 
-    // (Compat) champs contact si on décide de les stocker dans user_profiles aussi
+    // Champs contact + nouveaux champs CV (ajouts non destructifs)
     await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS phone TEXT`);
     await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS address TEXT`);
     await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS linkedin TEXT`);
+    await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS job_title TEXT`);
+    await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS headline TEXT`);
+    await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS skills TEXT[] NOT NULL DEFAULT ARRAY[]::text[]`);
+    await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS interests TEXT[] NOT NULL DEFAULT ARRAY[]::text[]`);
+    await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS links JSONB NOT NULL DEFAULT '[]'::jsonb`);
+    await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS projects JSONB NOT NULL DEFAULT '[]'::jsonb`);
+    await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS certifications JSONB NOT NULL DEFAULT '[]'::jsonb`);
 
     // Champs contact du CV (ajouts non destructifs)
     await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT`);
     await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS address TEXT`);
     await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS linkedin TEXT`);
+
+    // Nouveaux champs CV (ajouts non destructifs)
+    await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS job_title TEXT`);
+    await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS headline TEXT`);
+    await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS skills TEXT[] NOT NULL DEFAULT ARRAY[]::text[]`);
+    await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS interests TEXT[] NOT NULL DEFAULT ARRAY[]::text[]`);
+    await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS links JSONB NOT NULL DEFAULT '[]'::jsonb`);
+    await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS projects JSONB NOT NULL DEFAULT '[]'::jsonb`);
+    await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS certifications JSONB NOT NULL DEFAULT '[]'::jsonb`);
 
     console.log(`Connecté à PostgreSQL (${safeDbLabel()}) et tables initialisées.`);
 }

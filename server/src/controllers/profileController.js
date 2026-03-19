@@ -68,11 +68,18 @@ function normalizeTextArray(value) {
 function toProfessionalProfileDto(row) {
   if (!row) {
     return {
+      jobTitle: '',
+      headline: '',
       aboutMe: '',
       experiences: [],
       education: [],
       languages: [],
       software: [],
+      skills: [],
+      projects: [],
+      certifications: [],
+      interests: [],
+      links: [],
       phone: '',
       address: '',
       linkedin: '',
@@ -80,11 +87,18 @@ function toProfessionalProfileDto(row) {
   }
 
   return {
+    jobTitle: row.job_title ?? '',
+    headline: row.headline ?? '',
     aboutMe: row.about_me ?? '',
     experiences: row.experiences ?? [],
     education: row.education ?? [],
     languages: normalizeTextArray(row.languages),
     software: normalizeTextArray(row.software),
+    skills: normalizeTextArray(row.skills),
+    projects: Array.isArray(row.projects) ? row.projects : [],
+    certifications: Array.isArray(row.certifications) ? row.certifications : [],
+    interests: normalizeTextArray(row.interests),
+    links: Array.isArray(row.links) ? row.links : [],
     phone: row.phone ?? '',
     address: row.address ?? '',
     linkedin: row.linkedin ?? '',
@@ -120,6 +134,8 @@ exports.saveProfile = async (req, res) => {
     const existing = await ProfileModel.getProfile(userId);
 
     const data = {
+      jobTitle: typeof body.jobTitle === 'string' ? body.jobTitle : (existing?.job_title ?? ''),
+      headline: typeof body.headline === 'string' ? body.headline : (existing?.headline ?? ''),
       aboutMe: typeof body.aboutMe === 'string' ? body.aboutMe : '',
       experiences: Array.isArray(body.experiences) ? body.experiences : [],
       education: Array.isArray(body.education) ? body.education : [],
@@ -129,6 +145,21 @@ exports.saveProfile = async (req, res) => {
       software: Object.prototype.hasOwnProperty.call(body, 'software')
         ? (Array.isArray(body.software) ? body.software : normalizeTextArray(body.software))
         : normalizeTextArray(existing?.software),
+      skills: Object.prototype.hasOwnProperty.call(body, 'skills')
+        ? (Array.isArray(body.skills) ? body.skills : normalizeTextArray(body.skills))
+        : normalizeTextArray(existing?.skills),
+      interests: Object.prototype.hasOwnProperty.call(body, 'interests')
+        ? (Array.isArray(body.interests) ? body.interests : normalizeTextArray(body.interests))
+        : normalizeTextArray(existing?.interests),
+      projects: Object.prototype.hasOwnProperty.call(body, 'projects')
+        ? (Array.isArray(body.projects) ? body.projects : [])
+        : (Array.isArray(existing?.projects) ? existing.projects : []),
+      certifications: Object.prototype.hasOwnProperty.call(body, 'certifications')
+        ? (Array.isArray(body.certifications) ? body.certifications : [])
+        : (Array.isArray(existing?.certifications) ? existing.certifications : []),
+      links: Object.prototype.hasOwnProperty.call(body, 'links')
+        ? (Array.isArray(body.links) ? body.links : [])
+        : (Array.isArray(existing?.links) ? existing.links : []),
       phone: typeof body.phone === 'string' ? body.phone : '',
       address: typeof body.address === 'string' ? body.address : '',
       linkedin: typeof body.linkedin === 'string' ? body.linkedin : '',

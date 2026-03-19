@@ -807,6 +807,21 @@ app-root {
   color: var(--pdf-primary, var(--text-title));
 }
 
+.pdf-role {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--pdf-primary, var(--text-title));
+}
+
+.pdf-headline {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.35;
+  opacity: 0.85;
+  white-space: pre-wrap;
+}
+
 .pdf-subtitle {
   font-size: 12px;
   opacity: 0.85;
@@ -888,4 +903,6 @@ app-root {
   border-radius: 999px;
   border: 1px solid var(--pdf-accent, var(--accent-color));
   font-size: 11px;
+  max-width: 100%;
+  word-break: break-word;
 }
