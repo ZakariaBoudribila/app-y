@@ -70,6 +70,7 @@ function toProfessionalProfileDto(row) {
     return {
       jobTitle: '',
       headline: '',
+      pdfSectionsOrder: [],
       aboutMe: '',
       experiences: [],
       education: [],
@@ -89,6 +90,7 @@ function toProfessionalProfileDto(row) {
   return {
     jobTitle: row.job_title ?? '',
     headline: row.headline ?? '',
+    pdfSectionsOrder: Array.isArray(row.pdf_sections_order) ? row.pdf_sections_order : [],
     aboutMe: row.about_me ?? '',
     experiences: row.experiences ?? [],
     education: row.education ?? [],
@@ -136,6 +138,9 @@ exports.saveProfile = async (req, res) => {
     const data = {
       jobTitle: typeof body.jobTitle === 'string' ? body.jobTitle : (existing?.job_title ?? ''),
       headline: typeof body.headline === 'string' ? body.headline : (existing?.headline ?? ''),
+      pdfSectionsOrder: Object.prototype.hasOwnProperty.call(body, 'pdfSectionsOrder')
+        ? (Array.isArray(body.pdfSectionsOrder) ? body.pdfSectionsOrder : [])
+        : (Array.isArray(existing?.pdf_sections_order) ? existing.pdf_sections_order : []),
       aboutMe: typeof body.aboutMe === 'string' ? body.aboutMe : '',
       experiences: Array.isArray(body.experiences) ? body.experiences : [],
       education: Array.isArray(body.education) ? body.education : [],

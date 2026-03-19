@@ -85,6 +85,11 @@ function normalizeJsonArray(value) {
   return [];
 }
 
+function normalizeStringArrayFromJson(value) {
+  if (!Array.isArray(value)) return [];
+  return value.filter((v) => typeof v === 'string').map((v) => v.trim()).filter(Boolean);
+}
+
 function normalizeString(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
@@ -93,7 +98,7 @@ const ProfileModel = {
   async getProfile(userId) {
     const sql = `
       SELECT user_id, about_me, experiences, education, languages, software, phone, address, linkedin,
-             job_title, headline, skills, interests, links, projects, certifications
+             job_title, headline, skills, interests, links, projects, certifications, pdf_sections_order
       FROM user_profiles
       WHERE user_id = ?
     `;
@@ -109,13 +114,14 @@ const ProfileModel = {
         links: normalizeJsonArray(row.links),
         projects: normalizeJsonArray(row.projects),
         certifications: normalizeJsonArray(row.certifications),
+        pdf_sections_order: normalizeStringArrayFromJson(row.pdf_sections_order),
       };
     }
 
     // Fallback: ancienne table `profiles` (si des données existent déjà en base)
     const legacySql = `
       SELECT user_id, about_me, experiences, education, languages, software, phone, address, linkedin,
-             job_title, headline, skills, interests, links, projects, certifications
+             job_title, headline, skills, interests, links, projects, certifications, pdf_sections_order
       FROM profiles
       WHERE user_id = ?
     `;
@@ -131,6 +137,7 @@ const ProfileModel = {
       links: normalizeJsonArray(legacy.links),
       projects: normalizeJsonArray(legacy.projects),
       certifications: normalizeJsonArray(legacy.certifications),
+      pdf_sections_order: normalizeStringArrayFromJson(legacy.pdf_sections_order),
     };
 
     // Copie best-effort vers user_profiles
@@ -147,6 +154,7 @@ const ProfileModel = {
         links: normalizeJsonArray(copied.links),
         projects: normalizeJsonArray(copied.projects),
         certifications: normalizeJsonArray(copied.certifications),
+        pdf_sections_order: normalizeStringArrayFromJson(copied.pdf_sections_order),
       };
     } catch {
       return normalizedLegacy;
@@ -170,17 +178,18 @@ const ProfileModel = {
     const links = normalizeJsonArray(data?.links);
     const projects = normalizeJsonArray(data?.projects);
     const certifications = normalizeJsonArray(data?.certifications);
+    const pdfSectionsOrder = normalizeStringArrayFromJson(data?.pdf_sections_order ?? data?.pdfSectionsOrder);
 
     const sql = `
       INSERT INTO user_profiles (
         user_id, about_me, experiences, education, languages, software,
         phone, address, linkedin,
-        job_title, headline, skills, interests, links, projects, certifications
+        job_title, headline, skills, interests, links, projects, certifications, pdf_sections_order
       )
       VALUES (
         ?, ?, ?::jsonb, ?::jsonb, ?::text[], ?::text[],
         ?, ?, ?,
-        ?, ?, ?::text[], ?::text[], ?::jsonb, ?::jsonb, ?::jsonb
+        ?, ?, ?::text[], ?::text[], ?::jsonb, ?::jsonb, ?::jsonb, ?::jsonb
       )
       ON CONFLICT (user_id)
       DO UPDATE SET
@@ -198,7 +207,8 @@ const ProfileModel = {
         interests = EXCLUDED.interests,
         links = EXCLUDED.links,
         projects = EXCLUDED.projects,
-        certifications = EXCLUDED.certifications
+        certifications = EXCLUDED.certifications,
+        pdf_sections_order = EXCLUDED.pdf_sections_order
     `;
 
     await dbRun(sql, [
@@ -218,6 +228,7 @@ const ProfileModel = {
       JSON.stringify(links),
       JSON.stringify(projects),
       JSON.stringify(certifications),
+      JSON.stringify(pdfSectionsOrder),
     ]);
 
     // Compat: maintient aussi l'ancienne table `profiles` (si elle est consultée ailleurs).
@@ -226,12 +237,12 @@ const ProfileModel = {
       INSERT INTO profiles (
         user_id, about_me, experiences, education, languages, software,
         phone, address, linkedin,
-        job_title, headline, skills, interests, links, projects, certifications
+        job_title, headline, skills, interests, links, projects, certifications, pdf_sections_order
       )
       VALUES (
         ?, ?, ?::jsonb, ?::jsonb, ?::text[], ?::text[],
         ?, ?, ?,
-        ?, ?, ?::text[], ?::text[], ?::jsonb, ?::jsonb, ?::jsonb
+        ?, ?, ?::text[], ?::text[], ?::jsonb, ?::jsonb, ?::jsonb, ?::jsonb
       )
       ON CONFLICT (user_id)
       DO UPDATE SET
@@ -249,7 +260,8 @@ const ProfileModel = {
         interests = EXCLUDED.interests,
         links = EXCLUDED.links,
         projects = EXCLUDED.projects,
-        certifications = EXCLUDED.certifications
+        certifications = EXCLUDED.certifications,
+        pdf_sections_order = EXCLUDED.pdf_sections_order
     `;
 
     try {
@@ -270,6 +282,7 @@ const ProfileModel = {
         JSON.stringify(links),
         JSON.stringify(projects),
         JSON.stringify(certifications),
+        JSON.stringify(pdfSectionsOrder),
       ]);
     } catch {
       // Best-effort only.

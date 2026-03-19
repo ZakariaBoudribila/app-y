@@ -30,6 +30,8 @@ import { ProPageComponent } from './pages/pro-page/pro-page.component';
 import { SettingsPageComponent } from './pages/settings-page/settings-page.component';
 import { ProfessionalSpaceComponent } from './components/professional-space/professional-space.component';
 
+import { DragDropModule } from '@angular/cdk/drag-drop';
+
 import { AuthInterceptor } from './services/auth.interceptor';
 
 
@@ -64,6 +66,7 @@ import { AuthInterceptor } from './services/auth.interceptor';
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
+    DragDropModule,
     CommonModule,
     AppRoutingModule
   ],

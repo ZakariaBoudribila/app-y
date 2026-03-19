@@ -1,4 +1,5 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FormArray, FormBuilder } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { ConfirmService } from '../../services/confirm.service';
@@ -94,6 +95,15 @@ type CvPdfViewModel = {
   links: PdfLink[];
 };
 
+type PdfSectionId =
+  | 'profile'
+  | 'experiences'
+  | 'projects'
+  | 'education'
+  | 'certifications'
+  | 'grid'
+  | 'links';
+
 @Component({
   selector: 'app-pro-page',
   templateUrl: './pro-page.component.html',
@@ -115,6 +125,20 @@ export class ProPageComponent {
 
   cvPrimaryColor = '';
   cvAccentColor = '';
+
+  readonly pdfSectionCatalog: Array<{ id: PdfSectionId; label: string }> = [
+    { id: 'profile', label: 'Profil' },
+    { id: 'experiences', label: 'Expériences' },
+    { id: 'projects', label: 'Projets' },
+    { id: 'education', label: 'Éducation' },
+    { id: 'certifications', label: 'Certifications' },
+    { id: 'grid', label: 'Compétences / Langues / Logiciels / Centres d’intérêt' },
+    { id: 'links', label: 'Liens' },
+  ];
+
+  private readonly defaultPdfSectionOrder: PdfSectionId[] = this.pdfSectionCatalog.map((x) => x.id);
+
+  pdfSectionOrder: PdfSectionId[] = [...this.defaultPdfSectionOrder];
 
   @ViewChild('pdfContent') private pdfContentRef?: ElementRef<HTMLElement>;
 
@@ -178,6 +202,44 @@ export class ProPageComponent {
     // Fallbacks: valeurs déjà utilisées par le thème.
     this.cvPrimaryColor = primary || '#880e4f';
     this.cvAccentColor = accent || '#f8bbd0';
+  }
+
+  private sanitizePdfSectionsOrder(input: unknown): PdfSectionId[] {
+    const allowed = new Set(this.defaultPdfSectionOrder);
+    const seen = new Set<PdfSectionId>();
+    const out: PdfSectionId[] = [];
+
+    if (Array.isArray(input)) {
+      for (const raw of input) {
+        if (typeof raw !== 'string') continue;
+        const id = raw as PdfSectionId;
+        if (!allowed.has(id)) continue;
+        if (seen.has(id)) continue;
+        seen.add(id);
+        out.push(id);
+      }
+    }
+
+    // Ajoute les sections manquantes dans l'ordre par défaut.
+    for (const id of this.defaultPdfSectionOrder) {
+      if (seen.has(id)) continue;
+      out.push(id);
+    }
+
+    return out;
+  }
+
+  getPdfSectionLabel(id: PdfSectionId): string {
+    return this.pdfSectionCatalog.find((x) => x.id === id)?.label || id;
+  }
+
+  onPdfSectionDrop(event: CdkDragDrop<PdfSectionId[]>) {
+    if (!this.isEditing) return;
+    if (!event?.container?.data) return;
+
+    moveItemInArray(this.pdfSectionOrder, event.previousIndex, event.currentIndex);
+    // Ce choix doit être sauvegardé avec le profil.
+    this.form.markAsDirty();
   }
 
   private buildLanguageOptions(): string[] {
@@ -533,9 +595,11 @@ export class ProPageComponent {
   }
 
   private normalizeIncomingProfile(p: ProfessionalProfile): ProfessionalProfile {
+    const orderRaw = (p as any)?.pdfSectionsOrder ?? (p as any)?.pdf_sections_order;
     return {
       jobTitle: typeof (p as any)?.jobTitle === 'string' ? (p as any).jobTitle : (typeof (p as any)?.job_title === 'string' ? (p as any).job_title : ''),
       headline: typeof (p as any)?.headline === 'string' ? (p as any).headline : '',
+      pdfSectionsOrder: this.sanitizePdfSectionsOrder(orderRaw),
       phone: typeof (p as any)?.phone === 'string' ? (p as any).phone : '',
       address: typeof (p as any)?.address === 'string' ? (p as any).address : '',
       linkedin: typeof (p as any)?.linkedin === 'string' ? (p as any).linkedin : '',
@@ -572,6 +636,7 @@ export class ProPageComponent {
   }
 
   private setFormFromProfile(profile: ProfessionalProfile) {
+    this.pdfSectionOrder = this.sanitizePdfSectionsOrder((profile as any).pdfSectionsOrder);
     this.form.controls.jobTitle.setValue(profile.jobTitle || '');
     this.form.controls.headline.setValue(profile.headline || '');
     this.form.controls.phone.setValue(profile.phone || '');
@@ -620,6 +685,7 @@ export class ProPageComponent {
     return {
       jobTitle: raw.jobTitle || '',
       headline: raw.headline || '',
+      pdfSectionsOrder: [...this.pdfSectionOrder],
       phone: raw.phone || '',
       address: raw.address || '',
       linkedin: raw.linkedin || '',

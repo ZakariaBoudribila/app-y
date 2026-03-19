@@ -94,6 +94,25 @@
 
         <div class="cv-grid">
       <section class="widget-card">
+        <div class="section-header">
+          <h2>Ordre du PDF</h2>
+          <div class="pdf-muted" *ngIf="!isEditing">Clique sur « Modifier » pour réorganiser.</div>
+        </div>
+
+        <div
+          class="pdf-order-list"
+          cdkDropList
+          [cdkDropListData]="pdfSectionOrder"
+          [cdkDropListDisabled]="!isEditing"
+          (cdkDropListDropped)="onPdfSectionDrop($event)">
+          <div class="pdf-order-item" *ngFor="let id of pdfSectionOrder" cdkDrag [cdkDragDisabled]="!isEditing">
+            <span class="pdf-order-handle" cdkDragHandle aria-hidden="true">⋮⋮</span>
+            <span class="pdf-order-text">{{ getPdfSectionLabel(id) }}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="widget-card">
         <h2>Titre & accroche</h2>
 
         <input class="input-field" formControlName="jobTitle" placeholder="Titre du poste (ex: Développeuse Web)" />
@@ -411,120 +430,138 @@
             <div class="pdf-meta" *ngIf="pdfGeneratedAt as d">{{ d | date: 'dd/MM/yyyy' }}</div>
           </div>
 
-          <div class="pdf-section">
-            <div class="pdf-h2">Profil</div>
-            <div class="pdf-text" *ngIf="pdfVm.aboutMe; else noAbout">{{ pdfVm.aboutMe }}</div>
-            <ng-template #noAbout>
-              <div class="pdf-muted">—</div>
-            </ng-template>
-          </div>
+          <ng-container *ngFor="let sid of pdfSectionOrder">
+            <ng-container [ngSwitch]="sid">
+              <ng-container *ngSwitchCase="'profile'">
+                <div class="pdf-section">
+                  <div class="pdf-h2">Profil</div>
+                  <div class="pdf-text" *ngIf="pdfVm.aboutMe; else noAbout">{{ pdfVm.aboutMe }}</div>
+                  <ng-template #noAbout>
+                    <div class="pdf-muted">—</div>
+                  </ng-template>
+                </div>
+              </ng-container>
 
-          <div class="pdf-section" *ngIf="(pdfVm.experiences?.length || 0) > 0">
-            <div class="pdf-h2">Expériences</div>
-            <div class="pdf-item" *ngFor="let exp of pdfVm.experiences">
-              <div class="pdf-item-title">
-                <span class="pdf-strong">{{ exp.title || '—' }}</span>
-                <span class="pdf-sep" *ngIf="exp.company">—</span>
-                <span *ngIf="exp.company">{{ exp.company }}</span>
-              </div>
-              <div class="pdf-meta" *ngIf="exp.period">{{ exp.period }}</div>
-              <div class="pdf-text" *ngIf="exp.description">{{ exp.description }}</div>
-            </div>
-          </div>
+              <ng-container *ngSwitchCase="'experiences'">
+                <div class="pdf-section" *ngIf="(pdfVm.experiences?.length || 0) > 0">
+                  <div class="pdf-h2">Expériences</div>
+                  <div class="pdf-item" *ngFor="let exp of pdfVm.experiences">
+                    <div class="pdf-item-title">
+                      <span class="pdf-strong">{{ exp.title || '—' }}</span>
+                      <span class="pdf-sep" *ngIf="exp.company">—</span>
+                      <span *ngIf="exp.company">{{ exp.company }}</span>
+                    </div>
+                    <div class="pdf-meta" *ngIf="exp.period">{{ exp.period }}</div>
+                    <div class="pdf-text" *ngIf="exp.description">{{ exp.description }}</div>
+                  </div>
+                </div>
+              </ng-container>
 
-          <div class="pdf-section" *ngIf="(pdfVm.projects?.length || 0) > 0">
-            <div class="pdf-h2">Projets</div>
-            <div class="pdf-item" *ngFor="let p of pdfVm.projects">
-              <div class="pdf-item-title">
-                <span class="pdf-strong">{{ p.name || '—' }}</span>
-                <span class="pdf-sep" *ngIf="p.tech">—</span>
-                <span *ngIf="p.tech">{{ p.tech }}</span>
-              </div>
-              <div class="pdf-meta" *ngIf="p.link">{{ p.link }}</div>
-              <div class="pdf-text" *ngIf="p.description">{{ p.description }}</div>
-            </div>
-          </div>
+              <ng-container *ngSwitchCase="'projects'">
+                <div class="pdf-section" *ngIf="(pdfVm.projects?.length || 0) > 0">
+                  <div class="pdf-h2">Projets</div>
+                  <div class="pdf-item" *ngFor="let p of pdfVm.projects">
+                    <div class="pdf-item-title">
+                      <span class="pdf-strong">{{ p.name || '—' }}</span>
+                      <span class="pdf-sep" *ngIf="p.tech">—</span>
+                      <span *ngIf="p.tech">{{ p.tech }}</span>
+                    </div>
+                    <div class="pdf-meta" *ngIf="p.link">{{ p.link }}</div>
+                    <div class="pdf-text" *ngIf="p.description">{{ p.description }}</div>
+                  </div>
+                </div>
+              </ng-container>
 
-          <div class="pdf-section" *ngIf="(pdfVm.education?.length || 0) > 0">
-            <div class="pdf-h2">Éducation</div>
-            <div class="pdf-item" *ngFor="let edu of pdfVm.education">
-              <div class="pdf-item-title">
-                <span class="pdf-strong">{{ edu.school || '—' }}</span>
-                <span class="pdf-sep" *ngIf="edu.degree">—</span>
-                <span *ngIf="edu.degree">{{ edu.degree }}</span>
-              </div>
-              <div class="pdf-meta" *ngIf="edu.period">{{ edu.period }}</div>
-              <div class="pdf-text" *ngIf="edu.description">{{ edu.description }}</div>
-            </div>
-          </div>
+              <ng-container *ngSwitchCase="'education'">
+                <div class="pdf-section" *ngIf="(pdfVm.education?.length || 0) > 0">
+                  <div class="pdf-h2">Éducation</div>
+                  <div class="pdf-item" *ngFor="let edu of pdfVm.education">
+                    <div class="pdf-item-title">
+                      <span class="pdf-strong">{{ edu.school || '—' }}</span>
+                      <span class="pdf-sep" *ngIf="edu.degree">—</span>
+                      <span *ngIf="edu.degree">{{ edu.degree }}</span>
+                    </div>
+                    <div class="pdf-meta" *ngIf="edu.period">{{ edu.period }}</div>
+                    <div class="pdf-text" *ngIf="edu.description">{{ edu.description }}</div>
+                  </div>
+                </div>
+              </ng-container>
 
-          <div class="pdf-section" *ngIf="(pdfVm.certifications?.length || 0) > 0">
-            <div class="pdf-h2">Certifications</div>
-            <div class="pdf-item" *ngFor="let c of pdfVm.certifications">
-              <div class="pdf-item-title">
-                <span class="pdf-strong">{{ c.name || '—' }}</span>
-                <span class="pdf-sep" *ngIf="c.issuer">—</span>
-                <span *ngIf="c.issuer">{{ c.issuer }}</span>
-              </div>
-              <div class="pdf-meta" *ngIf="c.year || c.link">
-                <span *ngIf="c.year">{{ c.year }}</span>
-                <span *ngIf="c.year && c.link"> • </span>
-                <span *ngIf="c.link">{{ c.link }}</span>
-              </div>
-            </div>
-          </div>
+              <ng-container *ngSwitchCase="'certifications'">
+                <div class="pdf-section" *ngIf="(pdfVm.certifications?.length || 0) > 0">
+                  <div class="pdf-h2">Certifications</div>
+                  <div class="pdf-item" *ngFor="let c of pdfVm.certifications">
+                    <div class="pdf-item-title">
+                      <span class="pdf-strong">{{ c.name || '—' }}</span>
+                      <span class="pdf-sep" *ngIf="c.issuer">—</span>
+                      <span *ngIf="c.issuer">{{ c.issuer }}</span>
+                    </div>
+                    <div class="pdf-meta" *ngIf="c.year || c.link">
+                      <span *ngIf="c.year">{{ c.year }}</span>
+                      <span *ngIf="c.year && c.link"> • </span>
+                      <span *ngIf="c.link">{{ c.link }}</span>
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
 
-          <div class="pdf-grid">
-            <div class="pdf-section">
-              <div class="pdf-h2">Compétences</div>
-              <div class="pdf-tags" *ngIf="(pdfVm.skills?.length || 0) > 0; else noSkills">
-                <span class="pdf-tag" *ngFor="let s of pdfVm.skills">{{ s }}</span>
-              </div>
-              <ng-template #noSkills>
-                <div class="pdf-muted">—</div>
-              </ng-template>
-            </div>
+              <ng-container *ngSwitchCase="'grid'">
+                <div class="pdf-grid">
+                  <div class="pdf-section">
+                    <div class="pdf-h2">Compétences</div>
+                    <div class="pdf-tags" *ngIf="(pdfVm.skills?.length || 0) > 0; else noSkills">
+                      <span class="pdf-tag" *ngFor="let s of pdfVm.skills">{{ s }}</span>
+                    </div>
+                    <ng-template #noSkills>
+                      <div class="pdf-muted">—</div>
+                    </ng-template>
+                  </div>
 
-            <div class="pdf-section">
-              <div class="pdf-h2">Langues</div>
-              <div class="pdf-tags" *ngIf="(pdfVm.languages?.length || 0) > 0; else noLang">
-                <span class="pdf-tag" *ngFor="let l of pdfVm.languages">{{ l }}</span>
-              </div>
-              <ng-template #noLang>
-                <div class="pdf-muted">—</div>
-              </ng-template>
-            </div>
+                  <div class="pdf-section">
+                    <div class="pdf-h2">Langues</div>
+                    <div class="pdf-tags" *ngIf="(pdfVm.languages?.length || 0) > 0; else noLang">
+                      <span class="pdf-tag" *ngFor="let l of pdfVm.languages">{{ l }}</span>
+                    </div>
+                    <ng-template #noLang>
+                      <div class="pdf-muted">—</div>
+                    </ng-template>
+                  </div>
 
-            <div class="pdf-section">
-              <div class="pdf-h2">Logiciels</div>
-              <div class="pdf-tags" *ngIf="(pdfVm.software?.length || 0) > 0; else noSoft">
-                <span class="pdf-tag" *ngFor="let s of pdfVm.software">{{ s }}</span>
-              </div>
-              <ng-template #noSoft>
-                <div class="pdf-muted">—</div>
-              </ng-template>
-            </div>
+                  <div class="pdf-section">
+                    <div class="pdf-h2">Logiciels</div>
+                    <div class="pdf-tags" *ngIf="(pdfVm.software?.length || 0) > 0; else noSoft">
+                      <span class="pdf-tag" *ngFor="let s of pdfVm.software">{{ s }}</span>
+                    </div>
+                    <ng-template #noSoft>
+                      <div class="pdf-muted">—</div>
+                    </ng-template>
+                  </div>
 
-            <div class="pdf-section">
-              <div class="pdf-h2">Centres d’intérêt</div>
-              <div class="pdf-tags" *ngIf="(pdfVm.interests?.length || 0) > 0; else noInterests">
-                <span class="pdf-tag" *ngFor="let it of pdfVm.interests">{{ it }}</span>
-              </div>
-              <ng-template #noInterests>
-                <div class="pdf-muted">—</div>
-              </ng-template>
-            </div>
-          </div>
+                  <div class="pdf-section">
+                    <div class="pdf-h2">Centres d’intérêt</div>
+                    <div class="pdf-tags" *ngIf="(pdfVm.interests?.length || 0) > 0; else noInterests">
+                      <span class="pdf-tag" *ngFor="let it of pdfVm.interests">{{ it }}</span>
+                    </div>
+                    <ng-template #noInterests>
+                      <div class="pdf-muted">—</div>
+                    </ng-template>
+                  </div>
+                </div>
+              </ng-container>
 
-          <div class="pdf-section">
-            <div class="pdf-h2">Liens</div>
-            <div class="pdf-tags" *ngIf="(pdfVm.links?.length || 0) > 0; else noLinks">
-              <span class="pdf-tag" *ngFor="let l of pdfVm.links">{{ l.label || l.url }}</span>
-            </div>
-            <ng-template #noLinks>
-              <div class="pdf-muted">—</div>
-            </ng-template>
-          </div>
+              <ng-container *ngSwitchCase="'links'">
+                <div class="pdf-section">
+                  <div class="pdf-h2">Liens</div>
+                  <div class="pdf-tags" *ngIf="(pdfVm.links?.length || 0) > 0; else noLinks">
+                    <span class="pdf-tag" *ngFor="let l of pdfVm.links">{{ l.label || l.url }}</span>
+                  </div>
+                  <ng-template #noLinks>
+                    <div class="pdf-muted">—</div>
+                  </ng-template>
+                </div>
+              </ng-container>
+            </ng-container>
+          </ng-container>
         </div>
       </div>
     </div>
