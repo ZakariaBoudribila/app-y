@@ -3,6 +3,11 @@
   right: 18px;
   bottom: 18px;
   z-index: 9998;
+
+  /* Le bouton reste en bas, le panneau s'ouvre au-dessus */
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-end;
 }
 
 .chat-fab {
@@ -23,7 +28,7 @@
 }
 
 .chat-panel {
-  margin-top: 10px;
+  margin-bottom: 10px;
   width: min(360px, calc(100vw - 24px));
   height: min(520px, calc(100vh - 110px));
 

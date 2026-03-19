@@ -273,9 +273,10 @@ app-root {
 }
 
 /* =============================
-   Sidebar sticky sur /pro (desktop)
+   Sidebar sticky (desktop)
    ============================= */
 @media (min-width: 768px) {
+  .app-sidebar-col,
   .pro-sidebar {
     position: sticky;
     top: 12px;
@@ -283,10 +284,12 @@ app-root {
     height: calc(100vh - 24px);
   }
 
+  .app-sidebar-col > .card,
   .pro-sidebar > .card {
     height: 100%;
   }
 
+  .app-sidebar-col .card-body,
   .pro-sidebar .card-body {
     height: 100%;
     overflow-y: auto;
