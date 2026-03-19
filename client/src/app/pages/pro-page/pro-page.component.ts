@@ -1,5 +1,5 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDragEnd, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { FormArray, FormBuilder } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { ConfirmService } from '../../services/confirm.service';
@@ -9,6 +9,7 @@ import { firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
 
 type ExperienceFormValue = {
+  uid: string;
   title: string;
   company: string;
   period: string;
@@ -16,6 +17,7 @@ type ExperienceFormValue = {
 };
 
 type EducationFormValue = {
+  uid: string;
   school: string;
   degree: string;
   period: string;
@@ -23,6 +25,7 @@ type EducationFormValue = {
 };
 
 type ProjectFormValue = {
+  uid: string;
   name: string;
   tech: string;
   link: string;
@@ -30,6 +33,7 @@ type ProjectFormValue = {
 };
 
 type CertificationFormValue = {
+  uid: string;
   name: string;
   issuer: string;
   year: string;
@@ -37,11 +41,13 @@ type CertificationFormValue = {
 };
 
 type LinkFormValue = {
+  uid: string;
   label: string;
   url: string;
 };
 
 type PdfExperience = {
+  uid: string;
   title: string;
   company: string;
   period: string;
@@ -49,6 +55,7 @@ type PdfExperience = {
 };
 
 type PdfEducation = {
+  uid: string;
   school: string;
   degree: string;
   period: string;
@@ -56,6 +63,7 @@ type PdfEducation = {
 };
 
 type PdfProject = {
+  uid: string;
   name: string;
   tech: string;
   link: string;
@@ -63,6 +71,7 @@ type PdfProject = {
 };
 
 type PdfCertification = {
+  uid: string;
   name: string;
   issuer: string;
   year: string;
@@ -70,6 +79,7 @@ type PdfCertification = {
 };
 
 type PdfLink = {
+  uid: string;
   label: string;
   url: string;
 };
@@ -108,6 +118,8 @@ type PdfSectionsLayout = {
   left: PdfSectionId[];
   right: PdfSectionId[];
 };
+
+type PdfBlockLayout = { x: number; y: number; w: number; h: number };
 
 @Component({
   selector: 'app-pro-page',
@@ -155,6 +167,19 @@ export class ProPageComponent {
     right: [...this.defaultPdfSectionsLayout.right],
   };
 
+  pdfFreeLayoutEnabled = false;
+  pdfBlocksLayout: Record<string, PdfBlockLayout> = {};
+
+  private resizeState: {
+    blockId: string;
+    startClientX: number;
+    startClientY: number;
+    startW: number;
+    startH: number;
+  } | null = null;
+
+  private previewSyncTimer: any = null;
+
   @ViewChild('pdfContent') private pdfContentRef?: ElementRef<HTMLElement>;
 
   languageInput = '';
@@ -197,7 +222,28 @@ export class ProPageComponent {
 
     this.initCvStyleDefaults();
 
+    // Aperçu en mode libre: sync léger quand on édite.
+    this.form.valueChanges.subscribe(() => {
+      if (!this.isEditing) return;
+      if (!this.pdfFreeLayoutEnabled) return;
+      this.queueSyncPdfPreview();
+    });
+
     this.load();
+  }
+
+  private newUid(): string {
+    try {
+      const uuid = (globalThis as any)?.crypto?.randomUUID?.();
+      if (typeof uuid === 'string' && uuid) return uuid;
+    } catch {
+      // ignore
+    }
+    return `uid_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  }
+
+  private clamp(n: number, min: number, max: number): number {
+    return Math.max(min, Math.min(max, n));
   }
 
   private readCssVar(name: string): string {
@@ -300,6 +346,141 @@ export class ProPageComponent {
     return { left: nextLeft, right: nextRight };
   }
 
+  private sanitizePdfBlocksLayout(input: unknown): Record<string, PdfBlockLayout> {
+    if (!input || typeof input !== 'object' || Array.isArray(input)) return {};
+
+    const out: Record<string, PdfBlockLayout> = {};
+    for (const [key, raw] of Object.entries(input as Record<string, any>)) {
+      if (typeof key !== 'string' || !key.trim()) continue;
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) continue;
+
+      const x = Number((raw as any).x);
+      const y = Number((raw as any).y);
+      const w = Number((raw as any).w);
+      const h = Number((raw as any).h);
+      if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(w) || !Number.isFinite(h)) continue;
+
+      out[key] = {
+        x: Math.max(0, Math.round(x)),
+        y: Math.max(0, Math.round(y)),
+        w: Math.max(60, Math.round(w)),
+        h: Math.max(40, Math.round(h)),
+      };
+    }
+    return out;
+  }
+
+  onFreeLayoutToggle(enabled: boolean) {
+    if (!this.isEditing) return;
+    this.pdfFreeLayoutEnabled = !!enabled;
+    this.form.markAsDirty();
+    if (this.pdfFreeLayoutEnabled) {
+      this.queueSyncPdfPreview();
+    }
+  }
+
+  private getUserForPdfPreview(): { fullName: string; email: string; avatarDataUrl: string | null } {
+    return this.userVm ?? { fullName: '—', email: '', avatarDataUrl: null };
+  }
+
+  private queueSyncPdfPreview() {
+    if (this.previewSyncTimer) return;
+    this.previewSyncTimer = setTimeout(() => {
+      this.previewSyncTimer = null;
+      try {
+        const user = this.getUserForPdfPreview();
+        this.pdfVm = this.cleanCvForPdf(this.getPayloadFromForm(), user);
+        this.pdfGeneratedAt = new Date();
+      } catch {
+        // ignore
+      }
+    }, 0);
+  }
+
+  getBlockLayout(blockId: string): PdfBlockLayout {
+    const existing = this.pdfBlocksLayout[blockId];
+    if (existing) return existing;
+
+    // Auto-layout simple si le bloc n'a jamais été positionné.
+    // Canvas interne ~ 794 - 2*28 = 738.
+    const canvasW = 738;
+    const canvasH = 1123 - 2 * 28;
+    const defaultW = this.clamp(canvasW, 200, canvasW);
+    const defaultH = 120;
+
+    const count = Object.keys(this.pdfBlocksLayout).length;
+    const col = count % 2;
+    const row = Math.floor(count / 2);
+    const x = col === 0 ? 0 : Math.floor(canvasW / 2) + 6;
+    const y = this.clamp(row * 130, 0, canvasH - 60);
+    const w = col === 0 ? Math.floor(canvasW / 2) - 6 : Math.floor(canvasW / 2) - 6;
+
+    const created: PdfBlockLayout = { x, y, w: Math.max(220, w), h: defaultH };
+    this.pdfBlocksLayout = { ...this.pdfBlocksLayout, [blockId]: created };
+    return created;
+  }
+
+  onBlockDragEnded(blockId: string, event: CdkDragEnd) {
+    if (!this.isEditing) return;
+    if (!this.pdfFreeLayoutEnabled) return;
+
+    const pos = event?.source?.getFreeDragPosition?.();
+    if (!pos) return;
+
+    const prev = this.getBlockLayout(blockId);
+    this.pdfBlocksLayout = {
+      ...this.pdfBlocksLayout,
+      [blockId]: {
+        ...prev,
+        x: Math.max(0, Math.round(pos.x)),
+        y: Math.max(0, Math.round(pos.y)),
+      },
+    };
+
+    this.form.markAsDirty();
+  }
+
+  onResizeStart(blockId: string, ev: MouseEvent) {
+    if (!this.isEditing) return;
+    if (!this.pdfFreeLayoutEnabled) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    const prev = this.getBlockLayout(blockId);
+    this.resizeState = {
+      blockId,
+      startClientX: ev.clientX,
+      startClientY: ev.clientY,
+      startW: prev.w,
+      startH: prev.h,
+    };
+
+    const onMove = (e: MouseEvent) => {
+      if (!this.resizeState) return;
+      const dx = e.clientX - this.resizeState.startClientX;
+      const dy = e.clientY - this.resizeState.startClientY;
+
+      const nextW = Math.max(80, Math.round(this.resizeState.startW + dx));
+      const nextH = Math.max(60, Math.round(this.resizeState.startH + dy));
+      const id = this.resizeState.blockId;
+      const current = this.getBlockLayout(id);
+      this.pdfBlocksLayout = {
+        ...this.pdfBlocksLayout,
+        [id]: { ...current, w: nextW, h: nextH },
+      };
+      this.form.markAsDirty();
+    };
+
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      this.resizeState = null;
+    };
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }
+
   getPdfSectionLabel(id: PdfSectionId): string {
     return this.pdfSectionCatalog.find((x) => x.id === id)?.label || id;
   }
@@ -395,6 +576,7 @@ export class ProPageComponent {
 
   private createExperienceGroup(value?: Partial<ExperienceFormValue>) {
     return this.fb.group({
+      uid: this.fb.control(value?.uid ?? this.newUid(), { nonNullable: true }),
       title: this.fb.control(value?.title ?? '', { nonNullable: true }),
       company: this.fb.control(value?.company ?? '', { nonNullable: true }),
       period: this.fb.control(value?.period ?? '', { nonNullable: true }),
@@ -404,6 +586,7 @@ export class ProPageComponent {
 
   private createEducationGroup(value?: Partial<EducationFormValue>) {
     return this.fb.group({
+      uid: this.fb.control(value?.uid ?? this.newUid(), { nonNullable: true }),
       school: this.fb.control(value?.school ?? '', { nonNullable: true }),
       degree: this.fb.control(value?.degree ?? '', { nonNullable: true }),
       period: this.fb.control(value?.period ?? '', { nonNullable: true }),
@@ -413,6 +596,7 @@ export class ProPageComponent {
 
   private createProjectGroup(value?: Partial<ProjectFormValue>) {
     return this.fb.group({
+      uid: this.fb.control(value?.uid ?? this.newUid(), { nonNullable: true }),
       name: this.fb.control(value?.name ?? '', { nonNullable: true }),
       tech: this.fb.control(value?.tech ?? '', { nonNullable: true }),
       link: this.fb.control(value?.link ?? '', { nonNullable: true }),
@@ -422,6 +606,7 @@ export class ProPageComponent {
 
   private createCertificationGroup(value?: Partial<CertificationFormValue>) {
     return this.fb.group({
+      uid: this.fb.control(value?.uid ?? this.newUid(), { nonNullable: true }),
       name: this.fb.control(value?.name ?? '', { nonNullable: true }),
       issuer: this.fb.control(value?.issuer ?? '', { nonNullable: true }),
       year: this.fb.control(value?.year ?? '', { nonNullable: true }),
@@ -431,6 +616,7 @@ export class ProPageComponent {
 
   private createLinkGroup(value?: Partial<LinkFormValue>) {
     return this.fb.group({
+      uid: this.fb.control(value?.uid ?? this.newUid(), { nonNullable: true }),
       label: this.fb.control(value?.label ?? '', { nonNullable: true }),
       url: this.fb.control(value?.url ?? '', { nonNullable: true }),
     });
@@ -692,15 +878,21 @@ export class ProPageComponent {
   private normalizeIncomingProfile(p: ProfessionalProfile): ProfessionalProfile {
     const orderRaw = (p as any)?.pdfSectionsOrder ?? (p as any)?.pdf_sections_order;
     const layoutRaw = (p as any)?.pdfSectionsLayout ?? (p as any)?.pdf_sections_layout;
+    const freeEnabledRaw = (p as any)?.pdfFreeLayoutEnabled ?? (p as any)?.pdf_free_layout_enabled;
+    const blocksRaw = (p as any)?.pdfBlocksLayout ?? (p as any)?.pdf_blocks_layout;
 
     const sanitizedOrder = this.sanitizePdfSectionsOrder(orderRaw);
     const sanitizedLayout = this.sanitizePdfSectionsLayout(layoutRaw, sanitizedOrder);
+    const sanitizedBlocks = this.sanitizePdfBlocksLayout(blocksRaw);
+    const freeEnabled = !!freeEnabledRaw;
 
     return {
       jobTitle: typeof (p as any)?.jobTitle === 'string' ? (p as any).jobTitle : (typeof (p as any)?.job_title === 'string' ? (p as any).job_title : ''),
       headline: typeof (p as any)?.headline === 'string' ? (p as any).headline : '',
       pdfSectionsOrder: sanitizedOrder,
       pdfSectionsLayout: { left: [...sanitizedLayout.left], right: [...sanitizedLayout.right] },
+      pdfFreeLayoutEnabled: freeEnabled,
+      pdfBlocksLayout: sanitizedBlocks,
       phone: typeof (p as any)?.phone === 'string' ? (p as any).phone : '',
       address: typeof (p as any)?.address === 'string' ? (p as any).address : '',
       linkedin: typeof (p as any)?.linkedin === 'string' ? (p as any).linkedin : '',
@@ -741,6 +933,9 @@ export class ProPageComponent {
     const sanitizedLayout = this.sanitizePdfSectionsLayout((profile as any).pdfSectionsLayout, sanitizedOrder);
     this.pdfSectionsLayout = sanitizedLayout;
     this.pdfSectionOrder = [...sanitizedLayout.left, ...sanitizedLayout.right];
+
+    this.pdfFreeLayoutEnabled = !!(profile as any).pdfFreeLayoutEnabled;
+    this.pdfBlocksLayout = this.sanitizePdfBlocksLayout((profile as any).pdfBlocksLayout);
     this.form.controls.jobTitle.setValue(profile.jobTitle || '');
     this.form.controls.headline.setValue(profile.headline || '');
     this.form.controls.phone.setValue(profile.phone || '');
@@ -794,6 +989,8 @@ export class ProPageComponent {
         left: [...this.pdfSectionsLayout.left],
         right: [...this.pdfSectionsLayout.right],
       },
+      pdfFreeLayoutEnabled: !!this.pdfFreeLayoutEnabled,
+      pdfBlocksLayout: { ...this.pdfBlocksLayout },
       phone: raw.phone || '',
       address: raw.address || '',
       linkedin: raw.linkedin || '',
@@ -856,6 +1053,7 @@ export class ProPageComponent {
 
   private toExperienceFormValue(item: any): ExperienceFormValue {
     return {
+      uid: typeof item?.uid === 'string' && item.uid ? item.uid : this.newUid(),
       title: typeof item?.title === 'string' ? item.title : '',
       company: typeof item?.company === 'string' ? item.company : '',
       period: typeof item?.period === 'string' ? item.period : '',
@@ -865,6 +1063,7 @@ export class ProPageComponent {
 
   private toEducationFormValue(item: any): EducationFormValue {
     return {
+      uid: typeof item?.uid === 'string' && item.uid ? item.uid : this.newUid(),
       school: typeof item?.school === 'string' ? item.school : '',
       degree: typeof item?.degree === 'string' ? item.degree : '',
       period: typeof item?.period === 'string' ? item.period : '',
@@ -874,6 +1073,7 @@ export class ProPageComponent {
 
   private toProjectFormValue(item: any): ProjectFormValue {
     return {
+      uid: typeof item?.uid === 'string' && item.uid ? item.uid : this.newUid(),
       name: typeof item?.name === 'string' ? item.name : '',
       tech: typeof item?.tech === 'string' ? item.tech : '',
       link: typeof item?.link === 'string' ? item.link : '',
@@ -883,6 +1083,7 @@ export class ProPageComponent {
 
   private toCertificationFormValue(item: any): CertificationFormValue {
     return {
+      uid: typeof item?.uid === 'string' && item.uid ? item.uid : this.newUid(),
       name: typeof item?.name === 'string' ? item.name : '',
       issuer: typeof item?.issuer === 'string' ? item.issuer : '',
       year: typeof item?.year === 'string' ? item.year : '',
@@ -892,6 +1093,7 @@ export class ProPageComponent {
 
   private toLinkFormValue(item: any): LinkFormValue {
     return {
+      uid: typeof item?.uid === 'string' && item.uid ? item.uid : this.newUid(),
       label: typeof item?.label === 'string' ? item.label : '',
       url: typeof item?.url === 'string' ? item.url : '',
     };
@@ -1008,6 +1210,7 @@ export class ProPageComponent {
 
     const experiences = (profile.experiences || [])
       .map((x) => ({
+        uid: typeof (x as any)?.uid === 'string' && (x as any).uid ? (x as any).uid : this.newUid(),
         title: trim((x as any)?.title),
         company: trim((x as any)?.company),
         period: trim((x as any)?.period),
@@ -1017,6 +1220,7 @@ export class ProPageComponent {
 
     const education = (profile.education || [])
       .map((x) => ({
+        uid: typeof (x as any)?.uid === 'string' && (x as any).uid ? (x as any).uid : this.newUid(),
         school: trim((x as any)?.school),
         degree: trim((x as any)?.degree),
         period: trim((x as any)?.period),
@@ -1026,6 +1230,7 @@ export class ProPageComponent {
 
     const projects = ((profile as any).projects || [])
       .map((x: any) => ({
+        uid: typeof x?.uid === 'string' && x.uid ? x.uid : this.newUid(),
         name: trim(x?.name),
         tech: trim(x?.tech),
         link: trim(x?.link),
@@ -1035,6 +1240,7 @@ export class ProPageComponent {
 
     const certifications = ((profile as any).certifications || [])
       .map((x: any) => ({
+        uid: typeof x?.uid === 'string' && x.uid ? x.uid : this.newUid(),
         name: trim(x?.name),
         issuer: trim(x?.issuer),
         year: trim(x?.year),
@@ -1044,6 +1250,7 @@ export class ProPageComponent {
 
     const links = ((profile as any).links || [])
       .map((x: any) => ({
+        uid: typeof x?.uid === 'string' && x.uid ? x.uid : this.newUid(),
         label: trim(x?.label),
         url: trim(x?.url),
       }))

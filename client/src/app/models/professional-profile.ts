@@ -3,6 +3,8 @@ export interface ProfessionalProfile {
   headline?: string;
   pdfSectionsOrder?: string[];
   pdfSectionsLayout?: { left: string[]; right: string[] };
+  pdfFreeLayoutEnabled?: boolean;
+  pdfBlocksLayout?: Record<string, { x: number; y: number; w: number; h: number }>;
   aboutMe: string;
   experiences: Array<Record<string, any>>;
   education: Array<Record<string, any>>;

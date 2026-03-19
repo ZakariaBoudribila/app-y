@@ -86,6 +86,40 @@ function normalizePdfSectionsLayout(value) {
   return { left: pick(leftRaw), right: pick(rightRaw) };
 }
 
+function normalizeBool(value) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value !== 0;
+  if (typeof value === 'string') {
+    const s = value.trim().toLowerCase();
+    if (s === 'true' || s === '1' || s === 'yes' || s === 'y') return true;
+    if (s === 'false' || s === '0' || s === 'no' || s === 'n') return false;
+  }
+  return false;
+}
+
+function normalizePdfBlocksLayout(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const out = {};
+
+  for (const [key, raw] of Object.entries(value)) {
+    if (typeof key !== 'string' || !key.trim()) continue;
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) continue;
+    const x = Number(raw.x);
+    const y = Number(raw.y);
+    const w = Number(raw.w);
+    const h = Number(raw.h);
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(w) || !Number.isFinite(h)) continue;
+    out[key] = {
+      x: Math.max(0, Math.round(x)),
+      y: Math.max(0, Math.round(y)),
+      w: Math.max(40, Math.round(w)),
+      h: Math.max(24, Math.round(h)),
+    };
+  }
+
+  return out;
+}
+
 function toProfessionalProfileDto(row) {
   if (!row) {
     return {
@@ -93,6 +127,8 @@ function toProfessionalProfileDto(row) {
       headline: '',
       pdfSectionsOrder: [],
       pdfSectionsLayout: { left: [], right: [] },
+      pdfFreeLayoutEnabled: false,
+      pdfBlocksLayout: {},
       aboutMe: '',
       experiences: [],
       education: [],
@@ -114,6 +150,8 @@ function toProfessionalProfileDto(row) {
     headline: row.headline ?? '',
     pdfSectionsOrder: Array.isArray(row.pdf_sections_order) ? row.pdf_sections_order : [],
     pdfSectionsLayout: normalizePdfSectionsLayout(row.pdf_sections_layout),
+    pdfFreeLayoutEnabled: normalizeBool(row.pdf_free_layout_enabled),
+    pdfBlocksLayout: normalizePdfBlocksLayout(row.pdf_blocks_layout),
     aboutMe: row.about_me ?? '',
     experiences: row.experiences ?? [],
     education: row.education ?? [],
@@ -167,6 +205,12 @@ exports.saveProfile = async (req, res) => {
       pdfSectionsLayout: Object.prototype.hasOwnProperty.call(body, 'pdfSectionsLayout')
         ? normalizePdfSectionsLayout(body.pdfSectionsLayout)
         : normalizePdfSectionsLayout(existing?.pdf_sections_layout),
+      pdfFreeLayoutEnabled: Object.prototype.hasOwnProperty.call(body, 'pdfFreeLayoutEnabled')
+        ? normalizeBool(body.pdfFreeLayoutEnabled)
+        : normalizeBool(existing?.pdf_free_layout_enabled),
+      pdfBlocksLayout: Object.prototype.hasOwnProperty.call(body, 'pdfBlocksLayout')
+        ? normalizePdfBlocksLayout(body.pdfBlocksLayout)
+        : normalizePdfBlocksLayout(existing?.pdf_blocks_layout),
       aboutMe: typeof body.aboutMe === 'string' ? body.aboutMe : '',
       experiences: Array.isArray(body.experiences) ? body.experiences : [],
       education: Array.isArray(body.education) ? body.education : [],

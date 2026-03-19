@@ -114,6 +114,40 @@ function normalizePdfSectionsLayout(value) {
   };
 }
 
+function normalizeBool(value) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value !== 0;
+  if (typeof value === 'string') {
+    const s = value.trim().toLowerCase();
+    if (s === 'true' || s === '1' || s === 'yes' || s === 'y') return true;
+    if (s === 'false' || s === '0' || s === 'no' || s === 'n') return false;
+  }
+  return false;
+}
+
+function normalizePdfBlocksLayout(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const out = {};
+
+  for (const [key, raw] of Object.entries(value)) {
+    if (typeof key !== 'string' || !key.trim()) continue;
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) continue;
+    const x = Number(raw.x);
+    const y = Number(raw.y);
+    const w = Number(raw.w);
+    const h = Number(raw.h);
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(w) || !Number.isFinite(h)) continue;
+    out[key] = {
+      x: Math.max(0, Math.round(x)),
+      y: Math.max(0, Math.round(y)),
+      w: Math.max(40, Math.round(w)),
+      h: Math.max(24, Math.round(h)),
+    };
+  }
+
+  return out;
+}
+
 function normalizeString(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
@@ -122,7 +156,8 @@ const ProfileModel = {
   async getProfile(userId) {
     const sql = `
       SELECT user_id, about_me, experiences, education, languages, software, phone, address, linkedin,
-             job_title, headline, skills, interests, links, projects, certifications, pdf_sections_order, pdf_sections_layout
+             job_title, headline, skills, interests, links, projects, certifications,
+             pdf_sections_order, pdf_sections_layout, pdf_free_layout_enabled, pdf_blocks_layout
       FROM user_profiles
       WHERE user_id = ?
     `;
@@ -140,13 +175,16 @@ const ProfileModel = {
         certifications: normalizeJsonArray(row.certifications),
         pdf_sections_order: normalizeStringArrayFromJson(row.pdf_sections_order),
         pdf_sections_layout: normalizePdfSectionsLayout(row.pdf_sections_layout),
+        pdf_free_layout_enabled: normalizeBool(row.pdf_free_layout_enabled),
+        pdf_blocks_layout: normalizePdfBlocksLayout(row.pdf_blocks_layout),
       };
     }
 
     // Fallback: ancienne table `profiles` (si des données existent déjà en base)
     const legacySql = `
       SELECT user_id, about_me, experiences, education, languages, software, phone, address, linkedin,
-             job_title, headline, skills, interests, links, projects, certifications, pdf_sections_order, pdf_sections_layout
+             job_title, headline, skills, interests, links, projects, certifications,
+             pdf_sections_order, pdf_sections_layout, pdf_free_layout_enabled, pdf_blocks_layout
       FROM profiles
       WHERE user_id = ?
     `;
@@ -164,6 +202,8 @@ const ProfileModel = {
       certifications: normalizeJsonArray(legacy.certifications),
       pdf_sections_order: normalizeStringArrayFromJson(legacy.pdf_sections_order),
       pdf_sections_layout: normalizePdfSectionsLayout(legacy.pdf_sections_layout),
+      pdf_free_layout_enabled: normalizeBool(legacy.pdf_free_layout_enabled),
+      pdf_blocks_layout: normalizePdfBlocksLayout(legacy.pdf_blocks_layout),
     };
 
     // Copie best-effort vers user_profiles
@@ -182,6 +222,8 @@ const ProfileModel = {
         certifications: normalizeJsonArray(copied.certifications),
         pdf_sections_order: normalizeStringArrayFromJson(copied.pdf_sections_order),
         pdf_sections_layout: normalizePdfSectionsLayout(copied.pdf_sections_layout),
+        pdf_free_layout_enabled: normalizeBool(copied.pdf_free_layout_enabled),
+        pdf_blocks_layout: normalizePdfBlocksLayout(copied.pdf_blocks_layout),
       };
     } catch {
       return normalizedLegacy;
@@ -207,17 +249,21 @@ const ProfileModel = {
     const certifications = normalizeJsonArray(data?.certifications);
     const pdfSectionsOrder = normalizeStringArrayFromJson(data?.pdf_sections_order ?? data?.pdfSectionsOrder);
     const pdfSectionsLayout = normalizePdfSectionsLayout(data?.pdf_sections_layout ?? data?.pdfSectionsLayout);
+    const pdfFreeLayoutEnabled = normalizeBool(data?.pdf_free_layout_enabled ?? data?.pdfFreeLayoutEnabled);
+    const pdfBlocksLayout = normalizePdfBlocksLayout(data?.pdf_blocks_layout ?? data?.pdfBlocksLayout);
 
     const sql = `
       INSERT INTO user_profiles (
         user_id, about_me, experiences, education, languages, software,
         phone, address, linkedin,
-        job_title, headline, skills, interests, links, projects, certifications, pdf_sections_order, pdf_sections_layout
+        job_title, headline, skills, interests, links, projects, certifications,
+        pdf_sections_order, pdf_sections_layout, pdf_free_layout_enabled, pdf_blocks_layout
       )
       VALUES (
         ?, ?, ?::jsonb, ?::jsonb, ?::text[], ?::text[],
         ?, ?, ?,
-        ?, ?, ?::text[], ?::text[], ?::jsonb, ?::jsonb, ?::jsonb, ?::jsonb, ?::jsonb
+        ?, ?, ?::text[], ?::text[], ?::jsonb, ?::jsonb, ?::jsonb,
+        ?::jsonb, ?::jsonb, ?, ?::jsonb
       )
       ON CONFLICT (user_id)
       DO UPDATE SET
@@ -237,7 +283,9 @@ const ProfileModel = {
         projects = EXCLUDED.projects,
         certifications = EXCLUDED.certifications,
         pdf_sections_order = EXCLUDED.pdf_sections_order,
-        pdf_sections_layout = EXCLUDED.pdf_sections_layout
+        pdf_sections_layout = EXCLUDED.pdf_sections_layout,
+        pdf_free_layout_enabled = EXCLUDED.pdf_free_layout_enabled,
+        pdf_blocks_layout = EXCLUDED.pdf_blocks_layout
     `;
 
     await dbRun(sql, [
@@ -259,6 +307,8 @@ const ProfileModel = {
       JSON.stringify(certifications),
       JSON.stringify(pdfSectionsOrder),
       JSON.stringify(pdfSectionsLayout),
+      pdfFreeLayoutEnabled,
+      JSON.stringify(pdfBlocksLayout),
     ]);
 
     // Compat: maintient aussi l'ancienne table `profiles` (si elle est consultée ailleurs).
@@ -267,12 +317,14 @@ const ProfileModel = {
       INSERT INTO profiles (
         user_id, about_me, experiences, education, languages, software,
         phone, address, linkedin,
-        job_title, headline, skills, interests, links, projects, certifications, pdf_sections_order, pdf_sections_layout
+        job_title, headline, skills, interests, links, projects, certifications,
+        pdf_sections_order, pdf_sections_layout, pdf_free_layout_enabled, pdf_blocks_layout
       )
       VALUES (
         ?, ?, ?::jsonb, ?::jsonb, ?::text[], ?::text[],
         ?, ?, ?,
-        ?, ?, ?::text[], ?::text[], ?::jsonb, ?::jsonb, ?::jsonb, ?::jsonb, ?::jsonb
+        ?, ?, ?::text[], ?::text[], ?::jsonb, ?::jsonb, ?::jsonb,
+        ?::jsonb, ?::jsonb, ?, ?::jsonb
       )
       ON CONFLICT (user_id)
       DO UPDATE SET
@@ -292,7 +344,9 @@ const ProfileModel = {
         projects = EXCLUDED.projects,
         certifications = EXCLUDED.certifications,
         pdf_sections_order = EXCLUDED.pdf_sections_order,
-        pdf_sections_layout = EXCLUDED.pdf_sections_layout
+        pdf_sections_layout = EXCLUDED.pdf_sections_layout,
+        pdf_free_layout_enabled = EXCLUDED.pdf_free_layout_enabled,
+        pdf_blocks_layout = EXCLUDED.pdf_blocks_layout
     `;
 
     try {
@@ -315,6 +369,8 @@ const ProfileModel = {
         JSON.stringify(certifications),
         JSON.stringify(pdfSectionsOrder),
         JSON.stringify(pdfSectionsLayout),
+        pdfFreeLayoutEnabled,
+        JSON.stringify(pdfBlocksLayout),
       ]);
     } catch {
       // Best-effort only.

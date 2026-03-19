@@ -12,6 +12,8 @@ ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS projects JSONB NOT NULL DEFAU
 ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS certifications JSONB NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS pdf_sections_order JSONB NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS pdf_sections_layout JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS pdf_free_layout_enabled BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS pdf_blocks_layout JSONB NOT NULL DEFAULT '{}'::jsonb;
 
 -- legacy profiles (compat)
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS job_title TEXT;
@@ -23,5 +25,7 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS projects JSONB NOT NULL DEFAULT '[
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS certifications JSONB NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pdf_sections_order JSONB NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pdf_sections_layout JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pdf_free_layout_enabled BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pdf_blocks_layout JSONB NOT NULL DEFAULT '{}'::jsonb;
 
 COMMIT;

@@ -97,9 +97,18 @@
         <div class="section-header">
           <h2>Disposition du PDF</h2>
           <div class="pdf-muted" *ngIf="!isEditing">Clique sur « Modifier » puis glisse les blocs à gauche/droite et en haut/bas.</div>
+          <label class="pdf-canva-toggle" *ngIf="isEditing">
+            <input
+              type="checkbox"
+              [(ngModel)]="pdfFreeLayoutEnabled"
+              (ngModelChange)="onFreeLayoutToggle($event)"
+              [ngModelOptions]="{ standalone: true }"
+              name="pdfFreeLayoutEnabled" />
+            <span>Mode Canva (libre)</span>
+          </label>
         </div>
 
-        <div class="pdf-layout-grid">
+        <div class="pdf-layout-grid" *ngIf="!pdfFreeLayoutEnabled">
           <div class="pdf-layout-col">
             <div class="pdf-layout-title">Colonne gauche</div>
             <div
@@ -131,6 +140,15 @@
                 <span class="pdf-order-handle" cdkDragHandle aria-hidden="true">⋮⋮</span>
                 <span class="pdf-order-text">{{ getPdfSectionLabel(id) }}</span>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pdf-canva" *ngIf="pdfFreeLayoutEnabled">
+          <div class="pdf-muted" *ngIf="!pdfVm">Aperçu en cours…</div>
+          <div class="pdf-preview" *ngIf="pdfVm">
+            <div class="pdf-surface" [style.--pdf-primary]="cvPrimaryColor" [style.--pdf-accent]="cvAccentColor">
+              <ng-container *ngTemplateOutlet="pdfBodyTemplate; context: { interactive: true }"></ng-container>
             </div>
           </div>
         </div>
@@ -424,30 +442,345 @@
       </form>
 
       <!-- Rendu dédié PDF (hors écran) -->
-      <div class="pdf-root" *ngIf="pdfVm" aria-hidden="true">
-        <div
-          class="pdf-surface"
-          #pdfContent
-          [style.--pdf-primary]="cvPrimaryColor"
-          [style.--pdf-accent]="cvAccentColor">
+      <ng-template #pdfBodyTemplate let-interactive="interactive">
+        <ng-container *ngIf="pdfFreeLayoutEnabled; else structuredPdf">
+          <div class="pdf-canvas">
+            <!-- Header (bloc) -->
+            <div
+              class="pdf-block pdf-block--header"
+              *ngIf="getBlockLayout('header') as l"
+              [style.width.px]="l.w"
+              [style.height.px]="l.h"
+              cdkDrag
+              [cdkDragFreeDragPosition]="{ x: l.x, y: l.y }"
+              (cdkDragEnded)="onBlockDragEnded('header', $event)"
+              [cdkDragDisabled]="!interactive">
+              <div class="pdf-header">
+                <div class="pdf-header-left">
+                  <div class="pdf-avatar" *ngIf="pdfVm?.avatarDataUrl; else pdfNoAvatar2">
+                    <img [src]="pdfVm?.avatarDataUrl" alt="Photo" />
+                  </div>
+                  <ng-template #pdfNoAvatar2>
+                    <div class="pdf-avatar"></div>
+                  </ng-template>
+
+                  <div class="pdf-id">
+                    <div class="pdf-title">{{ pdfVm?.fullName || '—' }}</div>
+                    <div class="pdf-role" *ngIf="pdfVm?.jobTitle">{{ pdfVm?.jobTitle }}</div>
+                    <div class="pdf-headline" *ngIf="pdfVm?.headline">{{ pdfVm?.headline }}</div>
+                    <div class="pdf-subtitle">
+                      <span *ngIf="pdfVm?.email">{{ pdfVm?.email }}</span>
+                      <span *ngIf="pdfVm?.phone">• {{ pdfVm?.phone }}</span>
+                      <span *ngIf="pdfVm?.address">• {{ pdfVm?.address }}</span>
+                      <span *ngIf="pdfVm?.linkedin">• {{ pdfVm?.linkedin }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="pdf-meta" *ngIf="pdfGeneratedAt as d">{{ d | date: 'dd/MM/yyyy' }}</div>
+              </div>
+
+              <button
+                class="pdf-resize-handle"
+                type="button"
+                *ngIf="interactive"
+                (mousedown)="onResizeStart('header', $event)"
+                aria-label="Redimensionner"></button>
+            </div>
+
+            <!-- Profil -->
+            <div
+              class="pdf-block"
+              *ngIf="getBlockLayout('profile') as l"
+              [style.width.px]="l.w"
+              [style.height.px]="l.h"
+              cdkDrag
+              [cdkDragFreeDragPosition]="{ x: l.x, y: l.y }"
+              (cdkDragEnded)="onBlockDragEnded('profile', $event)"
+              [cdkDragDisabled]="!interactive">
+              <div class="pdf-h2">Profil</div>
+              <div class="pdf-text" *ngIf="pdfVm?.aboutMe; else noAboutFree">{{ pdfVm?.aboutMe }}</div>
+              <ng-template #noAboutFree>
+                <div class="pdf-muted">—</div>
+              </ng-template>
+              <button
+                class="pdf-resize-handle"
+                type="button"
+                *ngIf="interactive"
+                (mousedown)="onResizeStart('profile', $event)"
+                aria-label="Redimensionner"></button>
+            </div>
+
+            <!-- Expériences -->
+            <ng-container *ngFor="let exp of (pdfVm?.experiences || [])">
+              <div
+                class="pdf-block"
+                *ngIf="getBlockLayout('exp:' + exp.uid) as l"
+                [style.width.px]="l.w"
+                [style.height.px]="l.h"
+                cdkDrag
+                [cdkDragFreeDragPosition]="{ x: l.x, y: l.y }"
+                (cdkDragEnded)="onBlockDragEnded('exp:' + exp.uid, $event)"
+                [cdkDragDisabled]="!interactive">
+                <div class="pdf-h2">Expérience</div>
+                <div class="pdf-item">
+                  <div class="pdf-item-title">
+                    <span class="pdf-strong">{{ exp.title || '—' }}</span>
+                    <span class="pdf-sep" *ngIf="exp.company">—</span>
+                    <span *ngIf="exp.company">{{ exp.company }}</span>
+                  </div>
+                  <div class="pdf-meta" *ngIf="exp.period">{{ exp.period }}</div>
+                  <div class="pdf-text" *ngIf="exp.description">{{ exp.description }}</div>
+                </div>
+                <button
+                  class="pdf-resize-handle"
+                  type="button"
+                  *ngIf="interactive"
+                  (mousedown)="onResizeStart('exp:' + exp.uid, $event)"
+                  aria-label="Redimensionner"></button>
+              </div>
+            </ng-container>
+
+            <!-- Éducation -->
+            <ng-container *ngFor="let edu of (pdfVm?.education || [])">
+              <div
+                class="pdf-block"
+                *ngIf="getBlockLayout('edu:' + edu.uid) as l"
+                [style.width.px]="l.w"
+                [style.height.px]="l.h"
+                cdkDrag
+                [cdkDragFreeDragPosition]="{ x: l.x, y: l.y }"
+                (cdkDragEnded)="onBlockDragEnded('edu:' + edu.uid, $event)"
+                [cdkDragDisabled]="!interactive">
+                <div class="pdf-h2">Formation</div>
+                <div class="pdf-item">
+                  <div class="pdf-item-title">
+                    <span class="pdf-strong">{{ edu.school || '—' }}</span>
+                    <span class="pdf-sep" *ngIf="edu.degree">—</span>
+                    <span *ngIf="edu.degree">{{ edu.degree }}</span>
+                  </div>
+                  <div class="pdf-meta" *ngIf="edu.period">{{ edu.period }}</div>
+                  <div class="pdf-text" *ngIf="edu.description">{{ edu.description }}</div>
+                </div>
+                <button
+                  class="pdf-resize-handle"
+                  type="button"
+                  *ngIf="interactive"
+                  (mousedown)="onResizeStart('edu:' + edu.uid, $event)"
+                  aria-label="Redimensionner"></button>
+              </div>
+            </ng-container>
+
+            <!-- Projets -->
+            <ng-container *ngFor="let p of (pdfVm?.projects || [])">
+              <div
+                class="pdf-block"
+                *ngIf="getBlockLayout('prj:' + p.uid) as l"
+                [style.width.px]="l.w"
+                [style.height.px]="l.h"
+                cdkDrag
+                [cdkDragFreeDragPosition]="{ x: l.x, y: l.y }"
+                (cdkDragEnded)="onBlockDragEnded('prj:' + p.uid, $event)"
+                [cdkDragDisabled]="!interactive">
+                <div class="pdf-h2">Projet</div>
+                <div class="pdf-item">
+                  <div class="pdf-item-title">
+                    <span class="pdf-strong">{{ p.name || '—' }}</span>
+                    <span class="pdf-sep" *ngIf="p.tech">—</span>
+                    <span *ngIf="p.tech">{{ p.tech }}</span>
+                  </div>
+                  <div class="pdf-meta" *ngIf="p.link">{{ p.link }}</div>
+                  <div class="pdf-text" *ngIf="p.description">{{ p.description }}</div>
+                </div>
+                <button
+                  class="pdf-resize-handle"
+                  type="button"
+                  *ngIf="interactive"
+                  (mousedown)="onResizeStart('prj:' + p.uid, $event)"
+                  aria-label="Redimensionner"></button>
+              </div>
+            </ng-container>
+
+            <!-- Certifications -->
+            <ng-container *ngFor="let c of (pdfVm?.certifications || [])">
+              <div
+                class="pdf-block"
+                *ngIf="getBlockLayout('cert:' + c.uid) as l"
+                [style.width.px]="l.w"
+                [style.height.px]="l.h"
+                cdkDrag
+                [cdkDragFreeDragPosition]="{ x: l.x, y: l.y }"
+                (cdkDragEnded)="onBlockDragEnded('cert:' + c.uid, $event)"
+                [cdkDragDisabled]="!interactive">
+                <div class="pdf-h2">Certification</div>
+                <div class="pdf-item">
+                  <div class="pdf-item-title">
+                    <span class="pdf-strong">{{ c.name || '—' }}</span>
+                    <span class="pdf-sep" *ngIf="c.issuer">—</span>
+                    <span *ngIf="c.issuer">{{ c.issuer }}</span>
+                  </div>
+                  <div class="pdf-meta" *ngIf="c.year || c.link">
+                    <span *ngIf="c.year">{{ c.year }}</span>
+                    <span *ngIf="c.year && c.link"> • </span>
+                    <span *ngIf="c.link">{{ c.link }}</span>
+                  </div>
+                </div>
+                <button
+                  class="pdf-resize-handle"
+                  type="button"
+                  *ngIf="interactive"
+                  (mousedown)="onResizeStart('cert:' + c.uid, $event)"
+                  aria-label="Redimensionner"></button>
+              </div>
+            </ng-container>
+
+            <!-- Compétences -->
+            <div
+              class="pdf-block"
+              *ngIf="getBlockLayout('skills') as l"
+              [style.width.px]="l.w"
+              [style.height.px]="l.h"
+              cdkDrag
+              [cdkDragFreeDragPosition]="{ x: l.x, y: l.y }"
+              (cdkDragEnded)="onBlockDragEnded('skills', $event)"
+              [cdkDragDisabled]="!interactive">
+              <div class="pdf-h2">Compétences</div>
+              <div class="pdf-tags" *ngIf="(pdfVm?.skills?.length || 0) > 0; else noSkillsFree">
+                <span class="pdf-tag" *ngFor="let s of pdfVm?.skills">{{ s }}</span>
+              </div>
+              <ng-template #noSkillsFree>
+                <div class="pdf-muted">—</div>
+              </ng-template>
+              <button
+                class="pdf-resize-handle"
+                type="button"
+                *ngIf="interactive"
+                (mousedown)="onResizeStart('skills', $event)"
+                aria-label="Redimensionner"></button>
+            </div>
+
+            <!-- Langues -->
+            <div
+              class="pdf-block"
+              *ngIf="getBlockLayout('languages') as l"
+              [style.width.px]="l.w"
+              [style.height.px]="l.h"
+              cdkDrag
+              [cdkDragFreeDragPosition]="{ x: l.x, y: l.y }"
+              (cdkDragEnded)="onBlockDragEnded('languages', $event)"
+              [cdkDragDisabled]="!interactive">
+              <div class="pdf-h2">Langues</div>
+              <div class="pdf-tags" *ngIf="(pdfVm?.languages?.length || 0) > 0; else noLangFree">
+                <span class="pdf-tag" *ngFor="let l2 of pdfVm?.languages">{{ l2 }}</span>
+              </div>
+              <ng-template #noLangFree>
+                <div class="pdf-muted">—</div>
+              </ng-template>
+              <button
+                class="pdf-resize-handle"
+                type="button"
+                *ngIf="interactive"
+                (mousedown)="onResizeStart('languages', $event)"
+                aria-label="Redimensionner"></button>
+            </div>
+
+            <!-- Logiciels -->
+            <div
+              class="pdf-block"
+              *ngIf="getBlockLayout('software') as l"
+              [style.width.px]="l.w"
+              [style.height.px]="l.h"
+              cdkDrag
+              [cdkDragFreeDragPosition]="{ x: l.x, y: l.y }"
+              (cdkDragEnded)="onBlockDragEnded('software', $event)"
+              [cdkDragDisabled]="!interactive">
+              <div class="pdf-h2">Logiciels</div>
+              <div class="pdf-tags" *ngIf="(pdfVm?.software?.length || 0) > 0; else noSoftFree">
+                <span class="pdf-tag" *ngFor="let s2 of pdfVm?.software">{{ s2 }}</span>
+              </div>
+              <ng-template #noSoftFree>
+                <div class="pdf-muted">—</div>
+              </ng-template>
+              <button
+                class="pdf-resize-handle"
+                type="button"
+                *ngIf="interactive"
+                (mousedown)="onResizeStart('software', $event)"
+                aria-label="Redimensionner"></button>
+            </div>
+
+            <!-- Centres d’intérêt -->
+            <div
+              class="pdf-block"
+              *ngIf="getBlockLayout('interests') as l"
+              [style.width.px]="l.w"
+              [style.height.px]="l.h"
+              cdkDrag
+              [cdkDragFreeDragPosition]="{ x: l.x, y: l.y }"
+              (cdkDragEnded)="onBlockDragEnded('interests', $event)"
+              [cdkDragDisabled]="!interactive">
+              <div class="pdf-h2">Centres d’intérêt</div>
+              <div class="pdf-tags" *ngIf="(pdfVm?.interests?.length || 0) > 0; else noInterestsFree">
+                <span class="pdf-tag" *ngFor="let it of pdfVm?.interests">{{ it }}</span>
+              </div>
+              <ng-template #noInterestsFree>
+                <div class="pdf-muted">—</div>
+              </ng-template>
+              <button
+                class="pdf-resize-handle"
+                type="button"
+                *ngIf="interactive"
+                (mousedown)="onResizeStart('interests', $event)"
+                aria-label="Redimensionner"></button>
+            </div>
+
+            <!-- Liens -->
+            <ng-container *ngFor="let lnk of (pdfVm?.links || [])">
+              <div
+                class="pdf-block"
+                *ngIf="getBlockLayout('link:' + lnk.uid) as l"
+                [style.width.px]="l.w"
+                [style.height.px]="l.h"
+                cdkDrag
+                [cdkDragFreeDragPosition]="{ x: l.x, y: l.y }"
+                (cdkDragEnded)="onBlockDragEnded('link:' + lnk.uid, $event)"
+                [cdkDragDisabled]="!interactive">
+                <div class="pdf-h2">Lien</div>
+                <div class="pdf-item">
+                  <div class="pdf-item-title">
+                    <span class="pdf-strong">{{ lnk.label || lnk.url || '—' }}</span>
+                  </div>
+                  <div class="pdf-meta" *ngIf="lnk.url">{{ lnk.url }}</div>
+                </div>
+                <button
+                  class="pdf-resize-handle"
+                  type="button"
+                  *ngIf="interactive"
+                  (mousedown)="onResizeStart('link:' + lnk.uid, $event)"
+                  aria-label="Redimensionner"></button>
+              </div>
+            </ng-container>
+          </div>
+        </ng-container>
+
+        <ng-template #structuredPdf>
           <div class="pdf-header">
             <div class="pdf-header-left">
-              <div class="pdf-avatar" *ngIf="pdfVm.avatarDataUrl; else pdfNoAvatar">
-                <img [src]="pdfVm.avatarDataUrl" alt="Photo" />
+              <div class="pdf-avatar" *ngIf="pdfVm?.avatarDataUrl; else pdfNoAvatar">
+                <img [src]="pdfVm?.avatarDataUrl" alt="Photo" />
               </div>
               <ng-template #pdfNoAvatar>
                 <div class="pdf-avatar"></div>
               </ng-template>
 
               <div class="pdf-id">
-                <div class="pdf-title">{{ pdfVm.fullName || '—' }}</div>
-                <div class="pdf-role" *ngIf="pdfVm.jobTitle">{{ pdfVm.jobTitle }}</div>
-                <div class="pdf-headline" *ngIf="pdfVm.headline">{{ pdfVm.headline }}</div>
+                <div class="pdf-title">{{ pdfVm?.fullName || '—' }}</div>
+                <div class="pdf-role" *ngIf="pdfVm?.jobTitle">{{ pdfVm?.jobTitle }}</div>
+                <div class="pdf-headline" *ngIf="pdfVm?.headline">{{ pdfVm?.headline }}</div>
                 <div class="pdf-subtitle">
-                  <span *ngIf="pdfVm.email">{{ pdfVm.email }}</span>
-                  <span *ngIf="pdfVm.phone">• {{ pdfVm.phone }}</span>
-                  <span *ngIf="pdfVm.address">• {{ pdfVm.address }}</span>
-                  <span *ngIf="pdfVm.linkedin">• {{ pdfVm.linkedin }}</span>
+                  <span *ngIf="pdfVm?.email">{{ pdfVm?.email }}</span>
+                  <span *ngIf="pdfVm?.phone">• {{ pdfVm?.phone }}</span>
+                  <span *ngIf="pdfVm?.address">• {{ pdfVm?.address }}</span>
+                  <span *ngIf="pdfVm?.linkedin">• {{ pdfVm?.linkedin }}</span>
                 </div>
               </div>
             </div>
@@ -459,7 +792,7 @@
               <ng-container *ngSwitchCase="'profile'">
                 <div class="pdf-section">
                   <div class="pdf-h2">Profil</div>
-                  <div class="pdf-text" *ngIf="pdfVm.aboutMe; else noAbout">{{ pdfVm.aboutMe }}</div>
+                  <div class="pdf-text" *ngIf="pdfVm?.aboutMe; else noAbout">{{ pdfVm?.aboutMe }}</div>
                   <ng-template #noAbout>
                     <div class="pdf-muted">—</div>
                   </ng-template>
@@ -467,9 +800,9 @@
               </ng-container>
 
               <ng-container *ngSwitchCase="'experiences'">
-                <div class="pdf-section" *ngIf="(pdfVm.experiences?.length || 0) > 0">
+                <div class="pdf-section" *ngIf="(pdfVm?.experiences?.length || 0) > 0">
                   <div class="pdf-h2">Expériences</div>
-                  <div class="pdf-item" *ngFor="let exp of pdfVm.experiences">
+                  <div class="pdf-item" *ngFor="let exp of pdfVm?.experiences">
                     <div class="pdf-item-title">
                       <span class="pdf-strong">{{ exp.title || '—' }}</span>
                       <span class="pdf-sep" *ngIf="exp.company">—</span>
@@ -482,9 +815,9 @@
               </ng-container>
 
               <ng-container *ngSwitchCase="'projects'">
-                <div class="pdf-section" *ngIf="(pdfVm.projects?.length || 0) > 0">
+                <div class="pdf-section" *ngIf="(pdfVm?.projects?.length || 0) > 0">
                   <div class="pdf-h2">Projets</div>
-                  <div class="pdf-item" *ngFor="let p of pdfVm.projects">
+                  <div class="pdf-item" *ngFor="let p of pdfVm?.projects">
                     <div class="pdf-item-title">
                       <span class="pdf-strong">{{ p.name || '—' }}</span>
                       <span class="pdf-sep" *ngIf="p.tech">—</span>
@@ -497,9 +830,9 @@
               </ng-container>
 
               <ng-container *ngSwitchCase="'education'">
-                <div class="pdf-section" *ngIf="(pdfVm.education?.length || 0) > 0">
+                <div class="pdf-section" *ngIf="(pdfVm?.education?.length || 0) > 0">
                   <div class="pdf-h2">Éducation</div>
-                  <div class="pdf-item" *ngFor="let edu of pdfVm.education">
+                  <div class="pdf-item" *ngFor="let edu of pdfVm?.education">
                     <div class="pdf-item-title">
                       <span class="pdf-strong">{{ edu.school || '—' }}</span>
                       <span class="pdf-sep" *ngIf="edu.degree">—</span>
@@ -512,9 +845,9 @@
               </ng-container>
 
               <ng-container *ngSwitchCase="'certifications'">
-                <div class="pdf-section" *ngIf="(pdfVm.certifications?.length || 0) > 0">
+                <div class="pdf-section" *ngIf="(pdfVm?.certifications?.length || 0) > 0">
                   <div class="pdf-h2">Certifications</div>
-                  <div class="pdf-item" *ngFor="let c of pdfVm.certifications">
+                  <div class="pdf-item" *ngFor="let c of pdfVm?.certifications">
                     <div class="pdf-item-title">
                       <span class="pdf-strong">{{ c.name || '—' }}</span>
                       <span class="pdf-sep" *ngIf="c.issuer">—</span>
@@ -533,8 +866,8 @@
                 <div class="pdf-grid">
                   <div class="pdf-section">
                     <div class="pdf-h2">Compétences</div>
-                    <div class="pdf-tags" *ngIf="(pdfVm.skills?.length || 0) > 0; else noSkills">
-                      <span class="pdf-tag" *ngFor="let s of pdfVm.skills">{{ s }}</span>
+                    <div class="pdf-tags" *ngIf="(pdfVm?.skills?.length || 0) > 0; else noSkills">
+                      <span class="pdf-tag" *ngFor="let s of pdfVm?.skills">{{ s }}</span>
                     </div>
                     <ng-template #noSkills>
                       <div class="pdf-muted">—</div>
@@ -543,8 +876,8 @@
 
                   <div class="pdf-section">
                     <div class="pdf-h2">Langues</div>
-                    <div class="pdf-tags" *ngIf="(pdfVm.languages?.length || 0) > 0; else noLang">
-                      <span class="pdf-tag" *ngFor="let l of pdfVm.languages">{{ l }}</span>
+                    <div class="pdf-tags" *ngIf="(pdfVm?.languages?.length || 0) > 0; else noLang">
+                      <span class="pdf-tag" *ngFor="let l of pdfVm?.languages">{{ l }}</span>
                     </div>
                     <ng-template #noLang>
                       <div class="pdf-muted">—</div>
@@ -553,8 +886,8 @@
 
                   <div class="pdf-section">
                     <div class="pdf-h2">Logiciels</div>
-                    <div class="pdf-tags" *ngIf="(pdfVm.software?.length || 0) > 0; else noSoft">
-                      <span class="pdf-tag" *ngFor="let s of pdfVm.software">{{ s }}</span>
+                    <div class="pdf-tags" *ngIf="(pdfVm?.software?.length || 0) > 0; else noSoft">
+                      <span class="pdf-tag" *ngFor="let s of pdfVm?.software">{{ s }}</span>
                     </div>
                     <ng-template #noSoft>
                       <div class="pdf-muted">—</div>
@@ -563,8 +896,8 @@
 
                   <div class="pdf-section">
                     <div class="pdf-h2">Centres d’intérêt</div>
-                    <div class="pdf-tags" *ngIf="(pdfVm.interests?.length || 0) > 0; else noInterests">
-                      <span class="pdf-tag" *ngFor="let it of pdfVm.interests">{{ it }}</span>
+                    <div class="pdf-tags" *ngIf="(pdfVm?.interests?.length || 0) > 0; else noInterests">
+                      <span class="pdf-tag" *ngFor="let it of pdfVm?.interests">{{ it }}</span>
                     </div>
                     <ng-template #noInterests>
                       <div class="pdf-muted">—</div>
@@ -576,8 +909,8 @@
               <ng-container *ngSwitchCase="'links'">
                 <div class="pdf-section">
                   <div class="pdf-h2">Liens</div>
-                  <div class="pdf-tags" *ngIf="(pdfVm.links?.length || 0) > 0; else noLinks">
-                    <span class="pdf-tag" *ngFor="let l of pdfVm.links">{{ l.label || l.url }}</span>
+                  <div class="pdf-tags" *ngIf="(pdfVm?.links?.length || 0) > 0; else noLinks">
+                    <span class="pdf-tag" *ngFor="let l of pdfVm?.links">{{ l.label || l.url }}</span>
                   </div>
                   <ng-template #noLinks>
                     <div class="pdf-muted">—</div>
@@ -599,6 +932,16 @@
               </ng-container>
             </div>
           </div>
+        </ng-template>
+      </ng-template>
+
+      <div class="pdf-root" *ngIf="pdfVm" aria-hidden="true">
+        <div
+          class="pdf-surface"
+          #pdfContent
+          [style.--pdf-primary]="cvPrimaryColor"
+          [style.--pdf-accent]="cvAccentColor">
+          <ng-container *ngTemplateOutlet="pdfBodyTemplate; context: { interactive: false }"></ng-container>
         </div>
       </div>
     </div>

@@ -128,7 +128,9 @@ async function init() {
             projects JSONB NOT NULL DEFAULT '[]'::jsonb,
             certifications JSONB NOT NULL DEFAULT '[]'::jsonb,
             pdf_sections_order JSONB NOT NULL DEFAULT '[]'::jsonb,
-            pdf_sections_layout JSONB NOT NULL DEFAULT '{}'::jsonb
+            pdf_sections_layout JSONB NOT NULL DEFAULT '{}'::jsonb,
+            pdf_free_layout_enabled BOOLEAN NOT NULL DEFAULT false,
+            pdf_blocks_layout JSONB NOT NULL DEFAULT '{}'::jsonb
         )
     `);
 
@@ -153,7 +155,9 @@ async function init() {
             projects JSONB NOT NULL DEFAULT '[]'::jsonb,
             certifications JSONB NOT NULL DEFAULT '[]'::jsonb,
             pdf_sections_order JSONB NOT NULL DEFAULT '[]'::jsonb,
-            pdf_sections_layout JSONB NOT NULL DEFAULT '{}'::jsonb
+            pdf_sections_layout JSONB NOT NULL DEFAULT '{}'::jsonb,
+            pdf_free_layout_enabled BOOLEAN NOT NULL DEFAULT false,
+            pdf_blocks_layout JSONB NOT NULL DEFAULT '{}'::jsonb
         )
     `);
 
@@ -172,6 +176,8 @@ async function init() {
     await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS certifications JSONB NOT NULL DEFAULT '[]'::jsonb`);
     await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS pdf_sections_order JSONB NOT NULL DEFAULT '[]'::jsonb`);
     await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS pdf_sections_layout JSONB NOT NULL DEFAULT '{}'::jsonb`);
+    await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS pdf_free_layout_enabled BOOLEAN NOT NULL DEFAULT false`);
+    await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS pdf_blocks_layout JSONB NOT NULL DEFAULT '{}'::jsonb`);
 
     // Champs contact du CV (ajouts non destructifs)
     await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT`);
@@ -188,6 +194,8 @@ async function init() {
     await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS certifications JSONB NOT NULL DEFAULT '[]'::jsonb`);
     await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pdf_sections_order JSONB NOT NULL DEFAULT '[]'::jsonb`);
     await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pdf_sections_layout JSONB NOT NULL DEFAULT '{}'::jsonb`);
+    await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pdf_free_layout_enabled BOOLEAN NOT NULL DEFAULT false`);
+    await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pdf_blocks_layout JSONB NOT NULL DEFAULT '{}'::jsonb`);
 
     console.log(`Connecté à PostgreSQL (${safeDbLabel()}) et tables initialisées.`);
 }
