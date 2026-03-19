@@ -65,12 +65,34 @@ function normalizeTextArray(value) {
     .filter(Boolean);
 }
 
+function normalizePdfSectionsLayout(value) {
+  const obj = value && typeof value === 'object' ? value : null;
+  const leftRaw = Array.isArray(obj?.left) ? obj.left : [];
+  const rightRaw = Array.isArray(obj?.right) ? obj.right : [];
+
+  const seen = new Set();
+  const pick = (arr) =>
+    arr
+      .filter((v) => typeof v === 'string')
+      .map((v) => v.trim())
+      .filter(Boolean)
+      .filter((v) => {
+        const key = v.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+  return { left: pick(leftRaw), right: pick(rightRaw) };
+}
+
 function toProfessionalProfileDto(row) {
   if (!row) {
     return {
       jobTitle: '',
       headline: '',
       pdfSectionsOrder: [],
+      pdfSectionsLayout: { left: [], right: [] },
       aboutMe: '',
       experiences: [],
       education: [],
@@ -91,6 +113,7 @@ function toProfessionalProfileDto(row) {
     jobTitle: row.job_title ?? '',
     headline: row.headline ?? '',
     pdfSectionsOrder: Array.isArray(row.pdf_sections_order) ? row.pdf_sections_order : [],
+    pdfSectionsLayout: normalizePdfSectionsLayout(row.pdf_sections_layout),
     aboutMe: row.about_me ?? '',
     experiences: row.experiences ?? [],
     education: row.education ?? [],
@@ -141,6 +164,9 @@ exports.saveProfile = async (req, res) => {
       pdfSectionsOrder: Object.prototype.hasOwnProperty.call(body, 'pdfSectionsOrder')
         ? (Array.isArray(body.pdfSectionsOrder) ? body.pdfSectionsOrder : [])
         : (Array.isArray(existing?.pdf_sections_order) ? existing.pdf_sections_order : []),
+      pdfSectionsLayout: Object.prototype.hasOwnProperty.call(body, 'pdfSectionsLayout')
+        ? normalizePdfSectionsLayout(body.pdfSectionsLayout)
+        : normalizePdfSectionsLayout(existing?.pdf_sections_layout),
       aboutMe: typeof body.aboutMe === 'string' ? body.aboutMe : '',
       experiences: Array.isArray(body.experiences) ? body.experiences : [],
       education: Array.isArray(body.education) ? body.education : [],

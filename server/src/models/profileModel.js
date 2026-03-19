@@ -90,6 +90,30 @@ function normalizeStringArrayFromJson(value) {
   return value.filter((v) => typeof v === 'string').map((v) => v.trim()).filter(Boolean);
 }
 
+function normalizePdfSectionsLayout(value) {
+  const obj = value && typeof value === 'object' ? value : null;
+  const leftRaw = Array.isArray(obj?.left) ? obj.left : [];
+  const rightRaw = Array.isArray(obj?.right) ? obj.right : [];
+
+  const seen = new Set();
+  const pick = (arr) =>
+    arr
+      .filter((v) => typeof v === 'string')
+      .map((v) => v.trim())
+      .filter(Boolean)
+      .filter((v) => {
+        const key = v.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+  return {
+    left: pick(leftRaw),
+    right: pick(rightRaw),
+  };
+}
+
 function normalizeString(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
@@ -98,7 +122,7 @@ const ProfileModel = {
   async getProfile(userId) {
     const sql = `
       SELECT user_id, about_me, experiences, education, languages, software, phone, address, linkedin,
-             job_title, headline, skills, interests, links, projects, certifications, pdf_sections_order
+             job_title, headline, skills, interests, links, projects, certifications, pdf_sections_order, pdf_sections_layout
       FROM user_profiles
       WHERE user_id = ?
     `;
@@ -115,13 +139,14 @@ const ProfileModel = {
         projects: normalizeJsonArray(row.projects),
         certifications: normalizeJsonArray(row.certifications),
         pdf_sections_order: normalizeStringArrayFromJson(row.pdf_sections_order),
+        pdf_sections_layout: normalizePdfSectionsLayout(row.pdf_sections_layout),
       };
     }
 
     // Fallback: ancienne table `profiles` (si des données existent déjà en base)
     const legacySql = `
       SELECT user_id, about_me, experiences, education, languages, software, phone, address, linkedin,
-             job_title, headline, skills, interests, links, projects, certifications, pdf_sections_order
+             job_title, headline, skills, interests, links, projects, certifications, pdf_sections_order, pdf_sections_layout
       FROM profiles
       WHERE user_id = ?
     `;
@@ -138,6 +163,7 @@ const ProfileModel = {
       projects: normalizeJsonArray(legacy.projects),
       certifications: normalizeJsonArray(legacy.certifications),
       pdf_sections_order: normalizeStringArrayFromJson(legacy.pdf_sections_order),
+      pdf_sections_layout: normalizePdfSectionsLayout(legacy.pdf_sections_layout),
     };
 
     // Copie best-effort vers user_profiles
@@ -155,6 +181,7 @@ const ProfileModel = {
         projects: normalizeJsonArray(copied.projects),
         certifications: normalizeJsonArray(copied.certifications),
         pdf_sections_order: normalizeStringArrayFromJson(copied.pdf_sections_order),
+        pdf_sections_layout: normalizePdfSectionsLayout(copied.pdf_sections_layout),
       };
     } catch {
       return normalizedLegacy;
@@ -179,17 +206,18 @@ const ProfileModel = {
     const projects = normalizeJsonArray(data?.projects);
     const certifications = normalizeJsonArray(data?.certifications);
     const pdfSectionsOrder = normalizeStringArrayFromJson(data?.pdf_sections_order ?? data?.pdfSectionsOrder);
+    const pdfSectionsLayout = normalizePdfSectionsLayout(data?.pdf_sections_layout ?? data?.pdfSectionsLayout);
 
     const sql = `
       INSERT INTO user_profiles (
         user_id, about_me, experiences, education, languages, software,
         phone, address, linkedin,
-        job_title, headline, skills, interests, links, projects, certifications, pdf_sections_order
+        job_title, headline, skills, interests, links, projects, certifications, pdf_sections_order, pdf_sections_layout
       )
       VALUES (
         ?, ?, ?::jsonb, ?::jsonb, ?::text[], ?::text[],
         ?, ?, ?,
-        ?, ?, ?::text[], ?::text[], ?::jsonb, ?::jsonb, ?::jsonb, ?::jsonb
+        ?, ?, ?::text[], ?::text[], ?::jsonb, ?::jsonb, ?::jsonb, ?::jsonb, ?::jsonb
       )
       ON CONFLICT (user_id)
       DO UPDATE SET
@@ -208,7 +236,8 @@ const ProfileModel = {
         links = EXCLUDED.links,
         projects = EXCLUDED.projects,
         certifications = EXCLUDED.certifications,
-        pdf_sections_order = EXCLUDED.pdf_sections_order
+        pdf_sections_order = EXCLUDED.pdf_sections_order,
+        pdf_sections_layout = EXCLUDED.pdf_sections_layout
     `;
 
     await dbRun(sql, [
@@ -229,6 +258,7 @@ const ProfileModel = {
       JSON.stringify(projects),
       JSON.stringify(certifications),
       JSON.stringify(pdfSectionsOrder),
+      JSON.stringify(pdfSectionsLayout),
     ]);
 
     // Compat: maintient aussi l'ancienne table `profiles` (si elle est consultée ailleurs).
@@ -237,12 +267,12 @@ const ProfileModel = {
       INSERT INTO profiles (
         user_id, about_me, experiences, education, languages, software,
         phone, address, linkedin,
-        job_title, headline, skills, interests, links, projects, certifications, pdf_sections_order
+        job_title, headline, skills, interests, links, projects, certifications, pdf_sections_order, pdf_sections_layout
       )
       VALUES (
         ?, ?, ?::jsonb, ?::jsonb, ?::text[], ?::text[],
         ?, ?, ?,
-        ?, ?, ?::text[], ?::text[], ?::jsonb, ?::jsonb, ?::jsonb, ?::jsonb
+        ?, ?, ?::text[], ?::text[], ?::jsonb, ?::jsonb, ?::jsonb, ?::jsonb, ?::jsonb
       )
       ON CONFLICT (user_id)
       DO UPDATE SET
@@ -261,7 +291,8 @@ const ProfileModel = {
         links = EXCLUDED.links,
         projects = EXCLUDED.projects,
         certifications = EXCLUDED.certifications,
-        pdf_sections_order = EXCLUDED.pdf_sections_order
+        pdf_sections_order = EXCLUDED.pdf_sections_order,
+        pdf_sections_layout = EXCLUDED.pdf_sections_layout
     `;
 
     try {
@@ -283,6 +314,7 @@ const ProfileModel = {
         JSON.stringify(projects),
         JSON.stringify(certifications),
         JSON.stringify(pdfSectionsOrder),
+        JSON.stringify(pdfSectionsLayout),
       ]);
     } catch {
       // Best-effort only.

@@ -2,6 +2,7 @@ export interface ProfessionalProfile {
   jobTitle?: string;
   headline?: string;
   pdfSectionsOrder?: string[];
+  pdfSectionsLayout?: { left: string[]; right: string[] };
   aboutMe: string;
   experiences: Array<Record<string, any>>;
   education: Array<Record<string, any>>;

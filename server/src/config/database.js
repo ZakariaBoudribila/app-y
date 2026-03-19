@@ -127,7 +127,8 @@ async function init() {
             links JSONB NOT NULL DEFAULT '[]'::jsonb,
             projects JSONB NOT NULL DEFAULT '[]'::jsonb,
             certifications JSONB NOT NULL DEFAULT '[]'::jsonb,
-            pdf_sections_order JSONB NOT NULL DEFAULT '[]'::jsonb
+            pdf_sections_order JSONB NOT NULL DEFAULT '[]'::jsonb,
+            pdf_sections_layout JSONB NOT NULL DEFAULT '{}'::jsonb
         )
     `);
 
@@ -151,7 +152,8 @@ async function init() {
             links JSONB NOT NULL DEFAULT '[]'::jsonb,
             projects JSONB NOT NULL DEFAULT '[]'::jsonb,
             certifications JSONB NOT NULL DEFAULT '[]'::jsonb,
-            pdf_sections_order JSONB NOT NULL DEFAULT '[]'::jsonb
+            pdf_sections_order JSONB NOT NULL DEFAULT '[]'::jsonb,
+            pdf_sections_layout JSONB NOT NULL DEFAULT '{}'::jsonb
         )
     `);
 
@@ -169,6 +171,7 @@ async function init() {
     await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS projects JSONB NOT NULL DEFAULT '[]'::jsonb`);
     await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS certifications JSONB NOT NULL DEFAULT '[]'::jsonb`);
     await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS pdf_sections_order JSONB NOT NULL DEFAULT '[]'::jsonb`);
+    await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS pdf_sections_layout JSONB NOT NULL DEFAULT '{}'::jsonb`);
 
     // Champs contact du CV (ajouts non destructifs)
     await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT`);
@@ -184,6 +187,7 @@ async function init() {
     await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS projects JSONB NOT NULL DEFAULT '[]'::jsonb`);
     await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS certifications JSONB NOT NULL DEFAULT '[]'::jsonb`);
     await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pdf_sections_order JSONB NOT NULL DEFAULT '[]'::jsonb`);
+    await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pdf_sections_layout JSONB NOT NULL DEFAULT '{}'::jsonb`);
 
     console.log(`Connecté à PostgreSQL (${safeDbLabel()}) et tables initialisées.`);
 }

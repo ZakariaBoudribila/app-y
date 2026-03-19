@@ -1,5 +1,5 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { FormArray, FormBuilder } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { ConfirmService } from '../../services/confirm.service';
@@ -104,6 +104,11 @@ type PdfSectionId =
   | 'grid'
   | 'links';
 
+type PdfSectionsLayout = {
+  left: PdfSectionId[];
+  right: PdfSectionId[];
+};
+
 @Component({
   selector: 'app-pro-page',
   templateUrl: './pro-page.component.html',
@@ -139,6 +144,16 @@ export class ProPageComponent {
   private readonly defaultPdfSectionOrder: PdfSectionId[] = this.pdfSectionCatalog.map((x) => x.id);
 
   pdfSectionOrder: PdfSectionId[] = [...this.defaultPdfSectionOrder];
+
+  private readonly defaultPdfSectionsLayout: PdfSectionsLayout = {
+    left: ['profile', 'experiences', 'education'],
+    right: ['projects', 'certifications', 'grid', 'links'],
+  };
+
+  pdfSectionsLayout: PdfSectionsLayout = {
+    left: [...this.defaultPdfSectionsLayout.left],
+    right: [...this.defaultPdfSectionsLayout.right],
+  };
 
   @ViewChild('pdfContent') private pdfContentRef?: ElementRef<HTMLElement>;
 
@@ -229,6 +244,62 @@ export class ProPageComponent {
     return out;
   }
 
+  private sanitizePdfSectionsLayout(input: unknown, fallbackOrder: PdfSectionId[]): PdfSectionsLayout {
+    const allowed = new Set(this.defaultPdfSectionOrder);
+    const seen = new Set<PdfSectionId>();
+
+    const pick = (arr: unknown): PdfSectionId[] => {
+      if (!Array.isArray(arr)) return [];
+      const out: PdfSectionId[] = [];
+      for (const raw of arr) {
+        if (typeof raw !== 'string') continue;
+        const id = raw as PdfSectionId;
+        if (!allowed.has(id)) continue;
+        if (seen.has(id)) continue;
+        seen.add(id);
+        out.push(id);
+      }
+      return out;
+    };
+
+    const obj = (input && typeof input === 'object') ? (input as any) : null;
+    const left = pick(obj?.left);
+    const right = pick(obj?.right);
+
+    // Si aucun layout n'est fourni, on applique un défaut en 2 colonnes.
+    if (left.length === 0 && right.length === 0) {
+      const defaultLeft = new Set(this.defaultPdfSectionsLayout.left);
+      const nextLeft: PdfSectionId[] = [];
+      const nextRight: PdfSectionId[] = [];
+      for (const id of fallbackOrder) {
+        if (!allowed.has(id)) continue;
+        if (defaultLeft.has(id)) nextLeft.push(id);
+        else nextRight.push(id);
+      }
+      return { left: nextLeft, right: nextRight };
+    }
+
+    // Ajoute les sections manquantes en respectant un ordre fallback.
+    const missing: PdfSectionId[] = [];
+    for (const id of fallbackOrder) {
+      if (seen.has(id)) continue;
+      seen.add(id);
+      missing.push(id);
+    }
+
+    const nextLeft = [...left];
+    const nextRight = [...right];
+
+    const defaultLeft = new Set(this.defaultPdfSectionsLayout.left);
+    // Complète dans la colonne par défaut.
+    for (const id of missing) {
+      if (defaultLeft.has(id)) nextLeft.push(id);
+      else nextRight.push(id);
+    }
+
+    return { left: nextLeft, right: nextRight };
+  }
+
   getPdfSectionLabel(id: PdfSectionId): string {
     return this.pdfSectionCatalog.find((x) => x.id === id)?.label || id;
   }
@@ -238,7 +309,31 @@ export class ProPageComponent {
     if (!event?.container?.data) return;
 
     moveItemInArray(this.pdfSectionOrder, event.previousIndex, event.currentIndex);
+    // Maintient le layout en cohérence (mode legacy: 1 seule liste).
+    this.pdfSectionsLayout = {
+      left: [...this.pdfSectionOrder],
+      right: [],
+    };
     // Ce choix doit être sauvegardé avec le profil.
+    this.form.markAsDirty();
+  }
+
+  onPdfLayoutDrop(event: CdkDragDrop<PdfSectionId[]>) {
+    if (!this.isEditing) return;
+
+    if (event.previousContainer === event.container) {
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+    } else {
+      transferArrayItem(
+        event.previousContainer.data,
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex
+      );
+    }
+
+    // Recalcule l'ordre plat pour compat (et pour le rendu qui en a besoin).
+    this.pdfSectionOrder = [...this.pdfSectionsLayout.left, ...this.pdfSectionsLayout.right];
     this.form.markAsDirty();
   }
 
@@ -596,10 +691,16 @@ export class ProPageComponent {
 
   private normalizeIncomingProfile(p: ProfessionalProfile): ProfessionalProfile {
     const orderRaw = (p as any)?.pdfSectionsOrder ?? (p as any)?.pdf_sections_order;
+    const layoutRaw = (p as any)?.pdfSectionsLayout ?? (p as any)?.pdf_sections_layout;
+
+    const sanitizedOrder = this.sanitizePdfSectionsOrder(orderRaw);
+    const sanitizedLayout = this.sanitizePdfSectionsLayout(layoutRaw, sanitizedOrder);
+
     return {
       jobTitle: typeof (p as any)?.jobTitle === 'string' ? (p as any).jobTitle : (typeof (p as any)?.job_title === 'string' ? (p as any).job_title : ''),
       headline: typeof (p as any)?.headline === 'string' ? (p as any).headline : '',
-      pdfSectionsOrder: this.sanitizePdfSectionsOrder(orderRaw),
+      pdfSectionsOrder: sanitizedOrder,
+      pdfSectionsLayout: { left: [...sanitizedLayout.left], right: [...sanitizedLayout.right] },
       phone: typeof (p as any)?.phone === 'string' ? (p as any).phone : '',
       address: typeof (p as any)?.address === 'string' ? (p as any).address : '',
       linkedin: typeof (p as any)?.linkedin === 'string' ? (p as any).linkedin : '',
@@ -636,7 +737,10 @@ export class ProPageComponent {
   }
 
   private setFormFromProfile(profile: ProfessionalProfile) {
-    this.pdfSectionOrder = this.sanitizePdfSectionsOrder((profile as any).pdfSectionsOrder);
+    const sanitizedOrder = this.sanitizePdfSectionsOrder((profile as any).pdfSectionsOrder);
+    const sanitizedLayout = this.sanitizePdfSectionsLayout((profile as any).pdfSectionsLayout, sanitizedOrder);
+    this.pdfSectionsLayout = sanitizedLayout;
+    this.pdfSectionOrder = [...sanitizedLayout.left, ...sanitizedLayout.right];
     this.form.controls.jobTitle.setValue(profile.jobTitle || '');
     this.form.controls.headline.setValue(profile.headline || '');
     this.form.controls.phone.setValue(profile.phone || '');
@@ -686,6 +790,10 @@ export class ProPageComponent {
       jobTitle: raw.jobTitle || '',
       headline: raw.headline || '',
       pdfSectionsOrder: [...this.pdfSectionOrder],
+      pdfSectionsLayout: {
+        left: [...this.pdfSectionsLayout.left],
+        right: [...this.pdfSectionsLayout.right],
+      },
       phone: raw.phone || '',
       address: raw.address || '',
       linkedin: raw.linkedin || '',

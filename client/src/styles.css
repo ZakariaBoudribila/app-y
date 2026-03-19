@@ -463,6 +463,19 @@ app-root {
   gap: 8px;
 }
 
+.pro-page .pdf-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.pro-page .pdf-layout-title {
+  font-family: var(--app-font-body);
+  font-size: 0.85rem;
+  opacity: 0.75;
+  margin-bottom: 8px;
+}
+
 .pro-page .pdf-order-item {
   display: flex;
   align-items: center;
@@ -503,6 +516,19 @@ app-root {
 
 .pro-page .pdf-order-item.cdk-drag-placeholder {
   opacity: 0;
+}
+
+/* PDF: disposition en deux colonnes */
+.pdf-surface .pdf-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.pdf-surface .pdf-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 @media (max-width: 980px) {
   .pro-page .cv-grid {

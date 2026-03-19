@@ -95,19 +95,43 @@
         <div class="cv-grid">
       <section class="widget-card">
         <div class="section-header">
-          <h2>Ordre du PDF</h2>
-          <div class="pdf-muted" *ngIf="!isEditing">Clique sur « Modifier » pour réorganiser.</div>
+          <h2>Disposition du PDF</h2>
+          <div class="pdf-muted" *ngIf="!isEditing">Clique sur « Modifier » puis glisse les blocs à gauche/droite et en haut/bas.</div>
         </div>
 
-        <div
-          class="pdf-order-list"
-          cdkDropList
-          [cdkDropListData]="pdfSectionOrder"
-          [cdkDropListDisabled]="!isEditing"
-          (cdkDropListDropped)="onPdfSectionDrop($event)">
-          <div class="pdf-order-item" *ngFor="let id of pdfSectionOrder" cdkDrag [cdkDragDisabled]="!isEditing">
-            <span class="pdf-order-handle" cdkDragHandle aria-hidden="true">⋮⋮</span>
-            <span class="pdf-order-text">{{ getPdfSectionLabel(id) }}</span>
+        <div class="pdf-layout-grid">
+          <div class="pdf-layout-col">
+            <div class="pdf-layout-title">Colonne gauche</div>
+            <div
+              class="pdf-order-list"
+              cdkDropList
+              id="pdfLeftList"
+              [cdkDropListConnectedTo]="['pdfRightList']"
+              [cdkDropListData]="pdfSectionsLayout.left"
+              [cdkDropListDisabled]="!isEditing"
+              (cdkDropListDropped)="onPdfLayoutDrop($event)">
+              <div class="pdf-order-item" *ngFor="let id of pdfSectionsLayout.left" cdkDrag [cdkDragDisabled]="!isEditing">
+                <span class="pdf-order-handle" cdkDragHandle aria-hidden="true">⋮⋮</span>
+                <span class="pdf-order-text">{{ getPdfSectionLabel(id) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pdf-layout-col">
+            <div class="pdf-layout-title">Colonne droite</div>
+            <div
+              class="pdf-order-list"
+              cdkDropList
+              id="pdfRightList"
+              [cdkDropListConnectedTo]="['pdfLeftList']"
+              [cdkDropListData]="pdfSectionsLayout.right"
+              [cdkDropListDisabled]="!isEditing"
+              (cdkDropListDropped)="onPdfLayoutDrop($event)">
+              <div class="pdf-order-item" *ngFor="let id of pdfSectionsLayout.right" cdkDrag [cdkDragDisabled]="!isEditing">
+                <span class="pdf-order-handle" cdkDragHandle aria-hidden="true">⋮⋮</span>
+                <span class="pdf-order-text">{{ getPdfSectionLabel(id) }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -430,7 +454,7 @@
             <div class="pdf-meta" *ngIf="pdfGeneratedAt as d">{{ d | date: 'dd/MM/yyyy' }}</div>
           </div>
 
-          <ng-container *ngFor="let sid of pdfSectionOrder">
+          <ng-template #pdfSectionTpl let-sid>
             <ng-container [ngSwitch]="sid">
               <ng-container *ngSwitchCase="'profile'">
                 <div class="pdf-section">
@@ -561,7 +585,20 @@
                 </div>
               </ng-container>
             </ng-container>
-          </ng-container>
+          </ng-template>
+
+          <div class="pdf-columns">
+            <div class="pdf-col">
+              <ng-container *ngFor="let sid of pdfSectionsLayout.left">
+                <ng-container *ngTemplateOutlet="pdfSectionTpl; context: { $implicit: sid }"></ng-container>
+              </ng-container>
+            </div>
+            <div class="pdf-col">
+              <ng-container *ngFor="let sid of pdfSectionsLayout.right">
+                <ng-container *ngTemplateOutlet="pdfSectionTpl; context: { $implicit: sid }"></ng-container>
+              </ng-container>
+            </div>
+          </div>
         </div>
       </div>
     </div>
